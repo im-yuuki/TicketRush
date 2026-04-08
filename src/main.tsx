@@ -16,11 +16,11 @@ createRoot(document.getElementById("root")!).render(
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <HashRouter>
         <Routes>
-        <Route path="/" element={<App />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/privacy" element={<Privacy />} />
-        <Route path="/terms" element={<Terms />} />
-        <Route path="*" element={<NotFound />} />
+          <Route path="/" element={<App />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </HashRouter>
     </GoogleOAuthProvider>

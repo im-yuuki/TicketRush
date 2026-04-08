@@ -1,12 +1,12 @@
-import { useState } from 'react'
-import { GoogleLogin } from '@react-oauth/google'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import { Link } from 'react-router-dom'
-import './App.css'
+import { useState } from "react";
+import reactLogo from "./assets/react.svg";
+import viteLogo from "./assets/vite.svg";
+import GoogleOAuth from "./components/GoogleOAuth.tsx";
+import { Link } from "react-router-dom";
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(0);
 
   return (
     <>
@@ -25,19 +25,11 @@ function App() {
         >
           Count is {count}
         </button>
-        <GoogleLogin
-          onSuccess={(credentialResponse) => {
-            console.log('Login Success:', credentialResponse);
-            // Send credential to backend
-          }}
-          onError={() => {
-            console.log('Login Failed');
-          }}
-        />
+        <GoogleOAuth />
         <Link to="/about">Go to About</Link>
       </section>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
