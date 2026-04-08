@@ -1,16 +1,17 @@
-FROM oven/bun:distroless AS build
+FROM oven/bun:latest AS build
 ENV NODE_ENV=production
-WORKDIR /build
+WORKDIR /app
+COPY package.json bun.lockb* ./
+RUN bun install --frozen-lockfile
 COPY . .
-RUN bun install
 RUN bun run build
 
 FROM oven/bun:distroless
 ENV NODE_ENV=production
 EXPOSE 4173
 WORKDIR /app
-COPY --from=build /build/dist ./dist
-COPY --from=build /build/package.json ./package.json
-RUN bun install --production
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/package.json ./package.json
 
 ENTRYPOINT [ "bun", "run", "preview" ]
