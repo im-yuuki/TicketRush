@@ -1,7 +1,7 @@
 {
   "name": "ticketrush",
   "private": true,
-  "version": "0.0.1-dev",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -15,11 +15,11 @@
     "@react-oauth/google": "^0.13.4",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "react-router-dom": "^7.14.0"
+    "react-router": "^7.14.0"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.31.1",
     "@eslint/js": "^9.39.4",
+    "@tailwindcss/vite": "^4.2.2",
     "@types/node": "^24.12.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
