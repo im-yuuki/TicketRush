@@ -5,7 +5,6 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   preview: {
-    allowedHosts: ["host.docker.internal", "ticketrush.june8th.me"],
-    port: 4173,
+    allowedHosts: true,
   },
 });
