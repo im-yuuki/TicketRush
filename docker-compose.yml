@@ -1,0 +1,11 @@
+services:
+  ticketrush:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    images: ticketrush:latest
+    container_name: ticketrush
+    ports:
+      - "4173:4173/tcp"
+    restart: unless-stopped
