@@ -7,5 +7,5 @@ services:
     images: ticketrush:latest
     container_name: ticketrush
     ports:
-      - "4173:4173/tcp"
+      - "8080:80/tcp"
     restart: unless-stopped
