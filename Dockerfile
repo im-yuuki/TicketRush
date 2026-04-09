@@ -7,10 +7,11 @@ RUN bun install --frozen-lockfile
 COPY . .
 RUN bun run build
 
-FROM nginx:alpine
+FROM nginx:stable-alpine-slim
 WORKDIR /var/www/ticketrush
 EXPOSE 80
 
+RUN apk add --no-cache wget
 COPY --from=build /app/dist ./
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 

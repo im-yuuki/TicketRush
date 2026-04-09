@@ -7,5 +7,14 @@ services:
     images: ticketrush:latest
     container_name: ticketrush
     ports:
-      - "8080:80/tcp"
+      # ensure server can get client's real IP address when behind docker
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: host
     restart: unless-stopped
+
+networks:
+  default:
+    name: ticketrush-network
+    enable_ipv6: true
