@@ -2,5 +2,12 @@
     "navigation": {
         "menu": "Menu",
         "login": "Đăng nhập"
-    }
+    },
+    "footer": {
+        "slogan": "Nền tảng quản lý và phân phối vé sự kiện hàng đầu Việt Nam",
+        "copyright": "Bản quyền © 2026 Công ty TNHH TicketRush",
+        "company": "Công ty TNHH TicketRush",
+        "representative": "Lê Đăng Ngô Đan",
+        "license": "Giấy chứng nhận đăng ký doanh nghiệp số: xxxxxxxxxx, cấp ngày xx/xx/2026 tại Sở Kế hoạch và Đầu tư TH.HN"
+    }    
 }

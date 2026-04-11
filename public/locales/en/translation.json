@@ -2,5 +2,12 @@
     "navigation": {
         "menu": "Menu",
         "login": "Login"
-    }
+    },
+    "footer": {
+        "slogan": "The leading event ticket management and distribution platform in Vietnam",
+        "copyright": "Copyright © 2026 TicketRush LLC",
+        "company": "TicketRush LLC",
+        "representative": "Le Dang Ngo Dan",
+        "license": "Business Registration Certificate No.: xxxxxxxxxx, issued on xx/xx/2026 by the Hanoi Department of Planning and Investment"
+    }    
 }
