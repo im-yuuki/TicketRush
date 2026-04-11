@@ -2,5 +2,9 @@
     "navigation": {
         "menu": "Menu",
         "login": "Đăng nhập"
+    },
+    "notFound": {
+        "description": "Xin lỗi, trang bạn đang tìm kiếm không tồn tại.",
+        "backToHome": "Về trang chủ"
     }
 }

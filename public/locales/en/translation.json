@@ -2,5 +2,9 @@
     "navigation": {
         "menu": "Menu",
         "login": "Login"
+    },
+    "notFound": {
+        "description": "Sorry, the page you're looking for doesn't exist.",
+        "backToHome": "Back to Home"
     }
 }

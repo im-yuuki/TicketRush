@@ -2,12 +2,14 @@ import i18next from "i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import { initReactI18next } from "react-i18next";
 import Backend from "i18next-http-backend";
+import EnglishIcon from "./assets/flag-icons-us.svg";
+import VietnameseIcon from "./assets/flag-icons-vn.svg";
 
-export type LanguageOption = { code: string; name: string; icon?: string };
+export type LanguageOption = { code: string; name: string; icon: string };
 
 export const languageOptions: LanguageOption[] = [
-  { code: "vn", name: "Tiếng Việt", icon: "🇻🇳" },
-  { code: "en", name: "English", icon: "🇺🇸" },
+  { code: "vn", name: "Tiếng Việt", icon: VietnameseIcon },
+  { code: "en", name: "English", icon: EnglishIcon },
 ];
 
 export function getCurrentLanguage() {
@@ -24,7 +26,7 @@ export function getLanguage(languageCode: string) {
 export function changeLanguage(languageCode: string) {
   const selectedLanguage = getLanguage(languageCode);
   if (!selectedLanguage) {
-    console.warn(`Unsupported language code: ${languageCode}`);
+    console.error(`Unsupported language code: ${languageCode}`);
     return null;
   }
   i18next.changeLanguage(selectedLanguage.code);
@@ -39,6 +41,6 @@ i18next
   .init({
     supportedLngs: languageOptions.map((option) => option.code),
     returnObjects: true,
-    fallbackLng: "en",
+    fallbackLng: languageOptions[0].code,
     debug: false,
   });
