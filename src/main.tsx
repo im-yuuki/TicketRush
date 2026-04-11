@@ -4,7 +4,7 @@ import { RouterProvider } from "react-router/dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 import AppRouter from "./routes.tsx";
-import { NavigationBar } from "./layout/NavigationBar.tsx";
+import NavigationBar from "./layout/NavigationBar.tsx";
 
 import "./i18n.ts";
 import "./globals.css";
