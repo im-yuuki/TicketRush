@@ -9,5 +9,9 @@
         "company": "Công ty TNHH TicketRush",
         "representative": "Lê Đăng Ngô Đan",
         "license": "Giấy chứng nhận đăng ký doanh nghiệp số: xxxxxxxxxx, cấp ngày xx/xx/2026 tại Sở Kế hoạch và Đầu tư TH.HN"
+    },
+    "notFound": {
+        "description": "Xin lỗi, trang bạn đang tìm kiếm không tồn tại.",
+        "backToHome": "Về trang chủ"
     }    
 }

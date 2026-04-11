@@ -3,6 +3,10 @@
         "menu": "Menu",
         "login": "Login"
     },
+    "notFound": {
+        "description": "Sorry, the page you're looking for doesn't exist.",
+        "backToHome": "Back to Home"
+    },
     "footer": {
         "slogan": "The leading event ticket management and distribution platform in Vietnam",
         "copyright": "Copyright © 2026 TicketRush LLC",

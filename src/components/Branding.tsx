@@ -1,4 +1,4 @@
-export function Logo({ height = 40 }: { height?: number } = {}) {
+export function Logo({ height = 40, accentColor = true }: { height?: number, accentColor?: boolean } = {}) {
   return (
     <div className="flex items-center gap-0 select-none">
       <div
@@ -11,17 +11,17 @@ export function Logo({ height = 40 }: { height?: number } = {}) {
         }}
       >
         <span className="text-foreground">ticket</span>
-        <span className="text-accent">rush</span>
+        <span className={accentColor ? "text-accent" : "text-foreground"}>rush</span>
       </div>
-      <SquareLogo height={height} />
+      <SquareLogo height={height} accentColor={accentColor} />
     </div>
   );
 }
 
-export function SquareLogo({ height = 40 }: { height?: number } = {}) {
+export function SquareLogo({ height = 40, accentColor = true }: { height?: number, accentColor?: boolean } = {}) {
   return (
     <svg
-      className="w-10 h-10 select-none fill-accent"
+      className={`w-10 h-10 select-none ${accentColor ? 'fill-accent' : 'fill-foreground'}`}
       fill="currentColor"
       viewBox="0 0 24 24"
       style={{ height: `${height}px`, width: `${height}px`}}
