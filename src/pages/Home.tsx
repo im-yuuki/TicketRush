@@ -3,7 +3,6 @@
 export default function App() {
   return (
     <>
-      {/* <Link to="/about">Go to About</Link> */}
     </>
   );
 };
