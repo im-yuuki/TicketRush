@@ -52,7 +52,7 @@ function SideMenu() {
       <Dropdown.Trigger className="md:hidden">
         <Button variant="ghost">
           <Menu />
-          <Label className="hidden sm:inline">{menuText}</Label>
+          <Label>{menuText}</Label>
         </Button>
       </Dropdown.Trigger>
       <Drawer.Backdrop>
