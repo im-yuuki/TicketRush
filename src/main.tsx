@@ -4,7 +4,6 @@ import { RouterProvider } from "react-router/dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 import AppRouter from "./routes.tsx";
-import NavigationBar from "./layout/NavigationBar.tsx";
 
 import "./i18n.ts";
 import "./globals.css";
@@ -14,7 +13,6 @@ const GOOGLE_CLIENT_ID = "136819472606-lggdq3cb52ogfb6ebjc0hn6l30hmkb2j.apps.goo
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <NavigationBar />
       <RouterProvider router={AppRouter} />
     </GoogleOAuthProvider>
   </StrictMode>,

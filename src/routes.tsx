@@ -5,18 +5,33 @@ import NotFound from "./pages/NotFound.tsx";
 import Privacy from "./pages/Privacy.tsx";
 import Terms from "./pages/Terms.tsx";
 
+import AppLayout from "./layouts/AppLayout.tsx";
+import PartnerLayout from "./layouts/PartnerLayout.tsx";
+import PaymentLayout from "./layouts/PaymentLayout.tsx";
+
 const AppRouter = createBrowserRouter([
   {
-    path: "/",
-    element: <Home />,
+    element: <AppLayout />,
+    children: [
+      {
+        path: "/",
+        element: <Home />,
+      },
+      {
+        path: "/privacy",
+        element: <Privacy />,
+      },
+      {
+        path: "/terms",
+        element: <Terms />,
+      },
+    ],
   },
   {
-    path: "/privacy",
-    element: <Privacy />,
+    element: <PartnerLayout />,
   },
   {
-    path: "/terms",
-    element: <Terms />,
+    element: <PaymentLayout />,
   },
   {
     path: "*",
