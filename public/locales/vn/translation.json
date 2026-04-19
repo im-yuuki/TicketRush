@@ -1,17 +1,24 @@
 {
-    "navigation": {
-        "menu": "Menu",
-        "login": "Đăng nhập"
-    },
-    "footer": {
-        "slogan": "Nền tảng quản lý và phân phối vé sự kiện hàng đầu Việt Nam",
-        "copyright": "Bản quyền © 2026 Công ty TNHH TicketRush",
-        "company": "Công ty TNHH TicketRush",
-        "representative": "Lê Đăng Ngô Đan",
-        "license": "Giấy chứng nhận đăng ký doanh nghiệp số: xxxxxxxxxx, cấp ngày xx/xx/2026 tại Sở Kế hoạch và Đầu tư TH.HN"
-    },
-    "notFound": {
-        "description": "Xin lỗi, trang bạn đang tìm kiếm không tồn tại.",
-        "backToHome": "Về trang chủ"
-    }
+  "navigation": {
+    "menu": "Menu",
+    "login": "Đăng nhập",
+    "account": "Tài khoản",
+    "myTickets": "Vé của tôi",
+    "notifications": "Thông báo",
+    "settings": "Cài đặt",
+    "logout": "Đăng xuất"
+  },
+  "notFound": {
+    "description": "Xin lỗi, trang bạn đang tìm kiếm không tồn tại.",
+    "backToHome": "Về trang chủ"
+  },
+  "footer": {
+    "slogan": "Nền tảng phân phối vé sự kiện mở.",
+    "copyright": "Bản quyền © 2026 TicketRush. Mọi quyền được bảo lưu.",
+    "aboutUs": "Về chúng tôi",
+    "privacyPolicy": "Chính sách bảo mật",
+    "termsOfService": "Điều khoản dịch vụ",
+    "links": "Liên kết",
+    "support": "Hỗ trợ"
+  }
 }
