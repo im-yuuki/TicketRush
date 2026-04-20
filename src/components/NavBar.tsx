@@ -46,14 +46,13 @@ function LanguageSelector() {
 }
 
 function SideMenu() {
-  const { t } = useTranslation();
-  const menuText = t("navigation.menu", "Menu");
+  // const { t } = useTranslation();
   return (
     <Drawer>
       <Dropdown.Trigger className="lg:hidden">
-        <Button variant="tertiary">
+        <Button variant="tertiary" isIconOnly={true}>
           <Menu />
-          <Label className="hidden md:inline">{menuText}</Label>
+          {/* <Label className="hidden md:inline">{menuText}</Label> */}
         </Button>
       </Dropdown.Trigger>
       <Drawer.Backdrop>

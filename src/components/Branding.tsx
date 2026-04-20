@@ -2,12 +2,11 @@ export function Logo({ height = 40, accentColor = true }: { height?: number, acc
   return (
     <div className="flex items-center gap-0 select-none">
       <div
-        className="flex items-center leading-none"
+        className="flex items-center leading-none font-black"
         style={{
           fontFamily: "Nunito, sans-serif",
           fontSize: `${height * 0.8}px`,
           height: `${height}px`,
-          fontWeight: 900,
         }}
       >
         <span className="text-foreground">ticket</span>

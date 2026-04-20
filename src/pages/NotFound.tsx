@@ -13,7 +13,7 @@ export default function NotFound() {
       <h1 className="text-9xl font-extrabold text-muted">404</h1>
       <p className="text-muted">{description}</p>
       <Link to="/">
-        <Button variant="tertiary">
+        <Button>
           <House />
           {backToHome}
         </Button>
