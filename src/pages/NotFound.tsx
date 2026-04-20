@@ -5,17 +5,17 @@ import { Link } from "react-router";
 
 export default function NotFound() {
   const { t } = useTranslation();
-  const description = t("notFound.description");
-  const backToHome = t("notFound.backToHome");
+  const descriptionText = t("notFound.description");
+  const backToHomeText = t("notFound.backToHome");
 
   return (
     <div className="flex min-h-screen flex-col gap-4 items-center justify-center text-center">
       <h1 className="text-9xl font-extrabold text-muted">404</h1>
-      <p className="text-muted">{description}</p>
+      <p className="text-muted">{descriptionText}</p>
       <Link to="/">
         <Button>
           <House />
-          {backToHome}
+          {backToHomeText}
         </Button>
       </Link>
     </div>

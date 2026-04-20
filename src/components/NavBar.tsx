@@ -74,11 +74,11 @@ function AccountButton() {
   const loginText = t("navigation.login", "Login");
   const unreadNotifications = 5;
 
-  const account = t("navigation.account", "Account");
-  const myTickets = t("navigation.myTickets", "My Tickets");
-  const notifications = t("navigation.notifications", "Notifications");
-  const settings = t("navigation.settings", "Settings");
-  const logout = t("navigation.logout", "Logout");
+  const accountText = t("navigation.account", "Account");
+  const myTicketsText = t("navigation.myTickets", "My Tickets");
+  const notificationsText = t("navigation.notifications", "Notifications");
+  const settingsText = t("navigation.settings", "Settings");
+  const logoutText = t("navigation.logout", "Logout");
 
   const userShortName = userFullName.split(" ").map((n) => n[0]).join("");
 
@@ -114,23 +114,23 @@ function AccountButton() {
           <Dropdown.Menu>
             <Dropdown.Item key="account" textValue="Account">
               <UserRound className="size-3.5 text-muted" />
-              <Label>{account}</Label>
+              <Label>{accountText}</Label>
             </Dropdown.Item>
             <Dropdown.Item key="tickets" textValue="My Tickets">
               <Ticket className="size-3.5 text-muted" />
-              <Label>{myTickets}</Label>
+              <Label>{myTicketsText}</Label>
             </Dropdown.Item>
             <Dropdown.Item key="notifications" textValue="Notifications">
               <Bell className="size-3.5 text-muted" />
-              <Label>{notifications}</Label>
+              <Label>{notificationsText}</Label>
             </Dropdown.Item>
             <Dropdown.Item key="settings" textValue="Settings">
               <Settings className="size-3.5 text-muted" />
-              <Label>{settings}</Label>
+              <Label>{settingsText}</Label>
             </Dropdown.Item>
             <Dropdown.Item key="logout" textValue="Logout" variant="danger">
               <LogOut className="size-3.5 text-danger" />
-              <Label>{logout}</Label>
+              <Label>{logoutText}</Label>
             </Dropdown.Item>
           </Dropdown.Menu>
         </Dropdown.Popover>
