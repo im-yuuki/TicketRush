@@ -20,5 +20,17 @@
     "termsOfService": "Điều khoản dịch vụ",
     "links": "Liên kết",
     "support": "Hỗ trợ"
+  },
+  "trending": {
+    "title": "Sự kiện xu hướng",
+    "from": "Chỉ từ",
+    "prev": "Cuộn trái",
+    "next": "Cuộn phải",
+    "categories": {
+      "music": "Âm nhạc",
+      "festival": "Lễ hội",
+      "sports": "Thể thao",
+      "workshop": "Hội thảo"
+    }
   }
 }
