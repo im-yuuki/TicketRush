@@ -16,11 +16,12 @@
     "slogan": "Nền tảng phân phối vé sự kiện mở.",
     "copyright": "Bản quyền © 2026 TicketRush. Mọi quyền được bảo lưu.",
     "officeAddress": "123 Main Street, City, Country",
-    "aboutUs": "Về chúng tôi",
-    "privacyPolicy": "Chính sách bảo mật",
+    "aboutUsCapitalized": "VỀ CHÚNG TÔI",
+    "privacyPolicy": "Chính sách quyền riêng tư",
     "termsOfService": "Điều khoản dịch vụ",
-    "links": "Liên kết",
+    "linksCapitalized": "LIÊN KẾT",
     "support": "Hỗ trợ",
-    "followUs": "Theo dõi chúng tôi"
+    "followUsCapitalized": "THEO DÕI CHÚNG TÔI",
+    "serverStatus": "Trạng thái máy chủ"
   }
 }

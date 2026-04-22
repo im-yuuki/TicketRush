@@ -1,15 +1,15 @@
 import { Avatar, Badge, Button, Drawer, Dropdown, Label } from "@heroui/react";
-import { Logo } from "../components/Branding";
+import { Logo } from "./Branding.tsx";
 import { Bell, LogOut, Menu, Settings, Ticket, UserRound } from "lucide-react";
 
-import { useEffect, useState, type Key } from "react";
+import { useEffect, useState, type Key, type Ref } from "react";
 import { useTranslation } from "react-i18next";
 import { languageOptions, changeLanguage, getCurrentLanguage } from "../i18n";
 import { Link } from "react-router";
 
 function LanguageSelector() {
   const { i18n } = useTranslation();
-  const [language, setLanguage] = useState(getCurrentLanguage());
+  const [ language, setLanguage ] = useState(getCurrentLanguage());
 
   function handleLanguageChange(key: Key) {
     const selectedLanguage = changeLanguage(key.toString());
@@ -18,24 +18,24 @@ function LanguageSelector() {
 
   useEffect(() => {
     document.body.dir = i18n.dir();
-  }, [i18n, i18n.language]);
+  }, [ i18n, i18n.language ]);
 
   return (
     <Dropdown>
       <Button variant="tertiary">
-        <img src={language.icon} className="size-4 rounded-full" />
+        <img src={language.icon} className="size-4 rounded-full" alt={language.name} />
         <span className="hidden lg:inline">{language.name}</span>
       </Button>
       <Dropdown.Popover>
         <Dropdown.Menu
           onAction={handleLanguageChange}
           selectionMode="single"
-          selectedKeys={new Set([language.code])}
+          selectedKeys={new Set([ language.code ])}
         >
           {languageOptions.map((option) => (
             <Dropdown.Item id={option.code} key={option.code} textValue={option.name}>
               <Dropdown.ItemIndicator />
-              <img src={option.icon} className="size-4 rounded-full" />
+              <img src={option.icon} className="size-4 rounded-full" alt={option.name} />
               <Label>{option.name}</Label>
             </Dropdown.Item>
           ))}
@@ -50,9 +50,8 @@ function SideMenu() {
   return (
     <Drawer>
       <Dropdown.Trigger className="lg:hidden">
-        <Button variant="tertiary" isIconOnly={true}>
+        <Button variant="ghost" isIconOnly={true}>
           <Menu />
-          {/* <Label className="hidden md:inline">{menuText}</Label> */}
         </Button>
       </Dropdown.Trigger>
       <Drawer.Backdrop>
@@ -146,9 +145,9 @@ function AccountButton() {
   }
 }
 
-export default function NavBar({ className }: { className?: string }) {
+export default function NavBar({ className, ref }: { className?: string, ref?: Ref<HTMLElement> | undefined }) {
   return (
-    <nav className={className}>
+    <nav className={className} ref={ref}>
       <div className="container mx-auto px-10 py-4">
         <div className="flex items-center justify-between">
           <SideMenu />

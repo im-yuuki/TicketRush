@@ -16,11 +16,12 @@
     "slogan": "The open event ticket distribution platform.",
     "copyright": "Copyright © 2026 TicketRush. All rights reserved.",
     "officeAddress": "123 Main Street, City, Country",
-    "aboutUs": "ABOUT US",
+    "aboutUsCapitalized": "ABOUT US",
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
-    "links": "LINKS",
+    "linksCapitalized": "LINKS",
     "support": "Support",
-    "followUs": "Follow Us"
+    "followUsCapitalized": "FOLLOW US",
+    "serverStatus": "Server status"
   }
 }

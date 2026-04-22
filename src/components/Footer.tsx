@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Logo } from "../components/Branding";
+import { Logo } from "./Branding.tsx";
 import { Link } from "react-router";
 import { Building, Mail, Phone } from "lucide-react";
 import { Button } from "@heroui/react";
@@ -14,13 +14,14 @@ export default function Footer({ className }: { className?: string }) {
     "footer.officeAddress",
     "123 Main Street, City, Country",
   );
-  const followUsText = t("footer.followUs", "FOLLOW US");
-  const aboutUsText = t("footer.aboutUs", "ABOUT US");
+  const followUsText = t("footer.followUsCapitalized", "FOLLOW US");
+  const aboutUsText = t("footer.aboutUsCapitalized", "ABOUT US");
   const privacyPolicyText = t("footer.privacyPolicy", "Privacy Policy");
   const termsOfServiceText = t("footer.termsOfService", "Terms of Service");
-  const linksText = t("footer.links", "Links");
+  const linksText = t("footer.linksCapitalized", "LINKS");
   const supportText = t("footer.support", "Support");
   const copyrightText = t("footer.copyright", "Copyright");
+  const serverStatusText = t("footer.serverStatus", "Server Status");
 
   // TODO: Replace these placeholders with actual data or fetch from an API
   const officeMapUrl = "https://maps.google.com/";
@@ -39,36 +40,36 @@ export default function Footer({ className }: { className?: string }) {
           </div>
           <table className="text-sm text-muted border-collapse">
             <tbody>
-              <tr>
-                <td className="w-0 pr-2 pb-1">
-                  <Building height={16} />
-                </td>
-                <td className="min-w-0 wrap-break-words pb-1">
-                  <Link
-                    to={officeMapUrl}
-                    target="_blank"
-                    className="hover:text-foreground"
-                  >
-                    {officeAddressText}
-                  </Link>
-                </td>
-              </tr>
-              <tr>
-                <td className="w-0 pr-2 pb-1">
-                  <Mail height={16} />
-                </td>
-                <Link to={`mailto:${email}`} className="hover:text-foreground">
-                  <td className="min-w-0 wrap-break-words pb-1">{email}</td>
+            <tr>
+              <td className="w-0 pr-2 pb-1">
+                <Building height={16} />
+              </td>
+              <td className="min-w-0 wrap-break-words pb-1">
+                <Link
+                  to={officeMapUrl}
+                  target="_blank"
+                  className="hover:text-foreground"
+                >
+                  {officeAddressText}
                 </Link>
-              </tr>
-              <tr>
-                <td className="w-0 pr-2 pb-1">
-                  <Phone height={16} />
-                </td>
-                <Link to={`tel:${telephone}`} className="hover:text-foreground">
-                  <td className="min-w-0 wrap-break-words pb-1">{telephone}</td>
-                </Link>
-              </tr>
+              </td>
+            </tr>
+            <tr>
+              <td className="w-0 pr-2 pb-1">
+                <Mail height={16} />
+              </td>
+              <Link to={`mailto:${email}`} className="hover:text-foreground">
+                <td className="min-w-0 wrap-break-words pb-1">{email}</td>
+              </Link>
+            </tr>
+            <tr>
+              <td className="w-0 pr-2 pb-1">
+                <Phone height={16} />
+              </td>
+              <Link to={`tel:${telephone}`} className="hover:text-foreground">
+                <td className="min-w-0 wrap-break-words pb-1">{telephone}</td>
+              </Link>
+            </tr>
             </tbody>
           </table>
         </div>
@@ -92,19 +93,23 @@ export default function Footer({ className }: { className?: string }) {
           <Link to="#" className="text-sm text-muted hover:text-foreground">
             {supportText}
           </Link>
+          <Link to="#" className="text-sm text-muted hover:text-foreground">
+            {serverStatusText}
+          </Link>
           <p className="font-bold mt-4 mb-1">{followUsText}</p>
           <div className="flex gap-2">
             <Link to={facebookUrl} target="_blank">
               <Button variant="tertiary" isIconOnly={true}>
                 <img
                   src={FacebookIcon}
-                  className="size-4 invert dark:invert-0"
+                  className="footer-social-icon size-4"
+                  alt="Facebook"
                 />
               </Button>
             </Link>
             <Link to={githubUrl} target="_blank">
               <Button variant="tertiary" isIconOnly={true}>
-                <img src={GithubIcon} className="size-4 invert dark:invert-0" />
+                <img src={GithubIcon} className="footer-social-icon size-4" alt="GitHub" />
               </Button>
             </Link>
           </div>
