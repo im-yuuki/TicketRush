@@ -20,5 +20,17 @@
     "termsOfService": "Terms of Service",
     "links": "Links",
     "support": "Support"
+  },
+  "trending": {
+    "title": "Trending Events",
+    "from": "From",
+    "prev": "Scroll left",
+    "next": "Scroll right",
+    "categories": {
+      "music": "Music",
+      "festival": "Festival",
+      "sports": "Sports",
+      "workshop": "Workshop"
+    }
   }
 }
