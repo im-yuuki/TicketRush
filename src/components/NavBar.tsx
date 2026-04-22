@@ -5,6 +5,7 @@ import { Bell, LogOut, Menu, Settings, Ticket, UserRound } from "lucide-react";
 import { useEffect, useState, type Key } from "react";
 import { useTranslation } from "react-i18next";
 import { languageOptions, changeLanguage, getCurrentLanguage } from "../i18n";
+import { Link } from "react-router";
 
 function LanguageSelector() {
   const { i18n } = useTranslation();
@@ -49,10 +50,10 @@ function SideMenu() {
   const menuText = t("navigation.menu", "Menu");
   return (
     <Drawer>
-      <Dropdown.Trigger className="md:hidden">
-        <Button variant="ghost">
+      <Dropdown.Trigger className="lg:hidden">
+        <Button variant="tertiary">
           <Menu />
-          <Label>{menuText}</Label>
+          <Label className="hidden md:inline">{menuText}</Label>
         </Button>
       </Dropdown.Trigger>
       <Drawer.Backdrop>
@@ -74,6 +75,12 @@ function AccountButton() {
   const loginText = t("navigation.login", "Login");
   const unreadNotifications = 5;
 
+  const account = t("navigation.account", "Account");
+  const myTickets = t("navigation.myTickets", "My Tickets");
+  const notifications = t("navigation.notifications", "Notifications");
+  const settings = t("navigation.settings", "Settings");
+  const logout = t("navigation.logout", "Logout");
+
   const userShortName = userFullName.split(" ").map((n) => n[0]).join("");
 
   if (loggedIn) {
@@ -89,7 +96,7 @@ function AccountButton() {
           <Badge.Anchor>
             {UserAvatar}
             {unreadNotifications > 0 && (
-              <Badge color="accent" size="sm">
+              <Badge color="accent" size="sm" className="select-none">
                 {unreadNotifications}
               </Badge>
             )}
@@ -108,23 +115,23 @@ function AccountButton() {
           <Dropdown.Menu>
             <Dropdown.Item key="account" textValue="Account">
               <UserRound className="size-3.5 text-muted" />
-              <Label>Account</Label>
+              <Label>{account}</Label>
             </Dropdown.Item>
             <Dropdown.Item key="tickets" textValue="My Tickets">
               <Ticket className="size-3.5 text-muted" />
-              <Label>My Tickets</Label>
+              <Label>{myTickets}</Label>
             </Dropdown.Item>
             <Dropdown.Item key="notifications" textValue="Notifications">
               <Bell className="size-3.5 text-muted" />
-              <Label>Notifications</Label>
+              <Label>{notifications}</Label>
             </Dropdown.Item>
             <Dropdown.Item key="settings" textValue="Settings">
               <Settings className="size-3.5 text-muted" />
-              <Label>Settings</Label>
+              <Label>{settings}</Label>
             </Dropdown.Item>
             <Dropdown.Item key="logout" textValue="Logout" variant="danger">
               <LogOut className="size-3.5 text-danger" />
-              <Label>Logout</Label>
+              <Label>{logout}</Label>
             </Dropdown.Item>
           </Dropdown.Menu>
         </Dropdown.Popover>
@@ -140,13 +147,15 @@ function AccountButton() {
   }
 }
 
-export default function NavigationBar() {
+export default function NavBar({ className }: { className?: string }) {
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 border-b-2 border-border bg-background/90 backdrop-blur supports-backdrop-filter:bg-background/60 shadow-lg">
-      <div className="max-w-400 mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+    <nav className={className}>
+      <div className="container mx-auto px-10 py-4">
+        <div className="flex items-center justify-between">
           <SideMenu />
-          <Logo height={40} />
+          <Link to="/">
+            <Logo height={40} />
+          </Link>
           <div className="flex items-center gap-2">
             <LanguageSelector />
             <AccountButton />
