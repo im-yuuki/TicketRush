@@ -69,19 +69,23 @@ export default function EventLayout() {
 
   return (
     <div className="container mx-auto px-6 py-6 pb-20 md:px-10">
-      <Breadcrumbs className="mb-4">
+      <Breadcrumbs className="mb-4 max-w-full overflow-hidden">
         <Breadcrumbs.Item onPress={() => navigate("/")}>
           {homeLabel}
         </Breadcrumbs.Item>
         <Breadcrumbs.Item onPress={() => navigate("/")}>
           {eventsLabel}
         </Breadcrumbs.Item>
-        <Breadcrumbs.Item>{event.title}</Breadcrumbs.Item>
+        <Breadcrumbs.Item>
+          <span className="inline-block max-w-[48vw] truncate align-bottom md:max-w-none">
+            {event.title}
+          </span>
+        </Breadcrumbs.Item>
       </Breadcrumbs>
 
       <section className="overflow-hidden rounded-2xl border border-border bg-surface shadow-lg">
         <div className="grid md:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
-          <div className="flex flex-col p-6 md:p-7">
+          <div className="order-2 min-w-0 flex flex-col p-6 md:order-1 md:p-7">
             <h1 className="text-lg font-bold leading-snug md:text-xl">
               {event.title}
             </h1>
@@ -111,7 +115,7 @@ export default function EventLayout() {
               >
                 <span>
                   {fromLabel}{" "}
-                  <span className="text-base font-bold text-[color:var(--success)]">
+                  <span className="text-base font-bold text-(--success)">
                     {formatPrice(event.price, i18n.language)}
                   </span>
                 </span>
@@ -127,11 +131,11 @@ export default function EventLayout() {
           </div>
 
           {/* Cot phai: banner/anh cover cua su kien. */}
-          <div className="relative min-h-60 bg-black md:min-h-90">
+          <div className="order-1 w-full overflow-hidden bg-black md:order-2 md:min-h-90">
             <img
               src={event.image}
               alt={event.title}
-              className="absolute inset-0 h-full w-full object-cover"
+              className="block aspect-video h-full w-full object-contain object-center md:aspect-auto"
             />
           </div>
         </div>

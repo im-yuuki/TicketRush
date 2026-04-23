@@ -47,7 +47,7 @@ const MOCK_EVENTS: Record<string, EventData> = {
     address: "Số 53 Lạch Tray, Phường Gia Viên, Thành phố Hải Phòng",
     price: 600000,
     image:
-      "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=1600&q=80",
+      "https://salt.tkbcdn.com/ts/ds/db/d9/6b/7ef0f96eb6bc673df8fd0a7163f1a640.jpg",
     description: [
       { text: "Liveshow JIMMII NGUYỄN | THANH ÂM CỦA KÝ ỨC | 16.05.2026", bold: true },
       { text: "Có những cái tên chỉ cần nhắc đến thôi, là cả một thời thanh xuân như quay trở lại." },
