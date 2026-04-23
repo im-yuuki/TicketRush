@@ -266,7 +266,7 @@ export default function TrendingSection({ className }: { className?: string }) {
   const nextLabel = t("trending.next", "Cuộn phải");
 
   const navButtonClass =
-    "flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-transparent transition-opacity hover:bg-muted/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent";
+    "hidden md:flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-transparent transition-all duration-300 hover:bg-muted/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent";
 
   return (
     <section className={className}>
@@ -276,14 +276,14 @@ export default function TrendingSection({ className }: { className?: string }) {
           <span>{title}</span>
         </div>
 
-        <div className="mt-6 flex items-center gap-3">
+        <div className="group mt-6 flex items-center gap-3">
           <button
             type="button"
             onClick={() => scrollBy(-1)}
             aria-label={prevLabel}
             aria-hidden={!canScrollLeft}
             tabIndex={canScrollLeft ? 0 : -1}
-            className={`${navButtonClass} ${canScrollLeft ? "opacity-100" : "pointer-events-none opacity-0"}`}
+            className={`${navButtonClass} ${canScrollLeft ? "opacity-0 group-hover:opacity-100 focus-visible:opacity-100" : "pointer-events-none opacity-0"}`}
           >
             <ChevronLeft className="size-4" />
           </button>
@@ -294,15 +294,15 @@ export default function TrendingSection({ className }: { className?: string }) {
           >
             {loading
               ? Array.from({ length: 10 }).map((_, idx) => (
-                  <div key={idx} className="snap-start">
-                    <EventCardSkeleton />
-                  </div>
-                ))
+                <div key={idx} className="snap-start">
+                  <EventCardSkeleton />
+                </div>
+              ))
               : events.map((event) => (
-                  <div key={event.id} className="snap-start">
-                    <EventCard event={event} />
-                  </div>
-                ))}
+                <div key={event.id} className="snap-start">
+                  <EventCard event={event} />
+                </div>
+              ))}
           </div>
 
           <button
@@ -311,7 +311,7 @@ export default function TrendingSection({ className }: { className?: string }) {
             aria-label={nextLabel}
             aria-hidden={!canScrollRight}
             tabIndex={canScrollRight ? 0 : -1}
-            className={`${navButtonClass} ${canScrollRight ? "opacity-100" : "pointer-events-none opacity-0"}`}
+            className={`${navButtonClass} ${canScrollRight ? "opacity-0 group-hover:opacity-100 focus-visible:opacity-100" : "pointer-events-none opacity-0"}`}
           >
             <ChevronRight className="size-4" />
           </button>
