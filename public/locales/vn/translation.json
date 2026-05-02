@@ -52,5 +52,20 @@
       "sports": "Thể thao",
       "workshop": "Hội thảo"
     }
+  },
+  "auth": {
+    "login": "Đăng nhập",
+    "register": "Đăng ký",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "confirmPassword": "Xác nhận mật khẩu",
+    "loginWithEmail": "Đăng nhập bằng Email",
+    "loginWithGoogle": "Đăng nhập bằng Google",
+    "noAccount": "Chưa có tài khoản?",
+    "createAccount": "Tạo tài khoản",
+    "haveAccount": "Đã có tài khoản?",
+    "signInHere": "Đăng nhập tại đây",
+    "forgotPassword": "Quên mật khẩu?",
+    "orContinueWith": "Hoặc tiếp tục với"
   }
 }

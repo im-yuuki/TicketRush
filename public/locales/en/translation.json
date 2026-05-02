@@ -52,5 +52,26 @@
       "sports": "Sports",
       "workshop": "Workshop"
     }
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "email": "Email",
+    "displayName": "Display name",
+    "phoneNumber": "Phone number",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "dob": "D.O.B",
+    "address": "Address",
+    "acceptTos": "I agree to the Terms of Service",
+    "registerButton": "Register",
+    "loginWithEmail": "Login with Email",
+    "loginWithGoogle": "Login with Google",
+    "noAccount": "Don't have an account?",
+    "createAccount": "Create one",
+    "haveAccount": "Already have an account?",
+    "signInHere": "Sign in here",
+    "forgotPassword": "Forgot password?",
+    "orContinueWith": "Or continue with"
   }
 }

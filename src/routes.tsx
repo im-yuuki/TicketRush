@@ -10,6 +10,8 @@ import AppLayout from "./layouts/AppLayout.tsx";
 import PartnerLayout from "./layouts/PartnerLayout.tsx";
 import PaymentLayout from "./layouts/PaymentLayout.tsx";
 import EventLayout from "./layouts/EventLayout.tsx";
+import Login from "./pages/Login.tsx";
+import Register from "./pages/Register.tsx";
 
 const AppRouter = createBrowserRouter([
   {
@@ -37,6 +39,14 @@ const AppRouter = createBrowserRouter([
           },
         ],
       },
+	  {
+		path: "/login",
+		element: <Login />,
+	  },
+	  {
+		path: "/register",
+		element: <Register />,
+	  }
     ],
   },
   {
