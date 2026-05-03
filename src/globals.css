@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "@heroui/styles";
 
+@plugin "@tailwindcss/typography";
+
 html,
 body,
 #root {
@@ -100,5 +102,13 @@ body,
     --surface-tertiary-foreground: oklch(99.11% 0 81.92);
     --warning: oklch(82.03% 0.1388 55.71);
     --warning-foreground: oklch(21.03% 0.0059 55.71);
+  }
+
+  .prose {
+    @apply prose-invert;
+  }
+
+  .footer-social-icon {
+    filter: invert(1);
   }
 }
