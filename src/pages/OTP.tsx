@@ -14,12 +14,11 @@ export default function OTP() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>(Array(6).fill(null));
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(async (otpCode: string) => {
     if (!key || isSubmitting) {
       return;
     }
 
-    const otpCode = otp.join("");
     setSubmitError(null);
     setIsSubmitting(true);
 
@@ -38,31 +37,33 @@ export default function OTP() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [isSubmitting, key, otp]);
+  }, [isSubmitting, key]);
 
   useEffect(() => {
-    if (key) {
+    if (!key) return;
+
+    const timeoutId = window.setTimeout(() => {
       triggerOTPEmail(key).catch((error) => {
         const message = error instanceof Error ? error.message : "Failed to send OTP email";
         setSubmitError(message);
       });
-    }
-  }, [key]);
+    }, 0);
 
-  // Auto-submit when all 6 digits are filled
-  useEffect(() => {
-    if (otp.every((digit) => digit !== "")) {
-      handleSubmit();
-    }
-  }, [otp, handleSubmit]);
+    return () => window.clearTimeout(timeoutId);
+  }, [key]);
 
   const handleInputChange = (index: number, value: string) => {
     // Only allow single digit (0-9)
     const digit = value.replace(/[^0-9]/g, "").slice(-1);
 
+    const wasComplete = otp.every((existingDigit) => existingDigit !== "");
     const newOtp = [...otp];
     newOtp[index] = digit;
     setOtp(newOtp);
+
+    if (!wasComplete && newOtp.every((newDigit) => newDigit !== "")) {
+      handleSubmit(newOtp.join(""));
+    }
 
     // Auto-focus next input if digit entered
     if (digit && index < 5) {
@@ -97,6 +98,10 @@ export default function OTP() {
       newOtp[i] = pastedData[i];
     }
     setOtp(newOtp);
+
+    if (newOtp.every((digit) => digit !== "")) {
+      handleSubmit(newOtp.join(""));
+    }
 
     // Focus last filled input or input 5
     const lastFilledIndex = newOtp.findIndex((d) => d === "");
