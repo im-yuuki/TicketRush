@@ -50,7 +50,7 @@ function SideMenu() {
   return (
     <Drawer>
       <Dropdown.Trigger className="lg:hidden">
-        <Button variant="ghost" isIconOnly={true}>
+        <Button variant="tertiary" isIconOnly={true}>
           <Menu />
         </Button>
       </Dropdown.Trigger>
@@ -67,7 +67,7 @@ function SideMenu() {
 
 function AccountButton() {
   const { t } = useTranslation();
-  const loggedIn = true; // TODO: Replace with actual authentication state
+  const loggedIn = false; // TODO: Replace with actual authentication state
   const userFullName = "Test User";
   const userEmail = "test@example.com";
   const loginText = t("navigation.login", "Login");
@@ -137,10 +137,12 @@ function AccountButton() {
     );
   } else {
     return (
-      <Button>
-        <UserRound />
-        <div className="hidden md:inline">{loginText}</div>
-      </Button>
+      <Link to="/login">
+        <Button>
+          <UserRound />
+          <div className="hidden md:inline">{loginText}</div>
+        </Button>
+      </Link>
     );
   }
 }

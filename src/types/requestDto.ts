@@ -23,3 +23,10 @@ export interface RegisterRequest {
 export interface RegisterOtpRequest {
 	otpCode: string;
 }
+
+export interface LoginRequest {
+	email: string;
+	password: string;
+}
+
+export interface LoginResponse extends Response<unknown> {}

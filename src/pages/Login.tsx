@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Button, Card, Input, Separator } from "@heroui/react";
 import { useGoogleLogin } from "@react-oauth/google";
 import { Link } from "react-router";
+import { loginUser } from "../api/auth";
 
 export default function Login() {
   const { t } = useTranslation();
@@ -19,10 +20,14 @@ export default function Login() {
     },
   });
 
-  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Login attempt:", { email, password });
-    // TODO: Connect to auth API
+    try {
+      const response = await loginUser({ email, password });
+      console.log("Login successful:", response);
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
   };
 
   return (
