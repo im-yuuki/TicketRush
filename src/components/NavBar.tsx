@@ -148,11 +148,11 @@ function AccountButton() {
 export default function NavBar({ className, ref }: { className?: string, ref?: Ref<HTMLElement> | undefined }) {
   return (
     <nav className={className} ref={ref}>
-      <div className="container mx-auto px-10 py-4">
+      <div className="container mx-auto p-4 md:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           <SideMenu />
           <Link to="/">
-            <Logo height={40} />
+            <Logo className="text-2xl md:text-3xl" />
           </Link>
           <div className="flex items-center gap-2">
             <LanguageSelector />

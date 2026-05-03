@@ -32,10 +32,10 @@ export default function Footer({ className }: { className?: string }) {
 
   return (
     <footer className={className}>
-      <div className="container mx-auto flex flex-col md:flex-row flex-wrap px-10 py-6 gap-10 md:gap-4">
+      <div className="container mx-auto flex flex-col md:flex-row flex-wrap p-4 md:px-6 lg:px-8 gap-6">
         <div className="flex-2 flex flex-col">
           <div className="mb-4">
-            <Logo height={40} accentColor={false} />
+            <Logo className="text-3xl" accentColor={false} />
             <p className="text-muted">{sloganText}</p>
           </div>
           <table className="text-sm text-muted border-collapse">
