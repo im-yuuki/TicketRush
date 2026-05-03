@@ -12,6 +12,7 @@ import PaymentLayout from "./layouts/PaymentLayout.tsx";
 import EventLayout from "./layouts/EventLayout.tsx";
 import Login from "./pages/Login.tsx";
 import Register from "./pages/Register.tsx";
+import OTP from "./pages/OTP.tsx";
 
 const AppRouter = createBrowserRouter([
   {
@@ -44,8 +45,12 @@ const AppRouter = createBrowserRouter([
 		element: <Login />,
 	  },
 	  {
-		path: "/register",
+		path: "/register/",
 		element: <Register />,
+	  },
+	  {
+		path: "/register/:key",
+		element: <OTP />,
 	  }
     ],
   },
