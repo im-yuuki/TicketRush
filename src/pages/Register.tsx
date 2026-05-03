@@ -35,7 +35,7 @@ export default function Register() {
 				email,
 				password,
 				birthDate: dob,
-				country: "vi",
+				country: "vn",
 			});
 
 			const confirmKey = response.metadata?.confirm_key;
