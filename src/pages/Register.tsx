@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Card, Checkbox, Input } from "@heroui/react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { registerUser } from "../api/auth";
 
 export default function Register() {
 	const { t } = useTranslation();
+	const navigate = useNavigate();
 	const [displayName, setDisplayName] = useState("");
 	const [phoneNumber, setPhoneNumber] = useState("");
 	const [email, setEmail] = useState("");
@@ -14,23 +16,40 @@ export default function Register() {
 	const [dob, setDob] = useState("");
 	const [address, setAddress] = useState("");
 	const [acceptTos, setAcceptTos] = useState(false);
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [submitError, setSubmitError] = useState<string | null>(null);
 
 	const confirmPasswordMismatch =
-		confirmPasswordTouched && confirmPassword.length > 0 && confirmPassword !== password;
+		confirmPassword.length > 0 && confirmPassword !== password;
+	const showConfirmPasswordMismatch = confirmPasswordTouched && confirmPasswordMismatch;
 
-	const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
+	const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		console.log("Register attempt:", {
-			displayName,
-			phoneNumber,
-			email,
-			password,
-			confirmPassword,
-			dob,
-			address,
-			acceptTos,
-		});
-		// TODO: Connect to auth API
+
+		setSubmitError(null);
+		setIsSubmitting(true);
+
+		try {
+			const response = await registerUser({
+				name: displayName,
+				email,
+				password,
+				birthDate: dob,
+				country: "vi",
+			});
+
+			const confirmKey = response.metadata?.confirm_key;
+			if (!confirmKey) {
+				throw new Error("Missing confirm key from register response");
+			}
+
+			navigate(`/register/${confirmKey}`);
+		} catch (error) {
+			const message = error instanceof Error ? error.message : "Register failed";
+			setSubmitError(message);
+		} finally {
+			setIsSubmitting(false);
+		}
 	};
 
 	return (
@@ -48,6 +67,8 @@ export default function Register() {
 
 				<Card.Content className="gap-4">
 					<form onSubmit={handleSubmit} className="space-y-4">
+						{submitError && <p className="text-sm text-danger">{submitError}</p>}
+
 						<div className="space-y-2">
 							<label className="block text-sm font-bold">{t("auth.displayName", "Display name")}</label>
 							<Input
@@ -102,16 +123,19 @@ export default function Register() {
 								type="password"
 								placeholder="••••••••"
 								value={confirmPassword}
-								onInput={(e) => setConfirmPassword(e.currentTarget.value)}
+								onInput={(e) => {
+									setConfirmPassword(e.currentTarget.value);
+									setConfirmPasswordTouched(true);
+								}}
 								onBlur={() => setConfirmPasswordTouched(true)}
 								className={`w-full rounded-md border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-									confirmPasswordMismatch
+									showConfirmPasswordMismatch
 										? "border-danger hover:border-danger focus:border-danger"
 										: "border-border hover:border-accent focus:border-accent"
 								}`}
 								required
 							/>
-							{confirmPasswordMismatch && (
+							{showConfirmPasswordMismatch && (
 								<p className="text-xs text-danger">Passwords do not match.</p>
 							)}
 						</div>
@@ -163,7 +187,7 @@ export default function Register() {
 							type="submit"
 							className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
 							size="lg"
-							isDisabled={!acceptTos}
+							isDisabled={!acceptTos || confirmPasswordMismatch || confirmPassword.length === 0 || isSubmitting}
 						>
 							{t("auth.registerButton", "Register")}
 						</Button>

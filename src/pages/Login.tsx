@@ -93,7 +93,7 @@ export default function Login() {
               size="lg"
               onClick={() => loginWithGoogle()}
             >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+              <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <path fill="#4285F4" d="M23.498 12.227c0-.78-.07-1.462-.201-2.096H12v3.968h6.356c-.273 1.472-1.11 2.72-2.367 3.556v2.96h3.823c2.237-2.061 3.686-5.088 3.686-8.388z"/>
                 <path fill="#34A853" d="M12 24c3.24 0 5.966-1.073 7.954-2.913l-3.823-2.96c-1.064.713-2.43 1.134-4.131 1.134-3.181 0-5.878-2.146-6.838-5.03H1.213v3.164C3.182 21.81 7.286 24 12 24z"/>
                 <path fill="#FBBC05" d="M5.162 14.231a7.205 7.205 0 010-4.462V6.606H1.213a11.998 11.998 0 000 10.788l3.949-3.163z"/>

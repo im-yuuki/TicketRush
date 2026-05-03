@@ -1,20 +1,60 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { Card } from "@heroui/react";
+import { triggerOTPEmail, verifyOTPRegister } from "../api/auth";
 
 export default function OTP() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { key } = useParams<{ key: string }>();
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>(Array(6).fill(null));
+
+  const handleSubmit = useCallback(async () => {
+    if (!key || isSubmitting) {
+      return;
+    }
+
+    const otpCode = otp.join("");
+    setSubmitError(null);
+    setIsSubmitting(true);
+
+    try {
+      await verifyOTPRegister(key, { otpCode });
+      console.log("OTP submitted:", { key, otpCode });
+      setSuccessMessage("OTP verified successfully");
+      window.setTimeout(() => {
+        navigate("/login");
+      }, 2000);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "OTP verification failed";
+      setOtp(Array(6).fill(""));
+      inputRefs.current[0]?.focus();
+      setSubmitError(message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [isSubmitting, key, otp]);
+
+  useEffect(() => {
+    if (key) {
+      triggerOTPEmail(key).catch((error) => {
+        const message = error instanceof Error ? error.message : "Failed to send OTP email";
+        setSubmitError(message);
+      });
+    }
+  }, [key]);
 
   // Auto-submit when all 6 digits are filled
   useEffect(() => {
     if (otp.every((digit) => digit !== "")) {
       handleSubmit();
     }
-  }, [otp]);
+  }, [otp, handleSubmit]);
 
   const handleInputChange = (index: number, value: string) => {
     // Only allow single digit (0-9)
@@ -64,14 +104,6 @@ export default function OTP() {
     inputRefs.current[Math.max(0, focusIndex)]?.focus();
   };
 
-  const handleSubmit = async () => {
-    const otpCode = otp.join("");
-    console.log("OTP submitted:", { key, otpCode });
-
-    // TODO: Call OTP verification API
-    // const result = await verifyOTP(key, otpCode);
-  };
-
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-8">
       <Card className="w-full max-w-md">
@@ -88,6 +120,9 @@ export default function OTP() {
         </Card.Header>
 
         <Card.Content className="gap-4">
+          {successMessage && <p className="text-sm text-success">{successMessage}</p>}
+          {submitError && <p className="text-sm text-danger">{submitError}</p>}
+
           {/* OTP Input Grid */}
           <div className="flex gap-3 justify-center my-4">
             {Array(6)
