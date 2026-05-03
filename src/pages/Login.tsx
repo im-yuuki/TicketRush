@@ -2,13 +2,16 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Card, Input, Separator } from "@heroui/react";
 import { useGoogleLogin } from "@react-oauth/google";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { loginUser } from "../api/auth";
 
 export default function Login() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const loginWithGoogle = useGoogleLogin({
     onSuccess: (credentialResponse) => {
@@ -22,11 +25,20 @@ export default function Login() {
 
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setSubmitError(null);
+    setIsSubmitting(true);
     try {
       const response = await loginUser({ email, password });
       console.log("Login successful:", response);
+      navigate("/");
     } catch (error) {
       console.error("Login failed:", error);
+      if (error instanceof Error) {
+        setSubmitError(error.message);
+      } else {
+        setSubmitError("An unexpected error occurred");
+      }
+      setIsSubmitting(false);
     }
   };
 
@@ -51,7 +63,10 @@ export default function Login() {
               type="email"
               placeholder="you@example.com"
               value={email}
-              onInput={(e) => setEmail(e.currentTarget.value)}
+              onInput={(e) => {
+                setEmail(e.currentTarget.value);
+                if (submitError) setSubmitError(null);
+              }}
               className="w-full border border-border hover:border-accent focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent transition-colors rounded-md"
               required
             />
@@ -61,7 +76,10 @@ export default function Login() {
               type="password"
               placeholder="••••••••"
               value={password}
-              onInput={(e) => setPassword(e.currentTarget.value)}
+              onInput={(e) => {
+                setPassword(e.currentTarget.value);
+                if (submitError) setSubmitError(null);
+              }}
               className="w-full border border-border hover:border-accent focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent transition-colors rounded-md"
               required
             />
@@ -72,12 +90,17 @@ export default function Login() {
               </Link>
             </div>
 
+            {submitError && (
+              <p className="text-danger text-sm">{submitError}</p>
+            )}
+
             <Button
               type="submit"
               className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
               size="lg"
+              isDisabled={isSubmitting}
             >
-              {t("auth.loginWithEmail", "Login with Email")}
+              {isSubmitting ? t("auth.loggingIn", "Logging in...") : t("auth.loginWithEmail", "Login with Email")}
             </Button>
           </form>
 
