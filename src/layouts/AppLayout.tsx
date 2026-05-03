@@ -17,13 +17,12 @@ export default function AppLayout() {
         initial={false}
         animate={{
           y: inView ? -80 : 0,
-          opacity: inView ? 0 : 1
+          opacity: inView ? 0 : 1,
         }}
         transition={{ duration: inView ? 0 : 0.3 }}
         className="fixed top-0 left-0 w-full z-50"
       >
-        <NavBar
-          className="mx-2 mt-2 border-2 border-border rounded-full bg-background/90 backdrop-blur supports-backdrop-filter:bg-background/60 shadow-lg" />
+        <NavBar className="mx-2 mt-2 border-2 border-border rounded-full bg-background/90 backdrop-blur supports-backdrop-filter:bg-background/60 shadow-lg" />
       </motion.div>
       <main className="container mx-auto">
         <Outlet />
@@ -33,16 +32,22 @@ export default function AppLayout() {
         initial={false}
         animate={{
           x: inView ? 80 : 0,
-          opacity: inView ? 0 : 1
+          opacity: inView ? 0 : 1,
         }}
         transition={{ duration: 0.3 }}
         className="fixed bottom-0 right-0 z-50 m-5"
       >
-      <Button className="shadow-lg" size="lg" variant="tertiary" isIconOnly={true} onClick={() => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }}>
-        <ArrowUp />
-      </Button>
+        <Button
+          className="shadow-lg"
+          size="lg"
+          variant="tertiary"
+          isIconOnly={true}
+          onClick={() => {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+        >
+          <ArrowUp />
+        </Button>
       </motion.div>
     </div>
   );

@@ -1,12 +1,32 @@
 {
   "navigation": {
     "menu": "Menu",
+    "home": "Trang chủ",
     "login": "Đăng nhập",
     "account": "Tài khoản",
     "myTickets": "Vé của tôi",
     "notifications": "Thông báo",
     "settings": "Cài đặt",
     "logout": "Đăng xuất"
+  },
+  "common": {
+    "expand": "Xem thêm",
+    "collapse": "Thu gọn"
+  },
+  "event": {
+    "breadcrumb": "Sự kiện",
+    "buyTicket": "Mua vé",
+    "buyNow": "Mua vé ngay",
+    "save": "Lưu",
+    "share": "Chia sẻ",
+    "organizer": "Ban tổ chức",
+    "organizerDescription": "Đơn vị tổ chức các sự kiện âm nhạc chất lượng cao, mang đến những trải nghiệm đáng nhớ cho khán giả.",
+    "venue": "Địa điểm",
+    "about": "Giới thiệu",
+    "priceFrom": "Giá từ",
+    "schedule": "Lịch diễn",
+    "ticketInfo": "Thông tin vé",
+    "notFound": "Không tìm thấy sự kiện này."
   },
   "notFound": {
     "description": "Xin lỗi, trang bạn đang tìm kiếm không tồn tại.",
@@ -23,5 +43,17 @@
     "support": "Hỗ trợ",
     "followUsCapitalized": "THEO DÕI CHÚNG TÔI",
     "serverStatus": "Trạng thái máy chủ"
+  },
+  "trending": {
+    "title": "Sự kiện xu hướng",
+    "from": "Chỉ từ",
+    "prev": "Cuộn trái",
+    "next": "Cuộn phải",
+    "categories": {
+      "music": "Âm nhạc",
+      "festival": "Lễ hội",
+      "sports": "Thể thao",
+      "workshop": "Hội thảo"
+    }
   }
 }

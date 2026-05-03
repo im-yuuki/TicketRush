@@ -3,6 +3,13 @@
 
 @plugin "@tailwindcss/typography";
 
+html,
+body,
+#root {
+  width: 100%;
+  overflow-x: hidden;
+}
+
 :root {
   --radius: 0.5rem;
   --field-radius: 0.5rem;

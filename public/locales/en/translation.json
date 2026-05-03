@@ -1,12 +1,32 @@
 {
   "navigation": {
     "menu": "Menu",
+    "home": "Home",
     "login": "Login",
     "account": "Account",
     "myTickets": "My Tickets",
     "notifications": "Notifications",
     "settings": "Settings",
     "logout": "Logout"
+  },
+  "common": {
+    "expand": "Show more",
+    "collapse": "Show less"
+  },
+  "event": {
+    "breadcrumb": "Events",
+    "buyTicket": "Buy Ticket",
+    "buyNow": "Buy Now",
+    "save": "Save",
+    "share": "Share",
+    "organizer": "Organizer",
+    "organizerDescription": "Organizer of high-quality music events, delivering unforgettable experiences to audiences.",
+    "venue": "Venue",
+    "about": "About",
+    "priceFrom": "From",
+    "schedule": "Schedule",
+    "ticketInfo": "Ticket info",
+    "notFound": "Event not found."
   },
   "notFound": {
     "description": "Sorry, the page you're looking for doesn't exist.",
@@ -23,5 +43,17 @@
     "support": "Support",
     "followUsCapitalized": "FOLLOW US",
     "serverStatus": "Server status"
+  },
+  "trending": {
+    "title": "Trending Events",
+    "from": "From",
+    "prev": "Scroll left",
+    "next": "Scroll right",
+    "categories": {
+      "music": "Music",
+      "festival": "Festival",
+      "sports": "Sports",
+      "workshop": "Workshop"
+    }
   }
 }

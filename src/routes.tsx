@@ -4,10 +4,12 @@ import Home from "./pages/Home.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Privacy from "./pages/Privacy.tsx";
 import Terms from "./pages/Terms.tsx";
+import Event from "./pages/Event.tsx";
 
 import AppLayout from "./layouts/AppLayout.tsx";
 import PartnerLayout from "./layouts/PartnerLayout.tsx";
 import PaymentLayout from "./layouts/PaymentLayout.tsx";
+import EventLayout from "./layouts/EventLayout.tsx";
 
 const AppRouter = createBrowserRouter([
   {
@@ -24,6 +26,16 @@ const AppRouter = createBrowserRouter([
       {
         path: "/terms",
         element: <Terms />,
+      },
+      {
+        path: "/events/:eventId",
+        element: <EventLayout />,
+        children: [
+          {
+            index: true,
+            element: <Event />,
+          },
+        ],
       },
     ],
   },
