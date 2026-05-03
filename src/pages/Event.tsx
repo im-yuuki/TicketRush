@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router";
 import { Button, Card } from "@heroui/react";
 import { CalendarDays, ChevronDown } from "lucide-react";
 import ExpandableCard from "../components/ExpandableCard";
@@ -27,6 +28,7 @@ function formatRangeDate(iso: string, lang: string) {
 
 export default function Event() {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const event = useEvent();
   const [openTier, setOpenTier] = useState<string | null>(null);
 
@@ -35,6 +37,10 @@ export default function Event() {
   const organizerLabel = t("event.organizer", "Ban tổ chức");
   const ticketInfoLabel = t("event.ticketInfo", "Thông tin vé");
   const buyNowLabel = t("event.buyNow", "Mua vé ngay");
+
+  const handleGoToBooking = () => {
+    navigate(`/events/${event.id}/booking`);
+  };
 
   return (
     <div className="space-y-6">
@@ -66,7 +72,8 @@ export default function Event() {
               </div>
               <Button
                 size="sm"
-                className="bg-(--success) text-success-foreground hover:bg-(--success)/90"
+                className="bg-(--accent) text-(--accent-foreground) hover:bg-(--accent)/90"
+                onClick={handleGoToBooking}
               >
                 {buyNowLabel}
               </Button>
@@ -88,9 +95,8 @@ export default function Event() {
                     >
                       <span className="flex items-center gap-2">
                         <ChevronDown
-                          className={`size-4 transition-transform ${
-                            open ? "rotate-0" : "-rotate-90"
-                          }`}
+                          className={`size-4 transition-transform ${open ? "rotate-0" : "-rotate-90"
+                            }`}
                         />
                         <span className="font-medium">{tier.name}</span>
                       </span>

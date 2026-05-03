@@ -1,0 +1,136 @@
+{
+  "id": "concert-hall",
+  "name": "Sân khấu concert — 3 khu, 680 ghế",
+  "blocks": [
+    {
+      "id": "left",
+      "name": "BLOCK L",
+      "rows": [
+        {
+          "label": "A",
+          "count": 8
+        },
+        {
+          "label": "B",
+          "count": 8
+        },
+        {
+          "label": "C",
+          "count": 8
+        },
+        {
+          "label": "D",
+          "count": 8
+        },
+        {
+          "label": "E",
+          "count": 8
+        }
+      ]
+    },
+    {
+      "id": "center",
+      "name": "BLOCK C",
+      "rows": [
+        {
+          "label": "A",
+          "count": 14
+        },
+        {
+          "label": "B",
+          "count": 14
+        },
+        {
+          "label": "C",
+          "count": 14
+        },
+        {
+          "label": "D",
+          "count": 14
+        },
+        {
+          "label": "E",
+          "count": 14
+        }
+      ]
+    },
+    {
+      "id": "right",
+      "name": "BLOCK R",
+      "rows": [
+        {
+          "label": "A",
+          "count": 8
+        },
+        {
+          "label": "B",
+          "count": 8
+        },
+        {
+          "label": "C",
+          "count": 8
+        },
+        {
+          "label": "D",
+          "count": 8
+        },
+        {
+          "label": "E",
+          "count": 8
+        }
+      ]
+    },
+    {
+      "id": "left",
+      "name": "BLOCK L",
+      "rows": [
+        {
+          "label": "A",
+          "count": 8
+        },
+        {
+          "label": "B",
+          "count": 8
+        },
+        {
+          "label": "C",
+          "count": 8
+        },
+        {
+          "label": "D",
+          "count": 8
+        },
+        {
+          "label": "E",
+          "count": 8
+        }
+      ]
+    },
+    {
+      "id": "left",
+      "name": "BLOCK L",
+      "rows": [
+        {
+          "label": "A",
+          "count": 8
+        },
+        {
+          "label": "B",
+          "count": 8
+        },
+        {
+          "label": "C",
+          "count": 8
+        },
+        {
+          "label": "D",
+          "count": 8
+        },
+        {
+          "label": "E",
+          "count": 8
+        }
+      ]
+    }
+  ]
+}

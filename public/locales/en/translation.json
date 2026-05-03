@@ -11,7 +11,8 @@
   },
   "common": {
     "expand": "Show more",
-    "collapse": "Show less"
+    "collapse": "Show less",
+    "back": "Back"
   },
   "event": {
     "breadcrumb": "Events",
@@ -26,7 +27,16 @@
     "priceFrom": "From",
     "schedule": "Schedule",
     "ticketInfo": "Ticket info",
-    "notFound": "Event not found."
+    "notFound": "Event not found.",
+    "seatSelection": "Select Seats"
+  },
+  "seatMap": {
+    "stage": "🎤 Stage",
+    "available": "Available",
+    "selected": "Selected",
+    "booked": "Booked",
+    "seatsSelected": "seat(s) selected",
+    "maxSeatsReached": "Maximum {{max}} seats allowed"
   },
   "notFound": {
     "description": "Sorry, the page you're looking for doesn't exist.",
@@ -76,5 +86,17 @@
     "signInHere": "Sign in here",
     "forgotPassword": "Forgot password?",
     "orContinueWith": "Or continue with"
+  },
+  "booking": {
+    "selectTicket": "Select Tickets",
+    "loadingSeatMap": "Loading seat map...",
+    "ticketPrice": "Ticket Price",
+    "ticketsSelected": "{{count}} ticket(s) selected",
+    "processing": "Processing...",
+    "continue": "Continue",
+    "pleaseSelectTicket": "Please select a ticket »",
+    "conflictError": "We're sorry! Some of the seats you selected were just purchased by someone else.\nThe system will automatically reload the latest seat map.",
+    "genericError": "An error occurred while booking. Please check your connection.",
+    "success": "Booking successful!"
   }
 }

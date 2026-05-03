@@ -11,7 +11,8 @@
   },
   "common": {
     "expand": "Xem thêm",
-    "collapse": "Thu gọn"
+    "collapse": "Thu gọn",
+    "back": "Trở về"
   },
   "event": {
     "breadcrumb": "Sự kiện",
@@ -26,7 +27,16 @@
     "priceFrom": "Giá từ",
     "schedule": "Lịch diễn",
     "ticketInfo": "Thông tin vé",
-    "notFound": "Không tìm thấy sự kiện này."
+    "notFound": "Không tìm thấy sự kiện này.",
+    "seatSelection": "Chọn chỗ ngồi"
+  },
+  "seatMap": {
+    "stage": "🎤 Sân khấu",
+    "available": "Còn trống",
+    "selected": "Đã chọn",
+    "booked": "Đã đặt",
+    "seatsSelected": "chỗ ngồi được chọn",
+    "maxSeatsReached": "Tối đa {{max}} chỗ ngồi được phép"
   },
   "notFound": {
     "description": "Xin lỗi, trang bạn đang tìm kiếm không tồn tại.",
@@ -60,8 +70,14 @@
     "login": "Đăng nhập",
     "register": "Đăng ký",
     "email": "Email",
+    "displayName": "Tên hiển thị",
+    "phoneNumber": "Số điện thoại",
     "password": "Mật khẩu",
     "confirmPassword": "Xác nhận mật khẩu",
+    "dob": "Ngày sinh",
+    "address": "Địa chỉ",
+    "acceptTos": "Tôi đồng ý với Điều khoản dịch vụ",
+    "registerButton": "Đăng ký",
     "loginWithEmail": "Đăng nhập bằng Email",
     "loginWithGoogle": "Đăng nhập bằng Google",
     "noAccount": "Chưa có tài khoản?",
@@ -70,5 +86,17 @@
     "signInHere": "Đăng nhập tại đây",
     "forgotPassword": "Quên mật khẩu?",
     "orContinueWith": "Hoặc tiếp tục với"
+  },
+  "booking": {
+    "selectTicket": "Chọn vé",
+    "loadingSeatMap": "Đang tải sơ đồ ghế...",
+    "ticketPrice": "Giá vé",
+    "ticketsSelected": "{{count}} vé đang chọn",
+    "processing": "Đang xử lý...",
+    "continue": "Tiếp tục",
+    "pleaseSelectTicket": "Vui lòng chọn vé »",
+    "conflictError": "Rất tiếc! Một số ghế bạn chọn vừa được người khác thanh toán thành công.\nHệ thống sẽ tự động tải lại sơ đồ ghế mới nhất.",
+    "genericError": "Có lỗi xảy ra khi đặt vé. Vui lòng kiểm tra lại kết nối.",
+    "success": "Đặt vé thành công!"
   }
 }

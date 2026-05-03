@@ -1,0 +1,20 @@
+{
+  "id": "small-theater",
+  "name": "Nhà hát nhỏ — 96 ghế",
+  "blocks": [
+    {
+      "id": "main",
+      "name": "MAIN",
+      "rows": [
+        { "label": "A", "count": 12 },
+        { "label": "B", "count": 12 },
+        { "label": "C", "count": 12 },
+        { "label": "D", "count": 12 },
+        { "label": "E", "count": 12 },
+        { "label": "F", "count": 12 },
+        { "label": "G", "count": 12 },
+        { "label": "H", "count": 12 }
+      ]
+    }
+  ]
+}
