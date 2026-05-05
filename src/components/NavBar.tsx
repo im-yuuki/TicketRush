@@ -5,7 +5,8 @@ import { Bell, LogOut, Menu, Settings, Ticket, UserRound } from "lucide-react";
 import { useEffect, useState, type Key, type Ref } from "react";
 import { useTranslation } from "react-i18next";
 import { languageOptions, changeLanguage, getCurrentLanguage } from "../i18n";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { clearStoredAccount, readStoredAccount, type StoredAccount } from "../auth/accountStorage";
 
 function LanguageSelector() {
   const { i18n } = useTranslation();
@@ -67,9 +68,8 @@ function SideMenu() {
 
 function AccountButton() {
   const { t } = useTranslation();
-  const loggedIn = false; // TODO: Replace with actual authentication state
-  const userFullName = "Test User";
-  const userEmail = "test@example.com";
+  const navigate = useNavigate();
+  const [account, setAccount] = useState<StoredAccount | null>(() => readStoredAccount());
   const loginText = t("navigation.login", "Login");
   const unreadNotifications = 5;
 
@@ -79,12 +79,42 @@ function AccountButton() {
   const settingsText = t("navigation.settings", "Settings");
   const logoutText = t("navigation.logout", "Logout");
 
-  const userShortName = userFullName.split(" ").map((n) => n[0]).join("");
+  useEffect(() => {
+    function handleAccountChange() {
+      setAccount(readStoredAccount());
+    }
+
+    window.addEventListener("ticketrush-account-change", handleAccountChange);
+    window.addEventListener("storage", handleAccountChange);
+
+    return () => {
+      window.removeEventListener("ticketrush-account-change", handleAccountChange);
+      window.removeEventListener("storage", handleAccountChange);
+    };
+  }, []);
+
+  const loggedIn = Boolean(account?.displayName);
+  const userFullName = account?.displayName ?? "";
+  const userEmail = account?.email ?? "";
+  const userShortName = userFullName
+    .split(" ")
+    .filter(Boolean)
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  function handleAccountAction(key: Key) {
+    if (key === "logout") {
+      clearStoredAccount();
+      navigate("/login");
+    }
+  }
 
   if (loggedIn) {
     const UserAvatar = (
-      <Avatar className="select-none">
-        <Avatar.Image src="" />
+      <Avatar className="select-none size-9 rounded-full">
+        <Avatar.Image src={account?.avatarUrl ?? ""} />
         <Avatar.Fallback>{userShortName}</Avatar.Fallback>
       </Avatar>
     );
@@ -106,11 +136,11 @@ function AccountButton() {
               {UserAvatar}
               <div className="flex flex-col gap-0">
                 <p className="text-sm leading-5 font-medium">{userFullName}</p>
-                <p className="text-xs leading-none text-muted">{userEmail}</p>
+                {userEmail && <p className="text-xs leading-none text-muted">{userEmail}</p>}
               </div>
             </div>
           </div>
-          <Dropdown.Menu>
+          <Dropdown.Menu onAction={handleAccountAction}>
             <Dropdown.Item key="account" textValue="Account">
               <UserRound className="size-3.5 text-muted" />
               <Label>{accountText}</Label>

@@ -3,7 +3,21 @@ import { useTranslation } from "react-i18next";
 import { Button, Card, Input, Separator } from "@heroui/react";
 import { useGoogleLogin } from "@react-oauth/google";
 import { Link, useNavigate } from "react-router";
-import { loginUser } from "../api/auth";
+import { getAccount, loginUser } from "../api/auth";
+import type { AccountMetadata } from "../types/requestDto";
+import { writeStoredAccount } from "../auth/accountStorage";
+
+function readAccountSnapshot(accountMetadata: AccountMetadata, email: string) {
+  const displayName = accountMetadata.name || email;
+  const accountEmail = accountMetadata.email || email;
+  const avatarUrl = "avatarUrl" in accountMetadata ? accountMetadata.avatarUrl : undefined;
+
+  return {
+    displayName,
+    email: accountEmail,
+    avatarUrl,
+  };
+}
 
 export default function Login() {
   const { t } = useTranslation();
@@ -28,8 +42,9 @@ export default function Login() {
     setSubmitError(null);
     setIsSubmitting(true);
     try {
-      const response = await loginUser({ email, password });
-      console.log("Login successful:", response);
+      await loginUser({ email, password });
+      const accountResponse = await getAccount();
+      writeStoredAccount(readAccountSnapshot(accountResponse.metadata, email));
       navigate("/");
     } catch (error) {
       console.error("Login failed:", error);

@@ -1,5 +1,6 @@
 import { apiGet, apiPost } from "./client";
 import type {
+	AccountResponse,
 	LoginRequest,
 	LoginResponse,
 	RegisterOtpRequest,
@@ -15,6 +16,10 @@ export function registerUser(payload: RegisterRequest) {
 
 export function loginUser(payload: LoginRequest) {
 	return apiPost<LoginResponse, LoginRequest>("/auth/login", payload);
+}
+
+export function getAccount() {
+	return apiGet<AccountResponse>("/account");
 }
 
 export function triggerOTPEmail(key: string) {
