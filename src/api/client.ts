@@ -16,6 +16,24 @@ export class ApiError<TError = unknown> extends Error {
 	}
 }
 
+// ── Auth Token Management ────────────────────────────────────
+
+const TOKEN_KEY = "ticketrush_token";
+
+export function getAuthToken(): string | null {
+	return localStorage.getItem(TOKEN_KEY);
+}
+
+export function setAuthToken(token: string) {
+	localStorage.setItem(TOKEN_KEY, token);
+}
+
+export function clearAuthToken() {
+	localStorage.removeItem(TOKEN_KEY);
+}
+
+// ── Request Helpers ──────────────────────────────────────────
+
 /**
  * Shared request options for the API wrapper.
  *
@@ -65,6 +83,11 @@ export async function apiRequest<TResponse, TRequest = unknown>(
 	const { baseUrl, body, headers, ...init } = options;
 	const url = buildUrl(endpoint, baseUrl);
 	const requestHeaders = new Headers(headers);
+
+	const token = getAuthToken();
+	if (token) {
+		requestHeaders.set("Authorization", `Bearer ${token}`);
+	}
 
 	let requestBody: BodyInit | undefined;
 	if (body !== undefined) {

@@ -1,40 +1,26 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, CalendarDays, MapPin, Loader2 } from "lucide-react";
+import { ArrowLeft, CalendarDays, MapPin } from "lucide-react";
 import { Button } from "@heroui/react";
 import SeatMap, { type VenueLayout } from "../components/SeatMap";
 import { getEvent } from "../data/events";
-import { apiGet, apiPost } from "../api/client";
+import { apiGet } from "../api/client";
+import { formatPrice, formatDateTime } from "../utils/format";
+import { useBooking } from "../contexts/BookingContext";
 
 // Mocks layout
 import cinemaLayout from "../data/layouts/cinema.json";
-
-function formatPrice(value: number) {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-// I VIBED HARDDDDDDDDDDDDDDDDDDDDD
-
-function formatDateTime(iso: string) {
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(d.getHours())}:${pad(d.getMinutes())} - ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
-}
 
 export default function Booking() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { setSeatSelection } = useBooking();
   const event = useMemo(() => getEvent(eventId), [eventId]);
 
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [bookedSeatIds, setBookedSeatIds] = useState<string[]>([]);
-  const [isBooking, setIsBooking] = useState(false);
 
   // 1. Real-time Synchronization (Giả lập WebSockets / Polling)
   useEffect(() => {
@@ -46,7 +32,7 @@ export default function Booking() {
         .then((data) => {
           if (isMounted) setBookedSeatIds(data);
         })
-        .catch((err) => {
+        .catch((_err) => {
           // Nếu chưa có API, nạp 1 lần dữ liệu giả
           if (isMounted && bookedSeatIds.length === 0) {
             console.log("Fallback to mock data for booked seats.");
@@ -76,10 +62,11 @@ export default function Booking() {
   const handleBuyTickets = async () => {
     if (selectedSeats.length === 0 || !event) return;
 
+    // Save selection to context (survives page refresh)
+    setSeatSelection(event.id, selectedSeats, seatToTierMap);
+
     // TODO: Tạm thời chuyển thẳng sang BookingDetails
-    navigate(`/events/${event.id}/booking-details`, {
-      state: { selectedSeats, seatToTierMap },
-    });
+    navigate(`/events/${event.id}/booking-details`);
 
     /* 
     // === KIỂM TRA API, COMMENT TẠM LẠI ĐỂ TEST UI ===
@@ -87,7 +74,7 @@ export default function Booking() {
     try {
       await apiPost("/bookings", { eventId: event.id, seats: selectedSeats });
       // Khi API phản hồi thành công, ta chuyển sang trang BookingDetails
-      navigate(`/events/${event.id}/booking-details`, { state: { selectedSeats } });
+      navigate(`/events/${event.id}/booking-details`);
     } catch (err: any) {
       // Kiến trúc Scalable: Xử lý riêng lỗi HTTP 409 Conflict (Trùng ghế)
       const isConflict = err?.status === 409 || err?.response?.status === 409;
@@ -201,7 +188,7 @@ export default function Booking() {
         <div className="flex-1 overflow-y-auto p-6 custom-scrollbar hidden md:block">
           <h3 className="text-sm font-bold mb-5 text-gray-400 uppercase tracking-wider">{t("booking.ticketPrice")}</h3>
           <div className="space-y-4">
-            {event.ticketTiers.map((tier, idx) => {
+            {event.ticketTiers.map((tier) => {
               const color = tierColors[tier.id];
               return (
                 <div key={tier.id} className="flex items-center justify-between text-sm">
@@ -234,9 +221,9 @@ export default function Booking() {
               : "bg-[#e5e5e5] text-gray-500 cursor-not-allowed"
               }`}
             onClick={handleBuyTickets}
-            isDisabled={selectedSeats.length === 0 || isBooking}
+            isDisabled={selectedSeats.length === 0}
           >
-            {isBooking ? t("booking.processing") : selectedSeats.length > 0 ? t("booking.continue") : t("booking.pleaseSelectTicket")}
+            {selectedSeats.length > 0 ? t("booking.continue") : t("booking.pleaseSelectTicket")}
           </Button>
         </div>
       </div>

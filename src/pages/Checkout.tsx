@@ -1,159 +1,22 @@
 import { useState, useEffect, useMemo } from "react";
-import { useParams, useNavigate, useLocation, Link } from "react-router";
+import { useParams, useNavigate, Link } from "react-router";
 import { useTranslation } from "react-i18next";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
   CalendarDays,
   MapPin,
-  Check,
-  ChevronDown,
-  ChevronUp,
   Clock,
-  Ticket,
 } from "lucide-react";
 import { Button, Card } from "@heroui/react";
 import { getEvent } from "../data/events";
 import { Logo } from "../components/Branding";
-
-/* ── Helpers ── */
-function formatPrice(value: number) {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-function formatDateTime(iso: string) {
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(d.getHours())}:${pad(d.getMinutes())} - ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
-}
-
-/* ── Countdown Timer hook ── */
-function useCountdown(seconds: number) {
-  const [remaining, setRemaining] = useState(seconds);
-  useEffect(() => {
-    if (remaining <= 0) return;
-    const id = setInterval(() => setRemaining((r) => r - 1), 1000);
-    return () => clearInterval(id);
-  }, [remaining]);
-  const m = Math.floor(remaining / 60);
-  const s = remaining % 60;
-  return { m, s, expired: remaining <= 0 };
-}
-
-/* ── Step Indicator ── */
-const STEPS = [
-  "payment.stepSelectTicket",
-  "payment.stepEnterInfo",
-  "payment.stepPayment",
-] as const;
-
-function StepIndicator({ current }: { current: number }) {
-  const { t } = useTranslation();
-  return (
-    <div className="flex items-center gap-1 md:gap-2">
-      {STEPS.map((key, idx) => {
-        const done = idx < current;
-        const active = idx === current;
-        return (
-          <div key={key} className="flex items-center gap-1 md:gap-2">
-            <div
-              className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold shrink-0 transition-colors ${
-                done
-                  ? "bg-emerald-500 text-white"
-                  : active
-                    ? "bg-(--accent) text-black"
-                    : "bg-white/10 text-white/40"
-              }`}
-            >
-              {done ? <Check size={14} /> : idx + 1}
-            </div>
-            <span
-              className={`text-xs md:text-sm font-medium whitespace-nowrap transition-colors ${
-                active
-                  ? "text-(--accent)"
-                  : done
-                    ? "text-emerald-400"
-                    : "text-white/40"
-              }`}
-            >
-              {t(key)}
-            </span>
-            {idx < STEPS.length - 1 && (
-              <div
-                className={`w-6 md:w-10 h-px ${done ? "bg-emerald-500" : "bg-white/15"}`}
-              />
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-/* ── Scrolling Marquee ── */
-function EventMarquee({ text }: { text: string }) {
-  return (
-    <div className="relative w-full overflow-hidden bg-gradient-to-r from-indigo-900/60 via-purple-900/40 to-indigo-900/60 py-1.5 border-y border-white/5">
-      <div className="flex animate-[marquee_30s_linear_infinite] whitespace-nowrap">
-        {[...Array(4)].map((_, i) => (
-          <span
-            key={i}
-            className="mx-12 text-xs text-white/60 font-medium tracking-wide"
-          >
-            <Ticket size={12} className="inline mr-2 text-(--accent)" />
-            {text}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* ── Collapsible Section ── */
-function Section({
-  title,
-  defaultOpen = true,
-  children,
-}: {
-  title: string;
-  defaultOpen?: boolean;
-  children: React.ReactNode;
-}) {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <div className="border-b border-white/5 last:border-b-0">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between py-4 px-6 text-left hover:bg-white/[0.02] transition-colors"
-      >
-        <h3 className="text-sm font-bold text-white/90 uppercase tracking-wider">
-          {title}
-        </h3>
-        {open ? (
-          <ChevronUp size={16} className="text-white/40" />
-        ) : (
-          <ChevronDown size={16} className="text-white/40" />
-        )}
-      </button>
-      {open && <div className="px-6 pb-5">{children}</div>}
-    </div>
-  );
-}
-
-/* ══════════════════════════════════════════════════
-   Kiểu dữ liệu ghế nhóm theo hạng vé
-   ══════════════════════════════════════════════════ */
-type SeatGroup = {
-  tierName: string;
-  tierId: string;
-  seats: string[];
-  unitPrice: number;
-  subtotal: number;
-};
+import { StepIndicator } from "../components/booking/StepIndicator";
+import { EventMarquee } from "../components/booking/EventMarquee";
+import { Section } from "../components/booking/Section";
+import { formatPrice, formatDateTime } from "../utils/format";
+import { useCountdown } from "../utils/useCountdown";
+import { computeSeatGroups, computeTotalAmount } from "../utils/seatGroups";
+import { useBooking } from "../contexts/BookingContext";
 
 /* ================================================================
    MAIN COMPONENT
@@ -161,58 +24,41 @@ type SeatGroup = {
 export default function Checkout() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
-  const location = useLocation();
   const { t } = useTranslation();
+  const { booking, clearBooking } = useBooking();
 
-  // TODO: Lấy event từ sessionId, hiện tại mock dùng eventId từ state
-  const {
-    eventId = "",
-    selectedSeats = [],
-    seatToTierMap = {},
-    fullName = "",
-    email = "",
-    phone = "",
-    totalAmount: totalAmountFromState,
-  } = (location.state as any) || {};
+  // Read from context instead of location.state
+  const eventId = booking?.eventId || "";
+  const selectedSeats = booking?.selectedSeats || [];
+  const seatToTierMap = booking?.seatToTierMap || {};
+  const fullName = booking?.fullName || "";
+  const email = booking?.email || "";
+  const phone = booking?.phone || "";
+  const totalAmountFromContext = booking?.totalAmount || 0;
 
   const event = useMemo(() => getEvent(eventId), [eventId]);
 
-  // Countdown giữ vé
-  const { m, s, expired } = useCountdown(600);
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [paymentConfirmed, setPaymentConfirmed] = useState(false);
+
+  // Countdown – shared across all pages from booking start
+  const { m, s, expired } = useCountdown({ expiresAt: booking?.expiresAt });
 
   useEffect(() => {
-    if (expired && eventId) {
-      navigate(`/events/${eventId}/booking`);
-    }
-  }, [expired, eventId, navigate]);
+    if (!expired || !eventId || !booking?.expiresAt) return;
+    navigate(`/events/${eventId}/booking`);
+  }, [expired, eventId, navigate, booking?.expiresAt]);
 
-  // Nhóm ghế theo hạng vé
-  const seatGroups: SeatGroup[] = useMemo(() => {
+  // Seat groups
+  const seatGroups = useMemo(() => {
     if (!event) return [];
-
-    const grouped: Record<string, string[]> = {};
-    selectedSeats.forEach((seatId: string) => {
-      const tierId = seatToTierMap[seatId] || event.ticketTiers[0]?.id || "";
-      if (!grouped[tierId]) grouped[tierId] = [];
-      grouped[tierId].push(seatId);
-    });
-
-    return Object.entries(grouped).map(([tierId, seats]) => {
-      const tier = event.ticketTiers.find((t) => t.id === tierId);
-      return {
-        tierId,
-        tierName: tier?.name || tierId,
-        seats,
-        unitPrice: tier?.price || event.price,
-        subtotal: (tier?.price || event.price) * seats.length,
-      };
-    });
+    return computeSeatGroups(selectedSeats, seatToTierMap, event.ticketTiers, event.price);
   }, [event, selectedSeats, seatToTierMap]);
 
   const totalAmount = useMemo(() => {
-    if (typeof totalAmountFromState === "number" && totalAmountFromState > 0) return totalAmountFromState;
-    return seatGroups.reduce((sum, g) => sum + g.subtotal, 0);
-  }, [seatGroups, totalAmountFromState]);
+    if (typeof totalAmountFromContext === "number" && totalAmountFromContext > 0) return totalAmountFromContext;
+    return computeTotalAmount(seatGroups);
+  }, [seatGroups, totalAmountFromContext]);
 
   // Payment receiver info (from your provided data)
   const bankName = "BIDV";
@@ -232,8 +78,52 @@ export default function Checkout() {
     }
   };
 
+  const handleConfirmPayment = async () => {
+    setIsConfirming(true);
+    try {
+      // TODO: Call backend to confirm payment
+      // await apiPost(`/bookings/${sessionId}/confirm`, {});
+      console.log("Payment confirmed for session:", sessionId);
+
+      setPaymentConfirmed(true);
+      // Clear booking context after successful payment
+      // clearBooking();
+    } catch (err) {
+      console.error("Payment confirmation failed:", err);
+    } finally {
+      setIsConfirming(false);
+    }
+  };
+
   if (!event)
     return <div className="p-10 text-white">{t("event.notFound")}</div>;
+
+  if (paymentConfirmed) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[100dvh] w-full bg-[#0a0a0a] text-white font-sans">
+        <div className="text-center space-y-4 p-8">
+          <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto">
+            <svg className="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold">{t("checkout.paymentConfirmed") || "Payment Confirmed!"}</h2>
+          <p className="text-white/60 text-sm">
+            {t("checkout.paymentConfirmedDesc") || "Your tickets will be sent to your email shortly."}
+          </p>
+          <Button
+            className="mt-4 px-8 py-2.5 text-sm font-bold bg-(--accent) text-black hover:bg-(--accent)/90 rounded-lg"
+            onClick={() => {
+              clearBooking();
+              navigate("/");
+            }}
+          >
+            {t("common.backToHome") || "Back to Home"}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-[100dvh] w-full bg-[#0a0a0a] text-white font-sans overflow-hidden">
@@ -244,7 +134,7 @@ export default function Checkout() {
         {/* Logo / Back */}
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate(`/events/${event.id}/payment`, { state: location.state })}
+            onClick={() => navigate(`/events/${event.id}/payment`)}
             className="flex shrink-0 items-center gap-2 text-(--accent) hover:text-(--accent)/80 font-semibold transition-colors text-sm"
           >
             <ArrowLeft size={18} />
@@ -430,7 +320,7 @@ export default function Checkout() {
                ──────────────────────────────────── */}
             <div className="space-y-6">
               
-              {/* Payment Account Card - giống ảnh */}
+              {/* Payment Account Card */}
               <Card className="bg-[#1a1a1a] border-white/5 border-1 overflow-hidden shadow-none">
                 {/* Title */}
                 <div className="px-6 py-5 border-b border-white/5">
@@ -566,12 +456,16 @@ export default function Checkout() {
           <div className="flex items-center gap-3 ml-auto">
             <Button
               className="px-6 py-2.5 text-sm font-semibold bg-transparent border border-white/15 text-white/70 hover:bg-white/5 hover:text-white rounded-lg transition-all"
-              onClick={() => navigate(`/events/${event.id}/payment`, { state: location.state })}
+              onClick={() => navigate(`/events/${event.id}/payment`)}
             >
               {t("common.back")}
             </Button>
-            <Button className="px-8 py-2.5 text-sm font-bold bg-(--accent) text-black hover:bg-(--accent)/90 rounded-lg shadow-[0_0_20px_oklch(83.77%_0.1655_81.92_/_0.3)] transition-all">
-              {t("checkout.confirmPayment") || "Đã thanh toán"}
+            <Button
+              className="px-8 py-2.5 text-sm font-bold bg-(--accent) text-black hover:bg-(--accent)/90 rounded-lg shadow-[0_0_20px_oklch(83.77%_0.1655_81.92_/_0.3)] transition-all"
+              onClick={handleConfirmPayment}
+              isDisabled={isConfirming}
+            >
+              {isConfirming ? t("checkout.confirming") || "Confirming..." : t("checkout.confirmPayment") || "Đã thanh toán"}
             </Button>
           </div>
         </div>

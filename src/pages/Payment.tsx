@@ -1,161 +1,25 @@
 import { useState, useEffect, useMemo } from "react";
-import { useParams, useNavigate, useLocation, Link } from "react-router";
+import { useParams, useNavigate, Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
   CalendarDays,
   MapPin,
-  Check,
-  ChevronDown,
-  ChevronUp,
   Clock,
-  Ticket,
   Landmark,
   CreditCard,
 } from "lucide-react";
 import { Button, Input, Card } from "@heroui/react";
 import { getEvent } from "../data/events";
 import { Logo } from "../components/Branding";
-
-/* ── Helpers ── */
-function formatPrice(value: number) {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-function formatDateTime(iso: string) {
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(d.getHours())}:${pad(d.getMinutes())} - ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
-}
-
-/* ── Countdown Timer hook (mock 10 phút giữ vé) ── */
-function useCountdown(seconds: number) {
-  const [remaining, setRemaining] = useState(seconds);
-  useEffect(() => {
-    if (remaining <= 0) return;
-    const id = setInterval(() => setRemaining((r) => r - 1), 1000);
-    return () => clearInterval(id);
-  }, [remaining]);
-  const m = Math.floor(remaining / 60);
-  const s = remaining % 60;
-  return { m, s, expired: remaining <= 0 };
-}
-
-/* ── Step Indicator ── */
-const STEPS = [
-  "payment.stepSelectTicket",
-  "payment.stepEnterInfo",
-  "payment.stepPayment",
-] as const;
-
-function StepIndicator({ current }: { current: number }) {
-  const { t } = useTranslation();
-  return (
-    <div className="flex items-center gap-1 md:gap-2">
-      {STEPS.map((key, idx) => {
-        const done = idx < current;
-        const active = idx === current;
-        return (
-          <div key={key} className="flex items-center gap-1 md:gap-2">
-            <div
-              className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold shrink-0 transition-colors ${
-                done
-                  ? "bg-emerald-500 text-white"
-                  : active
-                    ? "bg-(--accent) text-black"
-                    : "bg-white/10 text-white/40"
-              }`}
-            >
-              {done ? <Check size={14} /> : idx + 1}
-            </div>
-            <span
-              className={`text-xs md:text-sm font-medium whitespace-nowrap transition-colors ${
-                active
-                  ? "text-(--accent)"
-                  : done
-                    ? "text-emerald-400"
-                    : "text-white/40"
-              }`}
-            >
-              {t(key)}
-            </span>
-            {idx < STEPS.length - 1 && (
-              <div
-                className={`w-6 md:w-10 h-px ${done ? "bg-emerald-500" : "bg-white/15"}`}
-              />
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-/* ── Scrolling Marquee ── */
-function EventMarquee({ text }: { text: string }) {
-  return (
-    <div className="relative w-full overflow-hidden bg-gradient-to-r from-indigo-900/60 via-purple-900/40 to-indigo-900/60 py-1.5 border-y border-white/5">
-      <div className="flex animate-[marquee_30s_linear_infinite] whitespace-nowrap">
-        {[...Array(4)].map((_, i) => (
-          <span
-            key={i}
-            className="mx-12 text-xs text-white/60 font-medium tracking-wide"
-          >
-            <Ticket size={12} className="inline mr-2 text-(--accent)" />
-            {text}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* ── Collapsible Section (dùng chung cho cả 2 cột) ── */
-function Section({
-  title,
-  defaultOpen = true,
-  children,
-}: {
-  title: string;
-  defaultOpen?: boolean;
-  children: React.ReactNode;
-}) {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <div className="border-b border-white/5 last:border-b-0">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between py-4 px-6 text-left hover:bg-white/[0.02] transition-colors"
-      >
-        <h3 className="text-sm font-bold text-white/90 uppercase tracking-wider">
-          {title}
-        </h3>
-        {open ? (
-          <ChevronUp size={16} className="text-white/40" />
-        ) : (
-          <ChevronDown size={16} className="text-white/40" />
-        )}
-      </button>
-      {open && <div className="px-6 pb-5">{children}</div>}
-    </div>
-  );
-}
-
-/* ══════════════════════════════════════════════════
-   Kiểu dữ liệu ghế nhóm theo hạng vé
-   ══════════════════════════════════════════════════ */
-type SeatGroup = {
-  tierName: string;
-  tierId: string;
-  seats: string[];
-  unitPrice: number;
-  subtotal: number;
-};
+import { StepIndicator } from "../components/booking/StepIndicator";
+import { EventMarquee } from "../components/booking/EventMarquee";
+import { Section } from "../components/booking/Section";
+import { formatPrice, formatDateTime } from "../utils/format";
+import { useCountdown } from "../utils/useCountdown";
+import { computeSeatGroups, computeTotalAmount } from "../utils/seatGroups";
+import { useBooking } from "../contexts/BookingContext";
 
 type PaymentMethod = "bank_transfer" | "credit_card";
 
@@ -236,83 +100,53 @@ function PaymentMethodOption({
 export default function Payment() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
-  const location = useLocation();
   const { t } = useTranslation();
+  const { booking, setPaymentMethod: savePaymentMethod, setTotalAmount } = useBooking();
 
   const event = useMemo(() => getEvent(eventId), [eventId]);
 
-  // Dữ liệu được truyền từ trang BookingDetails
-  const {
-    selectedSeats = [],
-    seatToTierMap = {},
-    fullName = "",
-    email = "",
-    phone = "",
-    idDocument = "",
-  } = location.state || {};
+  // Read from context instead of location.state
+  const selectedSeats = booking?.selectedSeats || [];
+  const seatToTierMap = booking?.seatToTierMap || {};
+  const fullName = booking?.fullName || "";
+  const email = booking?.email || "";
+  const phone = booking?.phone || "";
+  const idDocument = booking?.idDocument || "";
 
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("bank_transfer");
+  const [paymentMethod, setPaymentMethodLocal] = useState<PaymentMethod>(booking?.paymentMethod || "bank_transfer");
   const [discountCode, setDiscountCode] = useState("");
 
-  // Countdown giữ vé 10 phút
-  const { m, s, expired } = useCountdown(600);
+  // Countdown – shared across all pages from booking start
+  const { m, s, expired } = useCountdown({ expiresAt: booking?.expiresAt });
 
   // Tự động quay lại booking khi hết hạn
   useEffect(() => {
-    if (expired && eventId) {
-      navigate(`/events/${eventId}/booking`);
-    }
-  }, [expired, eventId, navigate]);
+    if (!expired || !eventId || !booking?.expiresAt) return;
+    navigate(`/events/${eventId}/booking`);
+  }, [expired, eventId, navigate, booking?.expiresAt]);
 
-  // Nhóm ghế theo hạng vé để hiển thị bảng khu vực & ghế ngồi
-  const seatGroups: SeatGroup[] = useMemo(() => {
+  // Seat groups
+  const seatGroups = useMemo(() => {
     if (!event) return [];
-
-    const grouped: Record<string, string[]> = {};
-    selectedSeats.forEach((seatId: string) => {
-      const tierId = seatToTierMap[seatId] || event.ticketTiers[0]?.id || "";
-      if (!grouped[tierId]) grouped[tierId] = [];
-      grouped[tierId].push(seatId);
-    });
-
-    return Object.entries(grouped).map(([tierId, seats]) => {
-      const tier = event.ticketTiers.find((t) => t.id === tierId);
-      return {
-        tierId,
-        tierName: tier?.name || tierId,
-        seats,
-        unitPrice: tier?.price || event.price,
-        subtotal: (tier?.price || event.price) * seats.length,
-      };
-    });
+    return computeSeatGroups(selectedSeats, seatToTierMap, event.ticketTiers, event.price);
   }, [event, selectedSeats, seatToTierMap]);
 
-  const totalAmount = useMemo(
-    () => seatGroups.reduce((sum, g) => sum + g.subtotal, 0),
-    [seatGroups],
-  );
+  const totalAmount = useMemo(() => computeTotalAmount(seatGroups), [seatGroups]);
 
-    const handlePaymentSubmit = () => {
-      if (paymentMethod === "bank_transfer") {
-        // Hardcoded sessionId for UI testing
-        const sessionId = "test_ui_session";
-        // Pass explicit order and event data to Checkout for reliable UI testing
-        navigate(`/checkout/${sessionId}`, {
-          state: {
-            eventId,
-            selectedSeats,
-            seatToTierMap,
-            fullName,
-            email,
-            phone,
-            totalAmount,
-          },
-        });
-      } else {
-        // TODO: Xử lý credit card payment
-        console.log("Credit card payment not yet implemented");
-      }
-    };
+  const handlePaymentSubmit = () => {
+    // Save payment method and total to context
+    savePaymentMethod(paymentMethod);
+    setTotalAmount(totalAmount);
+
+    if (paymentMethod === "bank_transfer") {
+      // Hardcoded sessionId for UI testing
+      const sessionId = "test_ui_session";
+      navigate(`/checkout/${sessionId}`);
+    } else {
+      // TODO: Xử lý credit card payment
+      console.log("Credit card payment not yet implemented");
+    }
+  };
 
   if (!event)
     return <div className="p-10 text-white">{t("event.notFound")}</div>;
@@ -326,7 +160,7 @@ export default function Payment() {
         {/* Logo / Back */}
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate(`/events/${event.id}/booking-details`, { state: location.state })}
+            onClick={() => navigate(`/events/${event.id}/booking-details`)}
             className="flex shrink-0 items-center gap-2 text-(--accent) hover:text-(--accent)/80 font-semibold transition-colors text-sm"
           >
             <ArrowLeft size={18} />
@@ -455,7 +289,7 @@ export default function Payment() {
                   </div>
                 </Section>
 
-                {/* Khu vực và ghế ngồi – dữ liệu từ trang Booking */}
+                {/* Khu vực và ghế ngồi */}
                 <Section title={t("payment.seatArea")}>
                   {seatGroups.length > 0 ? (
                     <div className="space-y-3">
@@ -534,7 +368,7 @@ export default function Payment() {
                     icon={<Landmark size={18} />}
                     label={t("payment.bankTransfer")}
                     description={t("payment.bankTransferDesc")}
-                    onPress={() => setPaymentMethod("bank_transfer")}
+                    onPress={() => setPaymentMethodLocal("bank_transfer")}
                   />
 
                   <PaymentMethodOption
@@ -542,7 +376,7 @@ export default function Payment() {
                     icon={<CreditCard size={18} />}
                     label={t("payment.creditCard")}
                     description={t("payment.creditCardDesc")}
-                    onPress={() => setPaymentMethod("credit_card")}
+                    onPress={() => setPaymentMethodLocal("credit_card")}
                   />
                 </div>
               </Card>
@@ -581,7 +415,7 @@ export default function Payment() {
           <div className="flex items-center gap-3 ml-auto">
             <Button
               className="px-6 py-2.5 text-sm font-semibold bg-transparent border border-white/15 text-white/70 hover:bg-white/5 hover:text-white rounded-lg transition-all"
-              onClick={() => navigate(`/events/${event.id}/booking-details`, { state: location.state })}
+              onClick={() => navigate(`/events/${event.id}/booking-details`)}
             >
               {t("common.back")}
             </Button>
