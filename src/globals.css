@@ -112,3 +112,13 @@ body,
     filter: invert(1);
   }
 }
+
+/* Marquee animation for Payment page ticker */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}

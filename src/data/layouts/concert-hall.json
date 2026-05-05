@@ -1,6 +1,6 @@
 {
   "id": "concert-hall",
-  "name": "Sân khấu concert — 3 khu, 680 ghế",
+  "name": "Sân khấu concert — 3 khu, 120 ghế",
   "blocks": [
     {
       "id": "left",
@@ -8,23 +8,28 @@
       "rows": [
         {
           "label": "A",
-          "count": 8
+          "count": 8,
+          "tierId": "standard"
         },
         {
           "label": "B",
-          "count": 8
+          "count": 8,
+          "tierId": "standard"
         },
         {
           "label": "C",
-          "count": 8
+          "count": 8,
+          "tierId": "standard"
         },
         {
           "label": "D",
-          "count": 8
+          "count": 8,
+          "tierId": "standard"
         },
         {
           "label": "E",
-          "count": 8
+          "count": 8,
+          "tierId": "standard"
         }
       ]
     },
@@ -34,23 +39,28 @@
       "rows": [
         {
           "label": "A",
-          "count": 14
+          "count": 14,
+          "tierId": "svip"
         },
         {
           "label": "B",
-          "count": 14
+          "count": 14,
+          "tierId": "vip1"
         },
         {
           "label": "C",
-          "count": 14
+          "count": 14,
+          "tierId": "vip1"
         },
         {
           "label": "D",
-          "count": 14
+          "count": 14,
+          "tierId": "vip2"
         },
         {
           "label": "E",
-          "count": 14
+          "count": 14,
+          "tierId": "vip2"
         }
       ]
     },
@@ -60,75 +70,28 @@
       "rows": [
         {
           "label": "A",
-          "count": 8
+          "count": 8,
+          "tierId": "standard"
         },
         {
           "label": "B",
-          "count": 8
+          "count": 8,
+          "tierId": "standard"
         },
         {
           "label": "C",
-          "count": 8
+          "count": 8,
+          "tierId": "standard"
         },
         {
           "label": "D",
-          "count": 8
+          "count": 8,
+          "tierId": "standard"
         },
         {
           "label": "E",
-          "count": 8
-        }
-      ]
-    },
-    {
-      "id": "left",
-      "name": "BLOCK L",
-      "rows": [
-        {
-          "label": "A",
-          "count": 8
-        },
-        {
-          "label": "B",
-          "count": 8
-        },
-        {
-          "label": "C",
-          "count": 8
-        },
-        {
-          "label": "D",
-          "count": 8
-        },
-        {
-          "label": "E",
-          "count": 8
-        }
-      ]
-    },
-    {
-      "id": "left",
-      "name": "BLOCK L",
-      "rows": [
-        {
-          "label": "A",
-          "count": 8
-        },
-        {
-          "label": "B",
-          "count": 8
-        },
-        {
-          "label": "C",
-          "count": 8
-        },
-        {
-          "label": "D",
-          "count": 8
-        },
-        {
-          "label": "E",
-          "count": 8
+          "count": 8,
+          "tierId": "standard"
         }
       ]
     }

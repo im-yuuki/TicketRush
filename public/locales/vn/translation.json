@@ -98,5 +98,42 @@
     "conflictError": "Rất tiếc! Một số ghế bạn chọn vừa được người khác thanh toán thành công.\nHệ thống sẽ tự động tải lại sơ đồ ghế mới nhất.",
     "genericError": "Có lỗi xảy ra khi đặt vé. Vui lòng kiểm tra lại kết nối.",
     "success": "Đặt vé thành công!"
+  },
+  "payment": {
+    "stepSelectTicket": "Chọn vé",
+    "stepEnterInfo": "Nhập thông tin",
+    "stepPayment": "Thanh toán",
+    "holdTime": "Thời gian giữ vé",
+    "recipientInfo": "Thông tin nhận vé",
+    "name": "Họ và tên",
+    "phone": "Số điện thoại",
+    "deliveryNote": "Vé online được gửi qua email người đại diện nhận vé và vé vật lý được giao tại sự kiện (nếu có).",
+    "seatArea": "Khu vực và ghế ngồi",
+    "ticketType": "Hạng vé",
+    "quantity": "Số lượng",
+    "price": "Giá vé",
+    "noSeatsSelected": "Chưa chọn ghế nào.",
+    "representativeInfo": "Thông tin người đại diện nhận vé",
+    "fullName": "Họ và Tên",
+    "fullNamePlaceholder": "Nhập họ và tên đầy đủ",
+    "phoneNumber": "Số điện thoại",
+    "idDocument": "Giấy tờ cá nhân / Hộ chiếu",
+    "idPlaceholder": "Nhập số CCCD hoặc hộ chiếu",
+    "deliveryMethod": "Hình thức nhận vé",
+    "eTicketOption": "Nhận vé online qua email và/ hoặc vé vật lý tại sự kiện",
+    "eTicketDescription": "Vé online được gửi qua email người đại diện nhận vé và vé vật lý được giao tại sự kiện (nếu có).",
+    "bottomNote": "Bạn cần điền đầy đủ thông tin trước khi chuyển sang bước tiếp theo.",
+    "reselectTickets": "Chọn lại vé",
+    "continue": "Tiếp tục",
+    "total": "Tổng cộng",
+    "notYetEntered": "Chưa nhập",
+    "validation": {
+      "fullNameMin": "Họ và tên phải có ít nhất 2 ký tự.",
+      "emailRequired": "Vui lòng nhập email.",
+      "emailInvalid": "Email không hợp lệ.",
+      "phoneRequired": "Vui lòng nhập số điện thoại.",
+      "phoneInvalid": "Số điện thoại phải từ 9-11 chữ số."
+    }
   }
 }
+

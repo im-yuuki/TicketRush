@@ -76,14 +76,18 @@ export default function Booking() {
   const handleBuyTickets = async () => {
     if (selectedSeats.length === 0 || !event) return;
 
+    // TODO: Tạm thời chuyển thẳng sang Payment
+    navigate(`/events/${event.id}/payment`, {
+      state: { selectedSeats, seatToTierMap },
+    });
+
+    /* 
+    // === KIỂM TRA API, COMMENT TẠM LẠI ĐỂ TEST UI ===
     setIsBooking(true);
     try {
       await apiPost("/bookings", { eventId: event.id, seats: selectedSeats });
-      alert(t("booking.success"));
-      setBookedSeatIds((prev) => Array.from(new Set([...prev, ...selectedSeats])));
-      setSelectedSeats([]);
-      // Sau khi mua có thể navigate qua trang success
-      // navigate(`/events/${event.id}`);
+      // Khi API phản hồi thành công, ta chuyển sang trang Payment
+      navigate(`/events/${event.id}/payment`, { state: { selectedSeats } });
     } catch (err: any) {
       // Kiến trúc Scalable: Xử lý riêng lỗi HTTP 409 Conflict (Trùng ghế)
       const isConflict = err?.status === 409 || err?.response?.status === 409;
@@ -100,6 +104,8 @@ export default function Booking() {
     } finally {
       setIsBooking(false);
     }
+    // =========================================================
+    */
   };
 
   if (!event) return <div className="p-10 text-white">{t("event.notFound")}</div>;
