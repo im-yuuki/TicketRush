@@ -113,7 +113,7 @@ body,
   }
 }
 
-/* Marquee animation for Payment page ticker */
+/* Marquee animation for BookingDetails page ticker */
 @keyframes marquee {
   0% {
     transform: translateX(0);

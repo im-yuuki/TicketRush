@@ -76,8 +76,8 @@ export default function Booking() {
   const handleBuyTickets = async () => {
     if (selectedSeats.length === 0 || !event) return;
 
-    // TODO: Tạm thời chuyển thẳng sang Payment
-    navigate(`/events/${event.id}/payment`, {
+    // TODO: Tạm thời chuyển thẳng sang BookingDetails
+    navigate(`/events/${event.id}/booking-details`, {
       state: { selectedSeats, seatToTierMap },
     });
 
@@ -86,8 +86,8 @@ export default function Booking() {
     setIsBooking(true);
     try {
       await apiPost("/bookings", { eventId: event.id, seats: selectedSeats });
-      // Khi API phản hồi thành công, ta chuyển sang trang Payment
-      navigate(`/events/${event.id}/payment`, { state: { selectedSeats } });
+      // Khi API phản hồi thành công, ta chuyển sang trang BookingDetails
+      navigate(`/events/${event.id}/booking-details`, { state: { selectedSeats } });
     } catch (err: any) {
       // Kiến trúc Scalable: Xử lý riêng lỗi HTTP 409 Conflict (Trùng ghế)
       const isConflict = err?.status === 409 || err?.response?.status === 409;
@@ -152,12 +152,14 @@ export default function Booking() {
         <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 md:p-6 bg-gradient-to-b from-black to-transparent">
           <button
             onClick={() => navigate(`/events/${event.id}`)}
-            className="flex items-center gap-2 text-(--accent) hover:text-(--accent)/80 font-medium transition-colors"
+            className="flex items-center gap-2 text-(--accent) hover:text-(--accent)/80 font-medium transition-colors shrink-0"
           >
             <ArrowLeft size={20} />
-            {t("common.back")}
+            <span className="hidden md:inline">{t("common.back")}</span>
           </button>
-          <h1 className="text-xl font-bold tracking-wide text-(--accent)">{t("booking.selectTicket")}</h1>
+          <h1 className="absolute inset-x-0 text-center text-xl font-bold tracking-wide text-(--accent) pointer-events-none md:static md:inset-auto md:pointer-events-auto">
+            {t("booking.selectTicket")}
+          </h1>
           <div className="w-24" /> {/* Spacer */}
         </div>
 

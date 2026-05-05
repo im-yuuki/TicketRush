@@ -11,10 +11,8 @@ import {
   ChevronUp,
   Clock,
   Ticket,
-  Landmark,
-  CreditCard,
 } from "lucide-react";
-import { Button, Input, Card } from "@heroui/react";
+import { Button, Card } from "@heroui/react";
 import { getEvent } from "../data/events";
 import { Logo } from "../components/Branding";
 
@@ -33,7 +31,7 @@ function formatDateTime(iso: string) {
   return `${pad(d.getHours())}:${pad(d.getMinutes())} - ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
 }
 
-/* ── Countdown Timer hook (mock 10 phút giữ vé) ── */
+/* ── Countdown Timer hook ── */
 function useCountdown(seconds: number) {
   const [remaining, setRemaining] = useState(seconds);
   useEffect(() => {
@@ -115,7 +113,7 @@ function EventMarquee({ text }: { text: string }) {
   );
 }
 
-/* ── Collapsible Section (dùng chung cho cả 2 cột) ── */
+/* ── Collapsible Section ── */
 function Section({
   title,
   defaultOpen = true,
@@ -157,114 +155,38 @@ type SeatGroup = {
   subtotal: number;
 };
 
-type PaymentMethod = "bank_transfer" | "credit_card";
-
-function PaymentMethodOption({
-  selected,
-  icon,
-  label,
-  description,
-  onPress,
-}: {
-  selected: boolean;
-  icon: React.ReactNode;
-  label: string;
-  description: string;
-  onPress: () => void;
-}) {
-  return (
-    <motion.button
-      type="button"
-      onPointerDown={onPress}
-      onClick={onPress}
-      whileTap={{ scale: 0.985 }}
-      whileHover={{ y: -1 }}
-      transition={{ type: "spring", stiffness: 700, damping: 32, mass: 0.35 }}
-      className={`w-full border rounded-xl px-4 py-3 text-left select-none touch-manipulation will-change-transform transition-colors duration-150 ease-out ${
-        selected
-          ? "border-accent bg-surface-secondary ring-1 ring-(--accent)/30"
-          : "border-border bg-surface hover:bg-surface-secondary"
-      }`}
-    >
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0">
-          <div
-            className={`w-8 h-8 rounded-md flex items-center justify-center shrink-0 ${
-              selected
-                ? "bg-accent-soft text-accent"
-                : "bg-surface-tertiary text-muted"
-            }`}
-          >
-            {icon}
-          </div>
-          <div className="min-w-0 text-left">
-            <p className={`text-sm font-semibold ${selected ? "text-(--foreground)" : "text-surface-foreground"}`}>
-              {label}
-            </p>
-            <p className={`text-sm ${selected ? "text-(--foreground)/75" : "text-muted"}`}>
-              {description}
-            </p>
-          </div>
-        </div>
-
-        <div
-          className={`w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center ${
-            selected ? "border-accent" : "border-border bg-surface-tertiary"
-          }`}
-        >
-          <AnimatePresence initial={false} mode="wait">
-            {selected && (
-              <motion.div
-                key="payment-method-dot"
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0, opacity: 0 }}
-                transition={{ type: "spring", stiffness: 900, damping: 28 }}
-                className="w-2.5 h-2.5 rounded-full bg-accent"
-              />
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
-    </motion.button>
-  );
-}
-
 /* ================================================================
    MAIN COMPONENT
    ================================================================ */
-export default function Payment() {
-  const { eventId } = useParams<{ eventId: string }>();
+export default function Checkout() {
+  const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
 
-  const event = useMemo(() => getEvent(eventId), [eventId]);
-
-  // Dữ liệu được truyền từ trang BookingDetails
+  // TODO: Lấy event từ sessionId, hiện tại mock dùng eventId từ state
   const {
+    eventId = "",
     selectedSeats = [],
     seatToTierMap = {},
     fullName = "",
     email = "",
     phone = "",
-    idDocument = "",
-  } = location.state || {};
+    totalAmount: totalAmountFromState,
+  } = (location.state as any) || {};
 
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("bank_transfer");
-  const [discountCode, setDiscountCode] = useState("");
+  const event = useMemo(() => getEvent(eventId), [eventId]);
 
-  // Countdown giữ vé 10 phút
+  // Countdown giữ vé
   const { m, s, expired } = useCountdown(600);
 
-  // Tự động quay lại booking khi hết hạn
   useEffect(() => {
     if (expired && eventId) {
       navigate(`/events/${eventId}/booking`);
     }
   }, [expired, eventId, navigate]);
 
-  // Nhóm ghế theo hạng vé để hiển thị bảng khu vực & ghế ngồi
+  // Nhóm ghế theo hạng vé
   const seatGroups: SeatGroup[] = useMemo(() => {
     if (!event) return [];
 
@@ -287,32 +209,28 @@ export default function Payment() {
     });
   }, [event, selectedSeats, seatToTierMap]);
 
-  const totalAmount = useMemo(
-    () => seatGroups.reduce((sum, g) => sum + g.subtotal, 0),
-    [seatGroups],
-  );
+  const totalAmount = useMemo(() => {
+    if (typeof totalAmountFromState === "number" && totalAmountFromState > 0) return totalAmountFromState;
+    return seatGroups.reduce((sum, g) => sum + g.subtotal, 0);
+  }, [seatGroups, totalAmountFromState]);
 
-    const handlePaymentSubmit = () => {
-      if (paymentMethod === "bank_transfer") {
-        // Hardcoded sessionId for UI testing
-        const sessionId = "test_ui_session";
-        // Pass explicit order and event data to Checkout for reliable UI testing
-        navigate(`/checkout/${sessionId}`, {
-          state: {
-            eventId,
-            selectedSeats,
-            seatToTierMap,
-            fullName,
-            email,
-            phone,
-            totalAmount,
-          },
-        });
-      } else {
-        // TODO: Xử lý credit card payment
-        console.log("Credit card payment not yet implemented");
-      }
-    };
+  // Payment receiver info (from your provided data)
+  const bankName = "BIDV";
+  const accountNumberValue = "8883315508";
+  const accountHolderName = "TRAN DUC LAM";
+
+  // Build QR image URL with dynamic amount and sessionId
+  const qrBase = "https://api.vietqr.io/image/970418-8883315508-y3dke5Y.jpg";
+  const amountForQr = Math.round(totalAmount);
+  const qrUrl = `${qrBase}?accountName=${encodeURIComponent(accountHolderName)}&amount=${amountForQr}&addInfo=${encodeURIComponent(
+    `Thanh toan don hang ${sessionId}`,
+  )}`;
+
+  const copyToClipboard = (text: string) => {
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+      navigator.clipboard.writeText(text).catch(() => {});
+    }
+  };
 
   if (!event)
     return <div className="p-10 text-white">{t("event.notFound")}</div>;
@@ -326,7 +244,7 @@ export default function Payment() {
         {/* Logo / Back */}
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate(`/events/${event.id}/booking-details`, { state: location.state })}
+            onClick={() => navigate(`/events/${event.id}/payment`, { state: location.state })}
             className="flex shrink-0 items-center gap-2 text-(--accent) hover:text-(--accent)/80 font-semibold transition-colors text-sm"
           >
             <ArrowLeft size={18} />
@@ -442,20 +360,10 @@ export default function Payment() {
                         {phone || t("payment.notYetEntered")}
                       </span>
                     </div>
-                    {idDocument && (
-                      <div className="flex gap-2">
-                        <span className="text-white/40 w-28 shrink-0">
-                          {t("payment.idDocument")}:
-                        </span>
-                        <span className="font-medium whitespace-normal break-words text-white/90">
-                          {idDocument}
-                        </span>
-                      </div>
-                    )}
                   </div>
                 </Section>
 
-                {/* Khu vực và ghế ngồi – dữ liệu từ trang Booking */}
+                {/* Khu vực và ghế ngồi */}
                 <Section title={t("payment.seatArea")}>
                   {seatGroups.length > 0 ? (
                     <div className="space-y-3">
@@ -518,53 +426,130 @@ export default function Payment() {
             </div>
 
             {/* ────────────────────────────────────
-               CỘT PHẢI – Chọn hình thức thanh toán & Giảm giá
+               CỘT PHẢI – Thông tin thanh toán (QR + Account Info)
                ──────────────────────────────────── */}
             <div className="space-y-6">
               
-              {/* Chọn hình thức thanh toán */}
-              <Card className="bg-surface border-border border p-6 space-y-5">
-                <h3 className="text-sm font-bold text-surface-foreground uppercase tracking-wider">
-                  {t("payment.paymentMethod")}
-                </h3>
+              {/* Payment Account Card - giống ảnh */}
+              <Card className="bg-[#1a1a1a] border-white/5 border-1 overflow-hidden shadow-none">
+                {/* Title */}
+                <div className="px-6 py-5 border-b border-white/5">
+                  <h3 className="text-sm font-bold text-white/90 uppercase tracking-wider">
+                    {t("checkout.accountInfo") || "Thông tin tài khoản"}
+                  </h3>
+                </div>
 
-                <div className="space-y-3">
-                  <PaymentMethodOption
-                    selected={paymentMethod === "bank_transfer"}
-                    icon={<Landmark size={18} />}
-                    label={t("payment.bankTransfer")}
-                    description={t("payment.bankTransferDesc")}
-                    onPress={() => setPaymentMethod("bank_transfer")}
-                  />
+                {/* Content */}
+                <div className="p-6 space-y-6">
+                  {/* Total Amount */}
+                  <div className="text-center space-y-1">
+                    <p className="text-xs text-white/50 uppercase tracking-wider">
+                      {t("checkout.totalPayment") || "Tổng số tiền cần thanh toán"}
+                    </p>
+                    <div className="text-3xl md:text-4xl font-bold text-(--accent)">
+                      {formatPrice(totalAmount)}
+                    </div>
+                  </div>
 
-                  <PaymentMethodOption
-                    selected={paymentMethod === "credit_card"}
-                    icon={<CreditCard size={18} />}
-                    label={t("payment.creditCard")}
-                    description={t("payment.creditCardDesc")}
-                    onPress={() => setPaymentMethod("credit_card")}
-                  />
+                  {/* Divider */}
+                  <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+                  {/* Two column: QR Code + Account Details */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    
+                    {/* Left: QR Code */}
+                    <div className="flex flex-col items-center justify-center space-y-3">
+                        <div className="w-full aspect-square rounded-lg bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
+                          <img
+                            src={qrUrl}
+                            alt="QR Code"
+                            className="w-full h-full object-contain p-4 bg-white/5"
+                          />
+                        </div>
+                      <p className="text-xs text-white/40 text-center">
+                        {t("checkout.scanQrCode") || "Quét mã QR để thanh toán"}
+                      </p>
+                    </div>
+
+                    {/* Right: Account Details */}
+                    <div className="space-y-4">
+                      {/* Info text */}
+                      <p className="text-xs text-white/50 leading-relaxed">
+                        {t("checkout.paymentInfoDesc") ||
+                          "Bạn có thể quét mã QR hoặc chuyển khoản theo thông tin sau"}
+                      </p>
+
+                      {/* Account details section */}
+                      <div className="space-y-3.5 pt-2">
+                        {/* Bank */}
+                        <div className="space-y-1">
+                          <p className="text-xs text-white/40 uppercase tracking-wider">
+                            {t("checkout.bank") || "Ngân hàng thụ hưởng"}
+                          </p>
+                          <p className="text-sm font-semibold text-white/90">
+                            {bankName}
+                          </p>
+                        </div>
+
+                        {/* Account Number */}
+                        <div className="space-y-1">
+                          <p className="text-xs text-white/40 uppercase tracking-wider">
+                            {t("checkout.accountNumber") || "Số tài khoản"}
+                          </p>
+                          <div className="flex items-center gap-2 group">
+                            <p className="text-sm font-mono font-semibold text-white/80 break-all">
+                              {accountNumberValue}
+                            </p>
+                            <button
+                              onClick={() => copyToClipboard(accountNumberValue)}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity"
+                              title="Copy"
+                            >
+                              <svg
+                                className="w-4 h-4 text-white/40 hover:text-white/70"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Account Holder */}
+                        <div className="space-y-1">
+                          <p className="text-xs text-white/40 uppercase tracking-wider">
+                            {t("checkout.accountHolder") || "Tên tài khoản"}
+                          </p>
+                          <p className="text-sm font-semibold text-white/80">
+                            {accountHolderName}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+                  {/* Additional note */}
+                  <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 space-y-1">
+                    <p className="text-xs text-blue-300 font-medium">
+                      {t("checkout.noteTitle") || "Lưu ý:"}
+                    </p>
+                    <p className="text-xs text-blue-200/80">
+                      {t("checkout.noteContent") ||
+                        "Sau khi hoàn tất thanh toán, vui lòng chờ tối đa 5 phút. Vé sẽ được cấp nhật tự động."}
+                    </p>
+                  </div>
                 </div>
               </Card>
-
-              {/* Mã giảm giá */}
-              <Card className="bg-surface border-border border p-6 space-y-5">
-                <h3 className="text-sm font-bold text-surface-foreground uppercase tracking-wider">
-                  {t("payment.discountCode")}
-                </h3>
-                <div className="flex gap-2">
-                  <Input 
-                    placeholder={t("payment.discountPlaceholder")}
-                    value={discountCode}
-                    onChange={(e) => setDiscountCode(e.target.value)}
-                    className="border border-white/10 flex-1"
-                  />
-                  <Button className="bg-surface-tertiary text-surface-foreground font-medium hover:bg-surface-secondary">
-                    {t("payment.apply")}
-                  </Button>
-                </div>
-              </Card>
-
             </div>
           </div>
         </div>
@@ -581,15 +566,12 @@ export default function Payment() {
           <div className="flex items-center gap-3 ml-auto">
             <Button
               className="px-6 py-2.5 text-sm font-semibold bg-transparent border border-white/15 text-white/70 hover:bg-white/5 hover:text-white rounded-lg transition-all"
-              onClick={() => navigate(`/events/${event.id}/booking-details`, { state: location.state })}
+              onClick={() => navigate(`/events/${event.id}/payment`, { state: location.state })}
             >
               {t("common.back")}
             </Button>
-              <Button 
-                onClick={handlePaymentSubmit}
-                className="px-8 py-2.5 text-sm font-bold bg-(--accent) text-black hover:bg-(--accent)/90 rounded-lg shadow-[0_0_20px_oklch(83.77%_0.1655_81.92_/_0.3)] transition-all"
-              >
-              {t("payment.payNow")}
+            <Button className="px-8 py-2.5 text-sm font-bold bg-(--accent) text-black hover:bg-(--accent)/90 rounded-lg shadow-[0_0_20px_oklch(83.77%_0.1655_81.92_/_0.3)] transition-all">
+              {t("checkout.confirmPayment") || "Đã thanh toán"}
             </Button>
           </div>
         </div>

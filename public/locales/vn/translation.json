@@ -133,7 +133,31 @@
       "emailInvalid": "Email không hợp lệ.",
       "phoneRequired": "Vui lòng nhập số điện thoại.",
       "phoneInvalid": "Số điện thoại phải từ 9-11 chữ số."
-    }
+    },
+    "paymentMethod": "Chọn hình thức thanh toán",
+    "bankTransfer": "Chuyển khoản ngân hàng",
+    "bankTransferDesc": "Quét mã QR, chốt đơn ngay lập tức",
+    "creditCard": "Thẻ thanh toán quốc tế",
+    "creditCardDesc": "Điền thêm thông tin, bảo mật thông minh",
+    "discountCode": "Mã giảm giá",
+    "discountPlaceholder": "Nhập mã giảm giá",
+    "apply": "Áp dụng",
+    "requireInvoice": "Yêu cầu xuất hóa đơn",
+    "termsAgreement": "Bằng việc bấm 'Thanh toán', bạn đã đọc và đồng ý với Điều khoản sử dụng của TicketRush",
+    "payNow": "Thanh toán"
+  }
+  ,
+  "checkout": {
+    "accountInfo": "Thông tin tài khoản",
+    "totalPayment": "Tổng số tiền cần thanh toán",
+    "scanQrCode": "Quét mã QR để thanh toán",
+    "paymentInfoDesc": "Bạn có thể quét mã QR hoặc chuyển khoản theo thông tin sau",
+    "bank": "Ngân hàng thụ hưởng",
+    "accountNumber": "Số tài khoản",
+    "accountHolder": "Tên tài khoản",
+    "noteTitle": "Lưu ý:",
+    "noteContent": "Sau khi hoàn tất thanh toán, vui lòng chờ tối đa 5 phút. Vé sẽ được cập nhật tự động.",
+    "confirmPayment": "Đã thanh toán"
   }
 }
 

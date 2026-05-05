@@ -133,7 +133,31 @@
       "emailInvalid": "Please enter a valid email address.",
       "phoneRequired": "Phone number is required.",
       "phoneInvalid": "Phone number must be 9-11 digits."
-    }
+    },
+    "paymentMethod": "Payment Method",
+    "bankTransfer": "Bank Transfer",
+    "bankTransferDesc": "Scan QR code for instant payment",
+    "creditCard": "International Credit Card",
+    "creditCardDesc": "Enter details for smart security",
+    "discountCode": "Discount Code",
+    "discountPlaceholder": "Enter discount code",
+    "apply": "Apply",
+    "requireInvoice": "Request Invoice",
+    "termsAgreement": "By clicking 'Pay Now', you have read and agreed to TicketRush's Terms of Service",
+    "payNow": "Pay Now"
+  }
+  ,
+  "checkout": {
+    "accountInfo": "Account information",
+    "totalPayment": "Total amount to pay",
+    "scanQrCode": "Scan QR to pay",
+    "paymentInfoDesc": "You can scan the QR code or transfer using the account information below",
+    "bank": "Bank",
+    "accountNumber": "Account number",
+    "accountHolder": "Account holder",
+    "noteTitle": "Note:",
+    "noteContent": "After completing the payment, please wait up to 5 minutes. Tickets will be updated automatically.",
+    "confirmPayment": "Mark as paid"
   }
 }
 
