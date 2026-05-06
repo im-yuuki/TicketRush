@@ -5,10 +5,13 @@ import NotFound from "./pages/NotFound.tsx";
 import Privacy from "./pages/Privacy.tsx";
 import Terms from "./pages/Terms.tsx";
 import Event from "./pages/Event.tsx";
+import Booking from "./pages/Booking.tsx";
+import BookingDetails from "./pages/BookingDetails.tsx";
+import Payment from "./pages/Payment.tsx";
+import Checkout from "./pages/Checkout.tsx";
 
 import AppLayout from "./layouts/AppLayout.tsx";
 import PartnerLayout from "./layouts/PartnerLayout.tsx";
-import PaymentLayout from "./layouts/PaymentLayout.tsx";
 import EventLayout from "./layouts/EventLayout.tsx";
 import Login from "./pages/Login.tsx";
 import Register from "./pages/Register.tsx";
@@ -55,10 +58,23 @@ const AppRouter = createBrowserRouter([
     ],
   },
   {
-    element: <PartnerLayout />,
+    path: "/events/:eventId/booking",
+    element: <Booking />,
   },
   {
-    element: <PaymentLayout />,
+    path: "/events/:eventId/booking-details",
+    element: <BookingDetails />,
+  },
+  {
+    path: "/events/:eventId/payment",
+    element: <Payment />,
+  },
+  {
+    path: "/checkout/:sessionId",
+    element: <Checkout />,
+  },
+  {
+    element: <PartnerLayout />,
   },
   {
     path: "*",

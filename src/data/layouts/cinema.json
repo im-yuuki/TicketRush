@@ -1,0 +1,42 @@
+{
+  "id": "cinema",
+  "name": "Rạp chiếu phim — 1 khu, 60 ghế",
+  "blocks": [
+    {
+      "id": "screen",
+      "name": "SCREEN 1",
+      "rows": [
+        {
+          "label": "A",
+          "count": 10,
+          "tierId": "svip"
+        },
+        {
+          "label": "B",
+          "count": 20,
+          "tierId": "vip1"
+        },
+        {
+          "label": "C",
+          "count": 10,
+          "tierId": "vip2"
+        },
+        {
+          "label": "D",
+          "count": 10,
+          "tierId": "vip3"
+        },
+        {
+          "label": "E",
+          "count": 10,
+          "tierId": "vip4"
+        },
+        {
+          "label": "F",
+          "count": 10,
+          "tierId": "vip4"
+        }
+      ]
+    }
+  ]
+}
