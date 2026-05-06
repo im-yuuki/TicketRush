@@ -1,0 +1,99 @@
+{
+  "id": "concert-hall",
+  "name": "Sân khấu concert — 3 khu, 120 ghế",
+  "blocks": [
+    {
+      "id": "left",
+      "name": "BLOCK L",
+      "rows": [
+        {
+          "label": "A",
+          "count": 8,
+          "tierId": "standard"
+        },
+        {
+          "label": "B",
+          "count": 8,
+          "tierId": "standard"
+        },
+        {
+          "label": "C",
+          "count": 8,
+          "tierId": "standard"
+        },
+        {
+          "label": "D",
+          "count": 8,
+          "tierId": "standard"
+        },
+        {
+          "label": "E",
+          "count": 8,
+          "tierId": "standard"
+        }
+      ]
+    },
+    {
+      "id": "center",
+      "name": "BLOCK C",
+      "rows": [
+        {
+          "label": "A",
+          "count": 14,
+          "tierId": "svip"
+        },
+        {
+          "label": "B",
+          "count": 14,
+          "tierId": "vip1"
+        },
+        {
+          "label": "C",
+          "count": 14,
+          "tierId": "vip1"
+        },
+        {
+          "label": "D",
+          "count": 14,
+          "tierId": "vip2"
+        },
+        {
+          "label": "E",
+          "count": 14,
+          "tierId": "vip2"
+        }
+      ]
+    },
+    {
+      "id": "right",
+      "name": "BLOCK R",
+      "rows": [
+        {
+          "label": "A",
+          "count": 8,
+          "tierId": "standard"
+        },
+        {
+          "label": "B",
+          "count": 8,
+          "tierId": "standard"
+        },
+        {
+          "label": "C",
+          "count": 8,
+          "tierId": "standard"
+        },
+        {
+          "label": "D",
+          "count": 8,
+          "tierId": "standard"
+        },
+        {
+          "label": "E",
+          "count": 8,
+          "tierId": "standard"
+        }
+      ]
+    }
+  ]
+}

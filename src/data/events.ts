@@ -71,7 +71,7 @@ const MOCK_EVENTS: Record<string, EventData> = {
     ],
     ticketTiers: [
       { id: "svip", name: "SVIP", price: 1950000 },
-      { id: "vip1", name: "VIP1", price: 1600000 },
+      { id: "vip1", name: "VIP111", price: 1600000 },
       { id: "vip2", name: "VIP2", price: 1150000 },
       { id: "vip3", name: "VIP3", price: 850000 },
       { id: "vip4", name: "VIP4", price: 600000 },

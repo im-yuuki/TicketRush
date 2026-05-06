@@ -111,19 +111,21 @@ export default function EventLayout() {
             <div className="mt-auto space-y-3 pt-5">
               <button
                 type="button"
-                className="flex w-full items-center justify-between text-sm transition-colors hover:text-accent focus:outline-none focus-visible:text-accent"
+                onClick={() => navigate(`/events/${eventId}/booking`)}
+                className="flex w-full items-center justify-between text-sm transition-all hover:opacity-80 active:scale-95 focus:outline-none"
               >
                 <span>
                   {fromLabel}{" "}
-                  <span className="text-base font-bold text-(--success)">
+                  <span className="text-base font-bold text-(--accent)">
                     {formatPrice(event.price, i18n.language)}
                   </span>
                 </span>
-                <ChevronRight className="size-4 text-muted" />
+                <ChevronRight className="size-4 text-(--accent)" />
               </button>
 
               <Button
-                className="w-full bg-(--success) text-success-foreground hover:bg-(--success)/90"
+                className="w-full bg-(--accent) text-(--accent-foreground) hover:bg-(--accent)/90"
+                onClick={() => navigate(`/events/${eventId}/booking`)}
               >
                 {buyNowLabel}
               </Button>

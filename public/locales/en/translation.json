@@ -11,7 +11,8 @@
   },
   "common": {
     "expand": "Show more",
-    "collapse": "Show less"
+    "collapse": "Show less",
+    "back": "Back"
   },
   "event": {
     "breadcrumb": "Events",
@@ -26,7 +27,16 @@
     "priceFrom": "From",
     "schedule": "Schedule",
     "ticketInfo": "Ticket info",
-    "notFound": "Event not found."
+    "notFound": "Event not found.",
+    "seatSelection": "Select Seats"
+  },
+  "seatMap": {
+    "stage": "🎤 Stage",
+    "available": "Available",
+    "selected": "Selected",
+    "booked": "Booked",
+    "seatsSelected": "seat(s) selected",
+    "maxSeatsReached": "Maximum {{max}} seats allowed"
   },
   "notFound": {
     "description": "Sorry, the page you're looking for doesn't exist.",
@@ -76,5 +86,78 @@
     "signInHere": "Sign in here",
     "forgotPassword": "Forgot password?",
     "orContinueWith": "Or continue with"
+  },
+  "booking": {
+    "selectTicket": "Select Tickets",
+    "loadingSeatMap": "Loading seat map...",
+    "ticketPrice": "Ticket Price",
+    "ticketsSelected": "{{count}} ticket(s) selected",
+    "processing": "Processing...",
+    "continue": "Continue",
+    "pleaseSelectTicket": "Please select a ticket »",
+    "conflictError": "We're sorry! Some of the seats you selected were just purchased by someone else.\nThe system will automatically reload the latest seat map.",
+    "genericError": "An error occurred while booking. Please check your connection.",
+    "success": "Booking successful!"
+  },
+  "payment": {
+    "stepSelectTicket": "Select Tickets",
+    "stepEnterInfo": "Enter Info",
+    "stepPayment": "Payment",
+    "holdTime": "Time remaining",
+    "recipientInfo": "Ticket Recipient Info",
+    "name": "Full Name",
+    "phone": "Phone",
+    "deliveryNote": "E-tickets will be sent via email. You can also pick up physical tickets at the event venue.",
+    "seatArea": "Area & Seats",
+    "ticketType": "Ticket Type",
+    "quantity": "Qty",
+    "price": "Price",
+    "noSeatsSelected": "No seats selected.",
+    "representativeInfo": "Representative Info",
+    "fullName": "Full Name",
+    "fullNamePlaceholder": "Enter your full name",
+    "phoneNumber": "Phone Number",
+    "idDocument": "ID / Passport",
+    "idPlaceholder": "Enter your ID or passport number",
+    "deliveryMethod": "Ticket Delivery Method",
+    "eTicketOption": "Receive via email or pick up at venue",
+    "eTicketDescription": "E-tickets will be sent to the representative's email and can also be picked up at the event venue.",
+    "bottomNote": "Please fill in all required information before proceeding to the next step.",
+    "reselectTickets": "Reselect Tickets",
+    "continue": "Continue",
+    "total": "Total",
+    "notYetEntered": "Not yet entered",
+    "validation": {
+      "fullNameMin": "Full name must be at least 2 characters.",
+      "emailRequired": "Email is required.",
+      "emailInvalid": "Please enter a valid email address.",
+      "phoneRequired": "Phone number is required.",
+      "phoneInvalid": "Phone number must be 9-11 digits."
+    },
+    "paymentMethod": "Payment Method",
+    "bankTransfer": "Bank Transfer",
+    "bankTransferDesc": "Scan QR code for instant payment",
+    "creditCard": "International Credit Card",
+    "creditCardDesc": "Enter details for smart security",
+    "discountCode": "Discount Code",
+    "discountPlaceholder": "Enter discount code",
+    "apply": "Apply",
+    "requireInvoice": "Request Invoice",
+    "termsAgreement": "By clicking 'Pay Now', you have read and agreed to TicketRush's Terms of Service",
+    "payNow": "Pay Now"
+  }
+  ,
+  "checkout": {
+    "accountInfo": "Account information",
+    "totalPayment": "Total amount to pay",
+    "scanQrCode": "Scan QR to pay",
+    "paymentInfoDesc": "You can scan the QR code or transfer using the account information below",
+    "bank": "Bank",
+    "accountNumber": "Account number",
+    "accountHolder": "Account holder",
+    "noteTitle": "Note:",
+    "noteContent": "After completing the payment, please wait up to 5 minutes. Tickets will be updated automatically.",
+    "confirmPayment": "Mark as paid"
   }
 }
+

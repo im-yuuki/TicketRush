@@ -1,5 +1,5 @@
 import { Outlet } from "react-router";
 
-export default function PaymentLayout() {
+export default function BookingDetailsLayout() {
   return <Outlet />;
 }

@@ -11,7 +11,8 @@
   },
   "common": {
     "expand": "Xem thêm",
-    "collapse": "Thu gọn"
+    "collapse": "Thu gọn",
+    "back": "Trở về"
   },
   "event": {
     "breadcrumb": "Sự kiện",
@@ -26,7 +27,16 @@
     "priceFrom": "Giá từ",
     "schedule": "Lịch diễn",
     "ticketInfo": "Thông tin vé",
-    "notFound": "Không tìm thấy sự kiện này."
+    "notFound": "Không tìm thấy sự kiện này.",
+    "seatSelection": "Chọn chỗ ngồi"
+  },
+  "seatMap": {
+    "stage": "🎤 Sân khấu",
+    "available": "Còn trống",
+    "selected": "Đã chọn",
+    "booked": "Đã đặt",
+    "seatsSelected": "chỗ ngồi được chọn",
+    "maxSeatsReached": "Tối đa {{max}} chỗ ngồi được phép"
   },
   "notFound": {
     "description": "Xin lỗi, trang bạn đang tìm kiếm không tồn tại.",
@@ -60,8 +70,14 @@
     "login": "Đăng nhập",
     "register": "Đăng ký",
     "email": "Email",
+    "displayName": "Tên hiển thị",
+    "phoneNumber": "Số điện thoại",
     "password": "Mật khẩu",
     "confirmPassword": "Xác nhận mật khẩu",
+    "dob": "Ngày sinh",
+    "address": "Địa chỉ",
+    "acceptTos": "Tôi đồng ý với Điều khoản dịch vụ",
+    "registerButton": "Đăng ký",
     "loginWithEmail": "Đăng nhập bằng Email",
     "loginWithGoogle": "Đăng nhập bằng Google",
     "noAccount": "Chưa có tài khoản?",
@@ -70,5 +86,78 @@
     "signInHere": "Đăng nhập tại đây",
     "forgotPassword": "Quên mật khẩu?",
     "orContinueWith": "Hoặc tiếp tục với"
+  },
+  "booking": {
+    "selectTicket": "Chọn vé",
+    "loadingSeatMap": "Đang tải sơ đồ ghế...",
+    "ticketPrice": "Giá vé",
+    "ticketsSelected": "{{count}} vé đang chọn",
+    "processing": "Đang xử lý...",
+    "continue": "Tiếp tục",
+    "pleaseSelectTicket": "Vui lòng chọn vé »",
+    "conflictError": "Rất tiếc! Một số ghế bạn chọn vừa được người khác thanh toán thành công.\nHệ thống sẽ tự động tải lại sơ đồ ghế mới nhất.",
+    "genericError": "Có lỗi xảy ra khi đặt vé. Vui lòng kiểm tra lại kết nối.",
+    "success": "Đặt vé thành công!"
+  },
+  "payment": {
+    "stepSelectTicket": "Chọn vé",
+    "stepEnterInfo": "Nhập thông tin",
+    "stepPayment": "Thanh toán",
+    "holdTime": "Thời gian giữ vé",
+    "recipientInfo": "Thông tin nhận vé",
+    "name": "Họ và tên",
+    "phone": "Số điện thoại",
+    "deliveryNote": "Vé online được gửi qua email người đại diện nhận vé và vé vật lý được giao tại sự kiện (nếu có).",
+    "seatArea": "Khu vực và ghế ngồi",
+    "ticketType": "Hạng vé",
+    "quantity": "Số lượng",
+    "price": "Giá vé",
+    "noSeatsSelected": "Chưa chọn ghế nào.",
+    "representativeInfo": "Thông tin người đại diện nhận vé",
+    "fullName": "Họ và Tên",
+    "fullNamePlaceholder": "Nhập họ và tên đầy đủ",
+    "phoneNumber": "Số điện thoại",
+    "idDocument": "Giấy tờ cá nhân / Hộ chiếu",
+    "idPlaceholder": "Nhập số CCCD hoặc hộ chiếu",
+    "deliveryMethod": "Hình thức nhận vé",
+    "eTicketOption": "Nhận vé online qua email và/ hoặc vé vật lý tại sự kiện",
+    "eTicketDescription": "Vé online được gửi qua email người đại diện nhận vé và vé vật lý được giao tại sự kiện (nếu có).",
+    "bottomNote": "Bạn cần điền đầy đủ thông tin trước khi chuyển sang bước tiếp theo.",
+    "reselectTickets": "Chọn lại vé",
+    "continue": "Tiếp tục",
+    "total": "Tổng cộng",
+    "notYetEntered": "Chưa nhập",
+    "validation": {
+      "fullNameMin": "Họ và tên phải có ít nhất 2 ký tự.",
+      "emailRequired": "Vui lòng nhập email.",
+      "emailInvalid": "Email không hợp lệ.",
+      "phoneRequired": "Vui lòng nhập số điện thoại.",
+      "phoneInvalid": "Số điện thoại phải từ 9-11 chữ số."
+    },
+    "paymentMethod": "Chọn hình thức thanh toán",
+    "bankTransfer": "Chuyển khoản ngân hàng",
+    "bankTransferDesc": "Quét mã QR, chốt đơn ngay lập tức",
+    "creditCard": "Thẻ thanh toán quốc tế",
+    "creditCardDesc": "Điền thêm thông tin, bảo mật thông minh",
+    "discountCode": "Mã giảm giá",
+    "discountPlaceholder": "Nhập mã giảm giá",
+    "apply": "Áp dụng",
+    "requireInvoice": "Yêu cầu xuất hóa đơn",
+    "termsAgreement": "Bằng việc bấm 'Thanh toán', bạn đã đọc và đồng ý với Điều khoản sử dụng của TicketRush",
+    "payNow": "Thanh toán"
+  }
+  ,
+  "checkout": {
+    "accountInfo": "Thông tin tài khoản",
+    "totalPayment": "Tổng số tiền cần thanh toán",
+    "scanQrCode": "Quét mã QR để thanh toán",
+    "paymentInfoDesc": "Bạn có thể quét mã QR hoặc chuyển khoản theo thông tin sau",
+    "bank": "Ngân hàng thụ hưởng",
+    "accountNumber": "Số tài khoản",
+    "accountHolder": "Tên tài khoản",
+    "noteTitle": "Lưu ý:",
+    "noteContent": "Sau khi hoàn tất thanh toán, vui lòng chờ tối đa 5 phút. Vé sẽ được cập nhật tự động.",
+    "confirmPayment": "Đã thanh toán"
   }
 }
+
