@@ -84,8 +84,8 @@ export default function EventLayout() {
       </Breadcrumbs>
 
       <section className="overflow-hidden rounded-2xl border border-border bg-surface shadow-lg">
-        <div className="grid md:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
-          <div className="order-2 min-w-0 flex flex-col p-6 md:order-1 md:p-7">
+        <div className="grid lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
+          <div className="order-2 min-w-0 flex flex-col p-6 md:p-7 lg:order-1">
             <h1 className="text-lg font-bold leading-snug md:text-xl">
               {event.title}
             </h1>
@@ -133,11 +133,11 @@ export default function EventLayout() {
           </div>
 
           {/* Cot phai: banner/anh cover cua su kien. */}
-          <div className="order-1 w-full overflow-hidden bg-black md:order-2 md:min-h-90">
+          <div className="order-1 w-full overflow-hidden bg-black lg:order-2 lg:min-h-90">
             <img
               src={event.image}
               alt={event.title}
-              className="block aspect-video h-full w-full object-contain object-center md:aspect-auto"
+              className="block aspect-video h-full w-full object-cover object-center lg:aspect-auto"
             />
           </div>
         </div>
