@@ -2,7 +2,7 @@ export interface Response<T> {
 	code: string;
 	success: boolean;
 	message: string;
-	metadata?: T;
+	metadata: T;
 }
 
 export interface RegisterKeyMetadata {
