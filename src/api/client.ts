@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "./config";
+import { clearStoredAccount } from "../auth/accountStorage";
 
 /**
  * Error thrown when an API request returns a non-2xx response.
@@ -103,6 +104,7 @@ export async function apiRequest<TResponse, TRequest = unknown>(
 
 	const response = await fetch(url, {
 		...init,
+		credentials: "include",
 		headers: requestHeaders,
 		body: requestBody,
 	});
@@ -110,6 +112,10 @@ export async function apiRequest<TResponse, TRequest = unknown>(
 	const responseBody = await readResponseBody<TResponse>(response);
 
 	if (!response.ok) {
+		if (response.status === 401) {
+			clearStoredAccount();
+		}
+
 		const message =
 			(responseBody as { message?: string } | undefined)?.message ??
 			response.statusText ??

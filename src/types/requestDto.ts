@@ -1,4 +1,5 @@
 export interface Response<T> {
+	code: string;
 	success: boolean;
 	message: string;
 	metadata?: T;
@@ -29,98 +30,45 @@ export interface LoginRequest {
 	password: string;
 }
 
-export interface LoginResponse extends Response<unknown> {}
+export const AccountType = {
+	UserAccount: "USER",
+	InspectorAccount: "INSPECTOR",
+	OrganizationAccount: "ORGANIZATION",
+	AdminAccount: "ADMINISTRATOR"
+} as const;
 
-// ── Booking Flow ──────────────────────────────────────────────
+export type AccountType = typeof AccountType[keyof typeof AccountType];
 
-export interface CreateBookingRequest {
-	eventId: string;
-	seats: string[];
+export interface LoginMetadata {
+	account_type: AccountType;
 }
 
-export interface BookingSessionMetadata {
-	sessionId: string;
-	expiresAt: string;
-}
+export interface LoginResponse extends Response<LoginMetadata> {}
 
-export interface CreateBookingResponse extends Response<BookingSessionMetadata> {}
-
-export interface BookingDetailsRequest {
-	fullName: string;
-	email: string;
-	phone: string;
-	idDocument?: string;
-}
-
-export interface BookingSessionData {
-	sessionId: string;
-	eventId: string;
-	seats: string[];
-	seatToTierMap: Record<string, string>;
-	fullName: string;
-	email: string;
-	phone: string;
-	idDocument: string;
-	totalAmount: number;
-	paymentMethod: "bank_transfer" | "credit_card";
-	expiresAt: string;
-	status: "pending" | "info_filled" | "paid" | "expired";
-}
-
-export interface GetBookingSessionResponse extends Response<BookingSessionData> {}
-
-export interface UpdateBookingDetailsResponse extends Response<BookingSessionData> {}
-
-export interface PaymentRequest {
-	paymentMethod: "bank_transfer" | "credit_card";
-	discountCode?: string;
-}
-
-export interface PaymentMetadata {
-	transactionId: string;
-	qrUrl?: string;
-	bankName?: string;
-	accountNumber?: string;
-	accountHolder?: string;
-}
-
-export interface PaymentResponse extends Response<PaymentMetadata> {}
-
-export interface ConfirmPaymentResponse extends Response<{ transactionId: string }> {}
-
-export interface ValidateDiscountRequest {
-	code: string;
-	eventId: string;
-}
-
-export interface DiscountMetadata {
-	code: string;
-	discountPercent: number;
-	discountAmount: number;
-}
-
-export interface ValidateDiscountResponse extends Response<DiscountMetadata> {}
-
-// ── Seatmap ───────────────────────────────────────────────────
-
-export interface SeatmapRow {
-	label: string;
-	count: number;
-	tierId?: string;
-}
-
-export interface SeatmapBlock {
-	id: string;
+export interface ProfileModel {
 	name: string;
-	rows: SeatmapRow[];
+	email: string;
+	createdAt: string;
+	type: AccountType;
 }
 
-export interface SeatmapData {
-	id: string;
-	name: string;
-	blocks: SeatmapBlock[];
+export interface UserProfileModel extends ProfileModel {
+	avatarUrl: string;
+	birthDate: string;
+	country: string;
+	gender: string;
+	phoneNumber: string;
+	addressLine: string;
 }
 
-export interface GetSeatmapResponse extends Response<SeatmapData> {}
+export interface OrganizationProfileModel extends ProfileModel {
+	avatarUrl: string;
+	bannerUrl: string;
+	aliasName: string;
+	description: string;
+	websiteUrl: string;
+}
 
-export interface GetBookedSeatsResponse extends Response<string[]> {}
+export type AccountMetadata = ProfileModel | UserProfileModel | OrganizationProfileModel;
+
+export interface AccountResponse extends Response<AccountMetadata> {}
