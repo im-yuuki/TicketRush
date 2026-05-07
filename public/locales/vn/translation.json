@@ -5,9 +5,196 @@
     "login": "Đăng nhập",
     "account": "Tài khoản",
     "myTickets": "Vé của tôi",
+    "myEvents": "Sự kiện của tôi",
     "notifications": "Thông báo",
     "settings": "Cài đặt",
     "logout": "Đăng xuất"
+  },
+  "organizer": {
+    "layout": {
+      "center": "Organizer Center",
+      "language": "Ngôn ngữ",
+      "navLabel": "Quản lý",
+      "nav": {
+        "myEvents": "Sự kiện của tôi",
+        "reports": "Quản lý báo cáo",
+        "terms": "Điều khoản cho Ban tổ chức"
+      }
+    },
+    "reports": {
+      "title": "Quản lý báo cáo",
+      "description": "Khu vực báo cáo này đang được giữ chỗ cho thống kê doanh thu, đơn hàng và người tham gia trong prototype organizer."
+    },
+    "terms": {
+      "title": "Điều khoản cho Ban tổ chức",
+      "description": "Khu vực này sẽ chứa chính sách dành cho ban tổ chức, quy định vận hành và yêu cầu khi xuất bản sự kiện."
+    },
+    "create": {
+      "save": "Lưu",
+      "continue": "Tiếp tục",
+      "finish": "Hoàn tất",
+      "untitledEvent": "Sự kiện chưa đặt tên",
+      "uploadImages": "Upload hình ảnh",
+      "viewImagePositions": "Xem vị trí hiển thị các ảnh",
+      "posterUpload": "Thêm ảnh sự kiện để hiển thị ở các vị trí khác",
+      "bannerUpload": "Thêm ảnh nền sự kiện",
+      "eventName": "Tên sự kiện",
+      "eventNamePlaceholder": "Tên sự kiện",
+      "eventAddress": "Địa chỉ sự kiện",
+      "offline": "Offline",
+      "online": "Online",
+      "venueName": "Tên địa điểm",
+      "venueNamePlaceholder": "Tên địa điểm",
+      "city": "Tỉnh/Thành",
+      "cityPlaceholder": "Tỉnh/Thành",
+      "ward": "Phường/Xã",
+      "wardPlaceholder": "Phường/Xã",
+      "street": "Số nhà, đường",
+      "streetPlaceholder": "Số nhà, đường",
+      "eventType": "Thể loại sự kiện",
+      "eventTypePlaceholder": "Vui lòng chọn",
+      "eventInfo": "Thông tin sự kiện",
+      "eventInfoTemplate": "Giới thiệu sự kiện:\n\n[Tóm tắt ngắn gọn về sự kiện: Nội dung chính của sự kiện, điểm đặc sắc nhất và lý do khiến người tham gia không nên bỏ lỡ]\n\nChi tiết sự kiện:\n\n• Chương trình chính: [Liệt kê những hoạt động nổi bật trong sự kiện]\n• Khách mời: [Thông tin về các khách mời đặc biệt, nghệ sĩ, diễn giả]\n• Trải nghiệm đặc biệt: [Nếu có các hoạt động đặc biệt khác như workshop, khu trải nghiệm, photo booth]\n\nĐiều khoản và điều kiện:\n\n[Điều kiện]\n\nLưu ý về điều khoản trẻ em\n\nLưu ý về điều khoản VAT",
+      "logoUpload": "Thêm logo ban tổ chức",
+      "organizerName": "Tên ban tổ chức",
+      "organizerNamePlaceholder": "Tên ban tổ chức",
+      "organizerDescription": "Thông tin ban tổ chức",
+      "organizerDescriptionPlaceholder": "Thông tin ban tổ chức",
+      "timeAndTicketTitle": "Thời gian và Loại vé",
+      "createShowtime": "Tạo suất diễn",
+      "allShowtimes": "Tất cả",
+      "noShowtimes": "Chưa có suất diễn nào. Hãy tạo suất diễn đầu tiên.",
+      "showtimeDate": "Ngày sự kiện",
+      "removeShowtime": "Xóa suất diễn",
+      "startTime": "Thời gian bắt đầu",
+      "endTime": "Thời gian kết thúc",
+      "ticketTypes": "Loại vé",
+      "createTicketType": "Tạo loại vé mới",
+      "ticketModal": {
+        "title": "Tạo loại vé mới",
+        "editTitle": "Chỉnh sửa loại vé",
+        "close": "Đóng",
+        "untitledTicket": "Vé chưa đặt tên",
+        "editTicket": "Sửa loại vé",
+        "deleteTicket": "Xóa loại vé",
+        "ticketName": "Tên vé",
+        "ticketNamePlaceholder": "Tên vé",
+        "price": "Giá vé",
+        "free": "Miễn phí",
+        "totalQuantity": "Tổng số lượng vé",
+        "minPerOrder": "Số vé tối thiểu trong một đơn hàng",
+        "maxPerOrder": "Số vé tối đa trong một đơn hàng",
+        "saleStart": "Thời gian bắt đầu bán vé",
+        "saleEnd": "Thời gian kết thúc bán vé",
+        "ticketInfo": "Thông tin vé",
+        "descriptionPlaceholder": "Description",
+        "ticketImage": "Hình ảnh vé",
+        "addImage": "Thêm",
+        "save": "Lưu"
+      },
+      "settings": {
+        "linkTitle": "Link dẫn đến sự kiện",
+        "customPath": "Tùy chỉnh đường dẫn:",
+        "eventUrlPrefix": "Đường dẫn sự kiện của bạn là:",
+        "privacyTitle": "Quyền riêng tư sự kiện",
+        "publicEvent": "Sự kiện mở cho mọi người",
+        "publicEventDescription": "Tất cả mọi người đều có thể đặt vé",
+        "privateEvent": "Sự kiện dành riêng cho 1 nhóm",
+        "privateEventDescription": "Chỉ người có link truy cập mới đặt được vé",
+        "confirmationTitle": "Tin nhắn xác nhận cho người tham gia",
+        "confirmationDescription": "Tin nhắn xác nhận này sẽ được gửi đến cho người tham gia sau khi đặt vé thành công"
+      },
+      "payment": {
+        "title": "Thông tin thanh toán",
+        "transferNote": "TicketRush sẽ chuyển tiền bán vé đến tài khoản của bạn",
+        "reportNote": "Tiền bán vé (sau khi trừ phí dịch vụ cho TicketRush) sẽ vào tài khoản của bạn sau khi xác nhận sale report từ 7 - 10 ngày. Nếu bạn muốn nhận được tiền sớm hơn, vui lòng liên hệ chúng tôi qua số 1900.6408 hoặc info@ticketrush.vn",
+        "accountHolder": "Chủ tài khoản:",
+        "accountNumber": "Số tài khoản:",
+        "bankName": "Tên ngân hàng:",
+        "branchName": "Chi nhánh:",
+        "invoiceTitle": "Hoá đơn đỏ",
+        "businessType": "Loại hình kinh doanh:",
+        "organization": "Doanh nghiệp / Tổ chức",
+        "individual": "Cá nhân",
+        "invoiceName": "Họ tên:",
+        "invoiceAddress": "Địa chỉ:",
+        "taxCode": "Mã số thuế:"
+      },
+      "steps": {
+        "eventInfo": "Thông tin sự kiện",
+        "timeAndTickets": "Thời gian & Loại vé",
+        "settings": "Cài đặt",
+        "paymentInfo": "Thông tin thanh toán"
+      }
+    },
+    "events": {
+      "eyebrow": "Organizer",
+      "title": "Sự kiện của tôi",
+      "description": "Khung quản lý các sự kiện bạn tổ chức, bao gồm trạng thái mở bán, lịch diễn, địa điểm và số lượng vé đã bán.",
+      "createEvent": "Tạo sự kiện",
+      "eventList": "Danh sách sự kiện",
+      "viewAll": "Xem tất cả",
+      "quickOverview": "Tổng quan nhanh",
+      "salesPerformance": "Hiệu suất bán vé",
+      "capacitySold": "68% sức chứa đã được bán",
+      "quickOverviewNote": "Phần này sẽ là nơi đặt bộ lọc, thao tác nhanh và các chỉ số quan trọng của organizer.",
+      "apiNote": "Các API thật có thể được nối vào danh sách và thống kê ở bước tiếp theo.",
+      "searchLabel": "Tìm kiếm sự kiện",
+      "searchPlaceholder": "Tìm kiếm sự kiện",
+      "searchButton": "Tìm kiếm",
+      "pendingNotice": "Lưu ý: Sự kiện đang chờ duyệt. Để đảm bảo tính bảo mật cho sự kiện của bạn, quyền truy cập vào trang chỉ dành cho chủ sở hữu và quản trị viên được ủy quyền",
+      "emptyState": "Chưa có sự kiện trong mục này.",
+      "createdEventSummary": "{{showtimeCount}} suất diễn",
+      "createdTicketSummary": "{{ticketTypeCount}} loại vé",
+      "tabs": {
+        "upcoming": "Sắp tới",
+        "past": "Đã qua",
+        "pending": "Chờ duyệt",
+        "draft": "Nháp"
+      },
+      "actions": {
+        "overview": "Tổng quan",
+        "members": "Thành viên",
+        "orders": "Đơn hàng",
+        "seatMap": "Sơ đồ ghế",
+        "edit": "Chỉnh sửa"
+      },
+      "pagination": {
+        "previous": "Trang trước",
+        "current": "Trang 1",
+        "next": "Trang sau"
+      },
+      "manager": {
+        "title": "TicketRush Event Manager",
+        "manage": "Quản lý",
+        "attendees": "người tham gia sự kiện",
+        "download": "Tải ứng dụng TicketRush Event Manager",
+        "googleEyebrow": "Tải nội dung trên",
+        "appleEyebrow": "Tải về trên"
+      },
+      "stats": {
+        "upcomingEvents": "Sắp tới",
+        "pastEvents": "Đã qua",
+        "pendingEvents": "Chờ duyệt",
+        "draftEvents": "Nháp"
+      },
+      "sampleEvents": {
+        "songNhac": "Sóng Nhạc Vol.03 - Jimmii Nguyễn",
+        "acousticNight": "Acoustic Night: Mùa Hạ"
+      },
+      "status": {
+        "onSale": "Đang bán",
+        "draft": "Bản nháp"
+      },
+      "venues": {
+        "vietTiepPalace": "Cung Văn hóa Hữu Nghị Việt Tiệp",
+        "ticketrushLiveHall": "TicketRush Live Hall"
+      },
+      "sold": {
+        "songNhacSold": "824 / 1.200 vé",
+        "notOnSale": "Chưa mở bán"
+      }
+    }
   },
   "common": {
     "expand": "Xem thêm",

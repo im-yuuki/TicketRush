@@ -5,9 +5,196 @@
     "login": "Login",
     "account": "Account",
     "myTickets": "My Tickets",
+    "myEvents": "My Events",
     "notifications": "Notifications",
     "settings": "Settings",
     "logout": "Logout"
+  },
+  "organizer": {
+    "layout": {
+      "center": "Organizer Center",
+      "language": "Language",
+      "navLabel": "Manage",
+      "nav": {
+        "myEvents": "My Events",
+        "reports": "Report Management",
+        "terms": "Organizer Terms"
+      }
+    },
+    "reports": {
+      "title": "Report Management",
+      "description": "This report workspace is reserved for sales, orders, and attendance summaries in the organizer prototype."
+    },
+    "terms": {
+      "title": "Organizer Terms",
+      "description": "This section will hold organizer policies, operating rules, and publication requirements for events."
+    },
+    "create": {
+      "save": "Save",
+      "continue": "Continue",
+      "finish": "Finish",
+      "untitledEvent": "Untitled event",
+      "uploadImages": "Upload Images",
+      "viewImagePositions": "View image display positions",
+      "posterUpload": "Add an event image for other display positions",
+      "bannerUpload": "Add an event cover image",
+      "eventName": "Event name",
+      "eventNamePlaceholder": "Event name",
+      "eventAddress": "Event address",
+      "offline": "Offline",
+      "online": "Online",
+      "venueName": "Venue name",
+      "venueNamePlaceholder": "Venue name",
+      "city": "Province/City",
+      "cityPlaceholder": "Province/City",
+      "ward": "Ward",
+      "wardPlaceholder": "Ward",
+      "street": "House number, street",
+      "streetPlaceholder": "House number, street",
+      "eventType": "Event type",
+      "eventTypePlaceholder": "Please select",
+      "eventInfo": "Event information",
+      "eventInfoTemplate": "Event introduction:\n\n[Briefly summarize the event: main content, most distinctive highlights, and why attendees should not miss it]\n\nEvent details:\n\n• Main program: [List the highlight activities in the event]\n• Guests: [Information about special guests, artists, or speakers]\n• Special experiences: [If available, include workshops, experience zones, photo booths]\n\nTerms and conditions:\n\n[Terms]\n\nNotes about children's terms\n\nNotes about VAT terms",
+      "logoUpload": "Add organizer logo",
+      "organizerName": "Organizer name",
+      "organizerNamePlaceholder": "Organizer name",
+      "organizerDescription": "Organizer information",
+      "organizerDescriptionPlaceholder": "Organizer information",
+      "timeAndTicketTitle": "Time and Ticket Types",
+      "createShowtime": "Create showtime",
+      "allShowtimes": "All",
+      "noShowtimes": "No showtimes yet. Create the first showtime.",
+      "showtimeDate": "Event date",
+      "removeShowtime": "Remove showtime",
+      "startTime": "Start time",
+      "endTime": "End time",
+      "ticketTypes": "Ticket types",
+      "createTicketType": "Create new ticket type",
+      "ticketModal": {
+        "title": "Create new ticket type",
+        "editTitle": "Edit ticket type",
+        "close": "Close",
+        "untitledTicket": "Untitled ticket",
+        "editTicket": "Edit ticket type",
+        "deleteTicket": "Delete ticket type",
+        "ticketName": "Ticket name",
+        "ticketNamePlaceholder": "Ticket name",
+        "price": "Ticket price",
+        "free": "Free",
+        "totalQuantity": "Total ticket quantity",
+        "minPerOrder": "Minimum tickets per order",
+        "maxPerOrder": "Maximum tickets per order",
+        "saleStart": "Ticket sale start time",
+        "saleEnd": "Ticket sale end time",
+        "ticketInfo": "Ticket information",
+        "descriptionPlaceholder": "Description",
+        "ticketImage": "Ticket image",
+        "addImage": "Add",
+        "save": "Save"
+      },
+      "settings": {
+        "linkTitle": "Event link",
+        "customPath": "Custom path:",
+        "eventUrlPrefix": "Your event link is:",
+        "privacyTitle": "Event privacy",
+        "publicEvent": "Public event",
+        "publicEventDescription": "Everyone can book tickets",
+        "privateEvent": "Private event for one group",
+        "privateEventDescription": "Only people with the access link can book tickets",
+        "confirmationTitle": "Confirmation message for attendees",
+        "confirmationDescription": "This confirmation message will be sent to attendees after successful booking"
+      },
+      "payment": {
+        "title": "Payment information",
+        "transferNote": "TicketRush will transfer ticket revenue to your account",
+        "reportNote": "Ticket revenue (after deducting TicketRush service fees) will be transferred to your account 7 - 10 days after the sale report is confirmed. If you want to receive money earlier, please contact us at 1900.6408 or info@ticketrush.vn",
+        "accountHolder": "Account holder:",
+        "accountNumber": "Account number:",
+        "bankName": "Bank name:",
+        "branchName": "Branch:",
+        "invoiceTitle": "VAT invoice",
+        "businessType": "Business type:",
+        "organization": "Business / Organization",
+        "individual": "Individual",
+        "invoiceName": "Full name:",
+        "invoiceAddress": "Address:",
+        "taxCode": "Tax code:"
+      },
+      "steps": {
+        "eventInfo": "Event information",
+        "timeAndTickets": "Time & Ticket Types",
+        "settings": "Settings",
+        "paymentInfo": "Payment information"
+      }
+    },
+    "events": {
+      "eyebrow": "Organizer",
+      "title": "My Events",
+      "description": "A management frame for events you organize, including sale status, schedule, venue, and ticket sales.",
+      "createEvent": "Create Event",
+      "eventList": "Event List",
+      "viewAll": "View all",
+      "quickOverview": "Quick Overview",
+      "salesPerformance": "Ticket Sales Performance",
+      "capacitySold": "68% of capacity has been sold",
+      "quickOverviewNote": "This area will hold filters, quick actions, and important organizer metrics.",
+      "apiNote": "Real APIs can be connected to the list and stats in the next step.",
+      "searchLabel": "Search events",
+      "searchPlaceholder": "Search events",
+      "searchButton": "Search",
+      "pendingNotice": "Note: This event is pending approval. To keep your event secure, page access is limited to the owner and authorized administrators.",
+      "emptyState": "There are no events in this section yet.",
+      "createdEventSummary": "{{showtimeCount}} showtime(s)",
+      "createdTicketSummary": "{{ticketTypeCount}} ticket type(s)",
+      "tabs": {
+        "upcoming": "Upcoming",
+        "past": "Past",
+        "pending": "Pending approval",
+        "draft": "Draft"
+      },
+      "actions": {
+        "overview": "Overview",
+        "members": "Members",
+        "orders": "Orders",
+        "seatMap": "Seat map",
+        "edit": "Edit"
+      },
+      "pagination": {
+        "previous": "Previous page",
+        "current": "Page 1",
+        "next": "Next page"
+      },
+      "manager": {
+        "title": "TicketRush Event Manager",
+        "manage": "Manage",
+        "attendees": "event attendees",
+        "download": "Download TicketRush Event Manager",
+        "googleEyebrow": "Get it on",
+        "appleEyebrow": "Download on the"
+      },
+      "stats": {
+        "upcomingEvents": "Upcoming",
+        "pastEvents": "Past",
+        "pendingEvents": "Pending approval",
+        "draftEvents": "Drafts"
+      },
+      "sampleEvents": {
+        "songNhac": "Song Nhac Vol.03 - Jimmii Nguyen",
+        "acousticNight": "Acoustic Night: Summer"
+      },
+      "status": {
+        "onSale": "On sale",
+        "draft": "Draft"
+      },
+      "venues": {
+        "vietTiepPalace": "Viet Tiep Friendship Cultural Palace",
+        "ticketrushLiveHall": "TicketRush Live Hall"
+      },
+      "sold": {
+        "songNhacSold": "824 / 1,200 tickets",
+        "notOnSale": "Not on sale yet"
+      }
+    }
   },
   "common": {
     "expand": "Show more",

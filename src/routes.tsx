@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, Navigate } from "react-router";
 
 import Home from "./pages/Home.tsx";
 import NotFound from "./pages/NotFound.tsx";
@@ -9,10 +9,14 @@ import Booking from "./pages/Booking.tsx";
 import BookingDetails from "./pages/BookingDetails.tsx";
 import Payment from "./pages/Payment.tsx";
 import Checkout from "./pages/Checkout.tsx";
+import OrganizerEvents from "./pages/OrganizerEvents.tsx";
+import OrganizerCreateEvent from "./pages/OrganizerCreateEvent.tsx";
+import { OrganizerReports, OrganizerTerms } from "./pages/OrganizerPlaceholder.tsx";
 
 import AppLayout from "./layouts/AppLayout.tsx";
 import PartnerLayout from "./layouts/PartnerLayout.tsx";
 import EventLayout from "./layouts/EventLayout.tsx";
+import OrganizerLayout from "./layouts/OrganizerLayout.tsx";
 import Login from "./pages/Login.tsx";
 import Register from "./pages/Register.tsx";
 import OTP from "./pages/OTP.tsx";
@@ -72,6 +76,32 @@ const AppRouter = createBrowserRouter([
   {
     path: "/checkout/:sessionId",
     element: <Checkout />,
+  },
+  {
+    path: "/organizer",
+    element: <OrganizerLayout />,
+    children: [
+      {
+        index: true,
+        element: <Navigate to="/organizer/events" replace />,
+      },
+      {
+        path: "events",
+        element: <OrganizerEvents />,
+      },
+      {
+        path: "events/create",
+        element: <OrganizerCreateEvent />,
+      },
+      {
+        path: "reports",
+        element: <OrganizerReports />,
+      },
+      {
+        path: "terms",
+        element: <OrganizerTerms />,
+      },
+    ],
   },
   {
     element: <PartnerLayout />,
