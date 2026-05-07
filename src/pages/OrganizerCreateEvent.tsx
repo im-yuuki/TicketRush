@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useMemo, useState, type Key } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import EventInfoStep from "../components/organizer/createEvent/EventInfoStep";
 import OrganizerWizardHeader from "../components/organizer/createEvent/OrganizerWizardHeader";
 import PaymentInfoStep from "../components/organizer/createEvent/PaymentInfoStep";
@@ -20,25 +20,86 @@ import {
   type ShowTime,
   type TicketTypeData,
 } from "../types/organizerCreate";
-import { appendStoredOrganizerEvent } from "../utils/organizerEventsStorage";
+import {
+  appendStoredOrganizerEvent,
+  findStoredOrganizerEvent,
+  reserveNextOrganizerEventSequenceId,
+  type StoredOrganizerEvent,
+  type StoredOrganizerTicketTier,
+  updateStoredOrganizerEvent,
+} from "../utils/organizerEventsStorage";
 import { filterLocationOptions } from "../utils/organizerLocationSearch";
+import { saveLocalImage } from "../utils/localImageStorage";
+import { useLocalImageUrl } from "../utils/useLocalImageUrl";
+
+function buildInitialShowTimes(editingEvent?: StoredOrganizerEvent): ShowTime[] {
+  if (editingEvent?.showTimes?.length) return editingEvent.showTimes;
+  if (!editingEvent?.ticketTiers?.length) return [];
+
+  return [
+    {
+      id: Date.now(),
+      start: editingEvent.start,
+      end: editingEvent.end ?? editingEvent.start,
+      tickets: editingEvent.ticketTiers.map((ticketTier, index) => ({
+        id: index + 1,
+        name: ticketTier.name,
+        price: String(ticketTier.price),
+        isFree: ticketTier.price === 0,
+        totalQuantity: "10",
+        minPerOrder: "1",
+        maxPerOrder: "10",
+        saleStart: "",
+        saleEnd: "",
+        description: "",
+      })),
+    },
+  ];
+}
 
 export default function OrganizerCreateEvent() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [eventName, setEventName] = useState("");
+  const { eventId } = useParams();
+  const editingEvent = useMemo(
+    () => (eventId ? findStoredOrganizerEvent(eventId) : undefined),
+    [eventId],
+  );
+  const [eventName, setEventName] = useState(editingEvent?.title ?? "");
   const [eventCategory, setEventCategory] = useState<EventCategory | "">("");
-  const [eventLocationMode, setEventLocationMode] = useState<EventLocationMode>("offline");
-  const [provinceCode, setProvinceCode] = useState("");
-  const [wardCode, setWardCode] = useState("");
+  const [eventLocationMode, setEventLocationMode] = useState<EventLocationMode>(
+    editingEvent?.locationMode ?? "offline",
+  );
+  const [provinceCode, setProvinceCode] = useState(editingEvent?.provinceCode ?? "");
+  const [wardCode, setWardCode] = useState(editingEvent?.wardCode ?? "");
   const [provinceSearch, setProvinceSearch] = useState("");
   const [wardSearch, setWardSearch] = useState("");
+  const [venueName, setVenueName] = useState(editingEvent?.venueName ?? "");
+  const [streetAddress, setStreetAddress] = useState(editingEvent?.streetAddress ?? "");
   const [currentStep, setCurrentStep] = useState(0);
-  const [showTimes, setShowTimes] = useState<ShowTime[]>([]);
+  const [eventSequenceId] = useState(
+    () => editingEvent?.sequenceId ?? reserveNextOrganizerEventSequenceId(),
+  );
+  const existingBannerImageUrl = useLocalImageUrl(editingEvent?.bannerImageKey);
+  const [bannerImageUrl, setBannerImageUrl] = useState(editingEvent?.bannerImageUrl ?? "");
+  const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
+  const [showTimes, setShowTimes] = useState<ShowTime[]>(() =>
+    buildInitialShowTimes(editingEvent),
+  );
   const [ticketModalState, setTicketModalState] = useState<{
     showTimeId: number | null;
     ticket: TicketTypeData | null;
   }>({ showTimeId: null, ticket: null });
+  // Organizer info
+  const [organizerName, setOrganizerName] = useState(editingEvent?.organizerName ?? "");
+  const [organizerDescription, setOrganizerDescription] = useState(
+    editingEvent?.organizerDescription ?? "",
+  );
+  const existingOrganizerLogoUrl = useLocalImageUrl(editingEvent?.organizerLogoKey);
+  const [organizerLogoUrl, setOrganizerLogoUrl] = useState(editingEvent?.organizerLogoUrl ?? "");
+  const [organizerLogoFile, setOrganizerLogoFile] = useState<File | null>(null);
+  // Event description
+  const [eventDescription, setEventDescription] = useState(editingEvent?.eventDescription ?? "");
 
   const stepLabels = useMemo(
     () => organizerCreateSteps.map((step) => t(`organizer.create.steps.${step}`)),
@@ -80,7 +141,8 @@ export default function OrganizerCreateEvent() {
   }
 
   function handleProvinceChange(key: Key) {
-    setProvinceCode(key.toString());
+    const code = key.toString();
+    setProvinceCode(code);
     setWardCode("");
     setProvinceSearch("");
     setWardSearch("");
@@ -101,19 +163,97 @@ export default function OrganizerCreateEvent() {
     }
   }
 
-  function completeCreateEvent() {
-    const firstShowTime = showTimes[0];
+  function handleBannerImageChange(url: string, file: File) {
+    setBannerImageUrl(url);
+    setBannerImageFile(file);
+  }
 
-    appendStoredOrganizerEvent({
-      id: `organizer-event-${Date.now()}`,
+  function parseTicketPrice(ticket: TicketTypeData) {
+    if (ticket.isFree) return 0;
+
+    const normalizedPrice = ticket.price.replace(/[^\d]/g, "");
+    const price = Number(normalizedPrice);
+    return Number.isFinite(price) ? price : 0;
+  }
+
+  function getStoredTicketTiers(): StoredOrganizerTicketTier[] {
+    const ticketTiers = showTimes.flatMap((showTime) =>
+      showTime.tickets.map((ticket) => ({
+        id: `${showTime.id}-${ticket.id}`,
+        name: ticket.name,
+        price: parseTicketPrice(ticket),
+      })),
+    );
+
+    return ticketTiers.length > 0 ? ticketTiers : editingEvent?.ticketTiers ?? [];
+  }
+
+  async function completeCreateEvent() {
+    const firstShowTime = showTimes[0];
+    const ticketTiers = getStoredTicketTiers();
+    const eventIdToStore = editingEvent?.id ?? `organizer-event-${eventSequenceId}`;
+    let bannerImageKey = editingEvent?.bannerImageKey;
+
+    if (bannerImageFile) {
+      bannerImageKey = `${eventIdToStore}-banner`;
+
+      try {
+        await saveLocalImage(bannerImageKey, bannerImageFile);
+      } catch {
+        window.alert("Không lưu được ảnh sự kiện trên trình duyệt này. Vui lòng chọn ảnh khác hoặc thử lại.");
+        return;
+      }
+    }
+
+    let organizerLogoKey = editingEvent?.organizerLogoKey;
+
+    if (organizerLogoFile) {
+      organizerLogoKey = `${eventIdToStore}-organizer-logo`;
+
+      try {
+        await saveLocalImage(organizerLogoKey, organizerLogoFile);
+      } catch {
+        window.alert("Không lưu được logo ban tổ chức trên trình duyệt này. Vui lòng chọn ảnh khác hoặc thử lại.");
+        return;
+      }
+    }
+
+    const eventToStore = {
+      id: eventIdToStore,
+      sequenceId: eventSequenceId,
+      bannerImageKey,
+      bannerImageUrl: bannerImageFile ? undefined : editingEvent?.bannerImageUrl,
+      showTimes,
+      ticketTiers,
       title: eventName.trim() || t("organizer.create.untitledEvent", "Sự kiện chưa đặt tên"),
       status: t("organizer.events.tabs.pending", "Chờ duyệt"),
-      start: firstShowTime?.start || new Date().toISOString(),
-      end: firstShowTime?.end,
-      showtimeCount: showTimes.length,
-      ticketTypeCount: showTimes.reduce((total, showTime) => total + showTime.tickets.length, 0),
-      createdAt: new Date().toISOString(),
-    });
+      start: firstShowTime?.start || editingEvent?.start || new Date().toISOString(),
+      end: firstShowTime?.end ?? editingEvent?.end,
+      showtimeCount: showTimes.length || editingEvent?.showtimeCount || 0,
+      ticketTypeCount: ticketTiers.length || editingEvent?.ticketTypeCount || 0,
+      createdAt: editingEvent?.createdAt ?? new Date().toISOString(),
+      // Event info fields
+      locationMode: eventLocationMode,
+      venueName: venueName.trim(),
+      provinceCode,
+      provinceName: selectedProvince?.name ?? "",
+      wardCode,
+      wardName: selectedWard?.name ?? "",
+      streetAddress: streetAddress.trim(),
+      // Organizer info fields
+      organizerName: organizerName.trim(),
+      organizerDescription: organizerDescription.trim(),
+      organizerLogoKey,
+      organizerLogoUrl: organizerLogoFile ? undefined : editingEvent?.organizerLogoUrl,
+      // Event description
+      eventDescription: eventDescription.trim(),
+    };
+
+    if (editingEvent) {
+      updateStoredOrganizerEvent(editingEvent.id, eventToStore);
+    } else {
+      appendStoredOrganizerEvent(eventToStore);
+    }
     navigate("/organizer/events");
   }
 
@@ -218,6 +358,7 @@ export default function OrganizerCreateEvent() {
                 eventName={eventName}
                 eventCategory={eventCategory}
                 eventCategoryOptions={eventCategoryOptions}
+                bannerImageUrl={bannerImageUrl || existingBannerImageUrl}
                 eventLocationMode={eventLocationMode}
                 filteredProvinceOptions={filteredProvinceOptions}
                 filteredWardOptions={filteredWardOptions}
@@ -228,13 +369,31 @@ export default function OrganizerCreateEvent() {
                 selectedWard={selectedWard}
                 wardCode={wardCode}
                 wardSearch={wardSearch}
+                venueName={venueName}
+                streetAddress={streetAddress}
                 onEventCategoryChange={handleEventCategoryChange}
                 onEventNameChange={setEventName}
+                onBannerImageChange={handleBannerImageChange}
                 onLocationModeChange={handleLocationModeChange}
                 onProvinceSearchChange={setProvinceSearch}
                 onProvinceSelect={handleProvinceChange}
                 onWardSearchChange={setWardSearch}
                 onWardSelect={handleWardChange}
+                onVenueNameChange={setVenueName}
+                onStreetAddressChange={setStreetAddress}
+                // Organizer info
+                organizerName={organizerName}
+                organizerDescription={organizerDescription}
+                organizerLogoUrl={organizerLogoUrl || existingOrganizerLogoUrl}
+                onOrganizerNameChange={setOrganizerName}
+                onOrganizerDescriptionChange={setOrganizerDescription}
+                onOrganizerLogoChange={(url, file) => {
+                  setOrganizerLogoUrl(url);
+                  setOrganizerLogoFile(file);
+                }}
+                // Event description
+                eventDescription={eventDescription}
+                onEventDescriptionChange={setEventDescription}
               />
             ) : currentStep === 1 ? (
               <TimeAndTicketsStep
@@ -247,7 +406,7 @@ export default function OrganizerCreateEvent() {
                 onRemoveTicketType={handleRemoveTicket}
               />
             ) : currentStep === 2 ? (
-              <SettingsStep />
+              <SettingsStep eventSequenceId={eventSequenceId} />
             ) : (
               <PaymentInfoStep />
             )}

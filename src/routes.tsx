@@ -11,6 +11,7 @@ import Payment from "./pages/Payment.tsx";
 import Checkout from "./pages/Checkout.tsx";
 import OrganizerEvents from "./pages/OrganizerEvents.tsx";
 import OrganizerCreateEvent from "./pages/OrganizerCreateEvent.tsx";
+import OrganizerEventPreview from "./pages/OrganizerEventPreview.tsx";
 import { OrganizerReports, OrganizerTerms } from "./pages/OrganizerPlaceholder.tsx";
 
 import AppLayout from "./layouts/AppLayout.tsx";
@@ -58,7 +59,17 @@ const AppRouter = createBrowserRouter([
 	  {
 		path: "/register/:key",
 		element: <OTP />,
-	  }
+	  },
+      {
+        path: "/:eventId",
+        element: <OrganizerEventPreview />,
+        children: [
+          {
+            index: true,
+            element: <Event />,
+          },
+        ],
+      },
     ],
   },
   {
@@ -91,6 +102,10 @@ const AppRouter = createBrowserRouter([
       },
       {
         path: "events/create",
+        element: <OrganizerCreateEvent />,
+      },
+      {
+        path: "events/:eventId/edit",
         element: <OrganizerCreateEvent />,
       },
       {

@@ -157,8 +157,10 @@
         "members": "Thành viên",
         "orders": "Đơn hàng",
         "seatMap": "Sơ đồ ghế",
-        "edit": "Chỉnh sửa"
+        "edit": "Chỉnh sửa",
+        "delete": "Xóa"
       },
+      "deleteConfirm": "Bạn có chắc muốn xóa sự kiện \"{{title}}\"? Hành động này không thể hoàn tác.",
       "pagination": {
         "previous": "Trang trước",
         "current": "Trang 1",

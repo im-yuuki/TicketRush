@@ -3,6 +3,7 @@ import {
   ClipboardList,
   Pencil,
   PieChart,
+  Trash2,
   UsersRound,
 } from "lucide-react";
 
@@ -21,6 +22,7 @@ export const organizerEventActions = [
   { labelKey: "orders", icon: ClipboardList },
   { labelKey: "seatMap", icon: Armchair },
   { labelKey: "edit", icon: Pencil },
+  { labelKey: "delete", icon: Trash2 },
 ];
 
 export function formatStoredEventDate(value: string) {

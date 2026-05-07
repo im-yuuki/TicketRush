@@ -3,8 +3,10 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { Button, Card } from "@heroui/react";
 import { CalendarDays, ChevronDown } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import ExpandableCard from "../components/ExpandableCard";
-import { useEvent } from "../layouts/EventLayout";
+import { useEvent } from "../layouts/eventContext";
+import { useLocalImageUrl } from "../utils/useLocalImageUrl";
 
 function formatPrice(value: number, lang: string) {
   const locale = lang === "vn" ? "vi-VN" : "en-US";
@@ -31,6 +33,8 @@ export default function Event() {
   const navigate = useNavigate();
   const event = useEvent();
   const [openTier, setOpenTier] = useState<string | null>(null);
+  const organizerLogoFromStorage = useLocalImageUrl(event.organizerLogoKey);
+  const organizerLogoUrl = event.organizerLogo || organizerLogoFromStorage;
 
   const aboutLabel = t("event.about", "Giới thiệu");
   const scheduleLabel = t("event.schedule", "Lịch diễn");
@@ -45,12 +49,10 @@ export default function Event() {
   return (
     <div className="space-y-6">
       <ExpandableCard title={aboutLabel} collapsedHeight={240}>
-        <div className="space-y-2 text-sm leading-relaxed">
-          {event.description.map((para, idx) => (
-            <p key={idx} className={para.bold ? "font-semibold" : undefined}>
-              {para.text}
-            </p>
-          ))}
+        <div className="prose prose-sm max-w-none prose-headings:font-bold prose-h1:text-xl prose-h2:text-lg prose-h3:text-base prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-strong:font-semibold">
+          <ReactMarkdown>
+            {event.description.map((para) => para.text).join("\n\n")}
+          </ReactMarkdown>
         </div>
       </ExpandableCard>
 
@@ -123,9 +125,9 @@ export default function Event() {
           {/* Thong tin don vi to chuc va logo dai dien. */}
           <div className="flex items-start gap-4">
             <div className="flex size-32 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-surface-secondary text-sm font-semibold text-muted md:size-40">
-              {event.organizerLogo ? (
+              {organizerLogoUrl ? (
                 <img
-                  src={event.organizerLogo}
+                  src={organizerLogoUrl}
                   alt={event.organizer}
                   className="h-full w-full object-cover"
                 />

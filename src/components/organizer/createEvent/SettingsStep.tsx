@@ -8,13 +8,16 @@ import {
   OrganizerFormPanel,
 } from "../OrganizerFormControls";
 
-export default function SettingsStep() {
+export default function SettingsStep({
+  eventSequenceId,
+}: {
+  eventSequenceId: number;
+}) {
   const { t } = useTranslation();
   const [eventSlug, setEventSlug] = useState("123");
   const [privacy, setPrivacy] = useState<"public" | "private">("public");
   const [confirmationMessage, setConfirmationMessage] = useState("");
-  const temporaryEventId = "12345";
-  const eventUrl = `https://ticketrush.june8th.me/events/${eventSlug || "event"}-${temporaryEventId}`;
+  const eventUrl = `https://ticketrush.june8th.me/events/${eventSlug || "event"}-${eventSequenceId}`;
 
   const privacyOptions = [
     {

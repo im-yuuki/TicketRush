@@ -126,7 +126,9 @@ export default function OrganizerHeader() {
 
   const title = pathname.includes("/events/create")
     ? t("organizer.events.createEvent", "Tạo sự kiện")
-    : pathname.includes("/reports")
+    : pathname.includes("/events/") && pathname.includes("/edit")
+      ? t("organizer.events.editEvent", "Chỉnh sửa sự kiện")
+      : pathname.includes("/reports")
       ? t("organizer.reports.title", "Quản lý báo cáo")
       : pathname.includes("/terms")
         ? t("organizer.terms.title", "Điều khoản cho Ban tổ chức")

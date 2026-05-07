@@ -157,8 +157,10 @@
         "members": "Members",
         "orders": "Orders",
         "seatMap": "Seat map",
-        "edit": "Edit"
+        "edit": "Edit",
+        "delete": "Delete"
       },
+      "deleteConfirm": "Are you sure you want to delete \"{{title}}\"? This action cannot be undone.",
       "pagination": {
         "previous": "Previous page",
         "current": "Page 1",
