@@ -1,4 +1,4 @@
-import type { ShowTime } from "../types/organizerCreate";
+import type { ShowTime } from "../../types/organizerCreate";
 
 export const ORGANIZER_EVENTS_STORAGE_KEY = "ticketrush.organizer.events";
 export const ORGANIZER_EVENTS_CHANGE_EVENT = "ticketrush-organizer-events-change";

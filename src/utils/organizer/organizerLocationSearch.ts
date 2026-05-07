@@ -1,4 +1,4 @@
-import type { VietnamLocalityOption } from "../data/vietnamAdministrativeUnits";
+import type { VietnamLocalityOption } from "../../data/vietnamAdministrativeUnits";
 
 export function normalizeLocationQuery(value: string) {
   return value

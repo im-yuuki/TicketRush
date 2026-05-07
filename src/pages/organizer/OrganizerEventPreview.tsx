@@ -1,6 +1,6 @@
 import { useParams } from "react-router";
-import EventLayout from "../layouts/EventLayout";
-import NotFound from "./NotFound";
+import EventLayout from "../../layouts/EventLayout";
+import NotFound from "../NotFound";
 
 export default function OrganizerEventPreview() {
   const { eventId } = useParams<{ eventId: string }>();

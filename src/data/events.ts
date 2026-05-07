@@ -1,10 +1,10 @@
 // data mẫu để bắn vào event, i vibed
 
 import {
-  findStoredOrganizerEventByPreviewId,
   getStoredOrganizerEventPreviewId,
+  organizerEventsService,
   type StoredOrganizerEvent,
-} from "../utils/organizerEventsStorage";
+} from "../api/organizerEventsService";
 
 export type DescriptionParagraph = {
   text: string;
@@ -163,7 +163,7 @@ function mapStoredOrganizerEventToEventData(event: StoredOrganizerEvent): EventD
 export function getEvent(id: string | undefined): EventData | null {
   if (!id) return null;
   const previewId = id.match(/(?:^|-)(\d+)$/)?.[1] ?? id;
-  const storedOrganizerEvent = findStoredOrganizerEventByPreviewId(previewId);
+  const storedOrganizerEvent = organizerEventsService.findByPreviewId(previewId);
   if (storedOrganizerEvent) {
     return mapStoredOrganizerEventToEventData(storedOrganizerEvent);
   }

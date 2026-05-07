@@ -4,24 +4,13 @@ import { useState, type Key } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, NavLink } from "react-router";
 import { changeLanguage, getCurrentLanguage, languageOptions } from "../../i18n";
+import { Logo } from "../Branding";
 
 const navItems = [
   { to: "/organizer/events", icon: CalendarDays, labelKey: "myEvents" },
   { to: "/organizer/reports", icon: FolderOpen, labelKey: "reports" },
   { to: "/organizer/terms", icon: FileText, labelKey: "terms" },
 ];
-
-function OrganizerMark() {
-  return (
-    <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-accent text-[9px] font-black leading-none text-accent-foreground">
-      <span>
-        ticket
-        <br />
-        rush
-      </span>
-    </div>
-  );
-}
 
 function OrganizerLanguageSwitch() {
   const { t } = useTranslation();
@@ -72,10 +61,10 @@ export default function OrganizerSidebar() {
       <div className="flex h-full flex-col bg-gradient-to-b from-[#0b1f15] via-surface to-surface p-0 lg:fixed lg:inset-y-0 lg:left-0 lg:w-[252px]">
         <Link
           to="/organizer/events"
-          className="flex h-16 items-center gap-3 border-b border-border px-4 transition-colors hover:bg-surface-secondary"
+          className="flex h-16 flex-col items-center justify-center gap-0.5 border-b border-border px-4 transition-colors hover:bg-surface-secondary"
         >
-          <OrganizerMark />
-          <span className="text-xl font-bold text-accent">
+          <Logo className="text-2xl" />
+          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted">
             {t("organizer.layout.center", "Organizer Center")}
           </span>
         </Link>

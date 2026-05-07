@@ -5,10 +5,10 @@ import type { KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import {
-  deleteStoredOrganizerEvent,
   getStoredOrganizerEventPreviewId,
+  organizerEventsService,
   type StoredOrganizerEvent,
-} from "../../../utils/organizerEventsStorage";
+} from "../../../api/organizerEventsService";
 import { useLocalImageUrl } from "../../../utils/useLocalImageUrl";
 import {
   formatStoredEventDate,
@@ -118,7 +118,7 @@ export default function OrganizerEventCard({ event }: { event: StoredOrganizerEv
                   t("organizer.events.deleteConfirm", { title: event.title }),
                 );
                 if (confirmed) {
-                  deleteStoredOrganizerEvent(event.id);
+                  organizerEventsService.remove(event.id);
                 }
               }
             }}

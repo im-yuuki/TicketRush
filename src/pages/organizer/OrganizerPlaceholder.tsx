@@ -1,6 +1,6 @@
 import { FileText, FolderOpen } from "lucide-react";
-import OrganizerPageShell from "../components/organizer/OrganizerPageShell";
-import OrganizerPlaceholderCard from "../components/organizer/OrganizerPlaceholderCard";
+import OrganizerPageShell from "../../components/organizer/OrganizerPageShell";
+import OrganizerPlaceholderCard from "../../components/organizer/OrganizerPlaceholderCard";
 
 type PlaceholderKind = "reports" | "terms";
 

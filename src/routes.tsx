@@ -9,10 +9,10 @@ import Booking from "./pages/Booking.tsx";
 import BookingDetails from "./pages/BookingDetails.tsx";
 import Payment from "./pages/Payment.tsx";
 import Checkout from "./pages/Checkout.tsx";
-import OrganizerEvents from "./pages/OrganizerEvents.tsx";
-import OrganizerCreateEvent from "./pages/OrganizerCreateEvent.tsx";
-import OrganizerEventPreview from "./pages/OrganizerEventPreview.tsx";
-import { OrganizerReports, OrganizerTerms } from "./pages/OrganizerPlaceholder.tsx";
+import OrganizerEvents from "./pages/organizer/OrganizerEvents.tsx";
+import OrganizerCreateEvent from "./pages/organizer/OrganizerCreateEvent.tsx";
+import OrganizerEventPreview from "./pages/organizer/OrganizerEventPreview.tsx";
+import { OrganizerReports, OrganizerTerms } from "./pages/organizer/OrganizerPlaceholder.tsx";
 
 import AppLayout from "./layouts/AppLayout.tsx";
 import PartnerLayout from "./layouts/PartnerLayout.tsx";

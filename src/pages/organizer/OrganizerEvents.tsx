@@ -1,27 +1,27 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import OrganizerEventCard from "../components/organizer/events/OrganizerEventCard";
-import OrganizerEventsToolbar from "../components/organizer/events/OrganizerEventsToolbar";
-import OrganizerPagination from "../components/organizer/events/OrganizerPagination";
-import type { OrganizerEventTab } from "../components/organizer/events/organizerEventsConfig";
-import OrganizerPageShell from "../components/organizer/OrganizerPageShell";
+import OrganizerEventCard from "../../components/organizer/events/OrganizerEventCard";
+import OrganizerEventsToolbar from "../../components/organizer/events/OrganizerEventsToolbar";
+import OrganizerPagination from "../../components/organizer/events/OrganizerPagination";
+import type { OrganizerEventTab } from "../../components/organizer/events/organizerEventsConfig";
+import OrganizerPageShell from "../../components/organizer/OrganizerPageShell";
 import {
+  organizerEventsService,
   ORGANIZER_EVENTS_CHANGE_EVENT,
-  readStoredOrganizerEvents,
   type StoredOrganizerEvent,
-} from "../utils/organizerEventsStorage";
+} from "../../api/organizerEventsService";
 
 export default function OrganizerEvents() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<OrganizerEventTab>("pending");
   const [searchQuery, setSearchQuery] = useState("");
   const [createdEvents, setCreatedEvents] = useState<StoredOrganizerEvent[]>(() =>
-    readStoredOrganizerEvents(),
+    organizerEventsService.list(),
   );
 
   useEffect(() => {
     function refreshEvents() {
-      setCreatedEvents(readStoredOrganizerEvents());
+      setCreatedEvents(organizerEventsService.list());
     }
 
     window.addEventListener(ORGANIZER_EVENTS_CHANGE_EVENT, refreshEvents);
