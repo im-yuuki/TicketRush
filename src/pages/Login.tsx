@@ -4,14 +4,13 @@ import { Button, Card, Input, Separator } from "@heroui/react";
 import { useGoogleLogin } from "@react-oauth/google";
 import { Link, useNavigate } from "react-router";
 import { getAccount, loginUser } from "../api/auth";
-import type { AccountMetadata } from "../types/requestDto";
+import type { AccountResponse } from "../types/requestDto";
 import { writeStoredAccount } from "../auth/accountStorage";
 
-function readAccountSnapshot(accountMetadata: AccountMetadata) {
-  console.log("Account metadata:", accountMetadata);
-  const displayName = accountMetadata.name;
-  const accountEmail = accountMetadata.email;
-  const avatarUrl = "avatarUrl" in accountMetadata ? accountMetadata.avatarUrl : undefined;
+function readAccountSnapshot(accountResponse: AccountResponse) {
+  const displayName = accountResponse.name;
+  const accountEmail = accountResponse.email;
+  const avatarUrl = "avatarUrl" in accountResponse ? accountResponse.avatarUrl : undefined;
 
   return {
     displayName,
@@ -45,8 +44,7 @@ export default function Login() {
     try {
       await loginUser({ email, password });
       const accountResponse = await getAccount();
-	  console.log("Account response:", accountResponse);
-      writeStoredAccount(readAccountSnapshot(accountResponse.metadata));
+      writeStoredAccount(readAccountSnapshot(accountResponse));
       navigate("/");
     } catch (error) {
       console.error("Login failed:", error);

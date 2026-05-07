@@ -66,6 +66,4 @@ export interface OrganizationProfileModel extends ProfileModel {
 	websiteUrl: string;
 }
 
-export type AccountMetadata = ProfileModel | UserProfileModel | OrganizationProfileModel;
-
-export interface AccountResponse extends Response<AccountMetadata> {}
+export type AccountResponse = ProfileModel | UserProfileModel | OrganizationProfileModel;
