@@ -5,13 +5,9 @@ export interface Response<T> {
 	metadata: T;
 }
 
-export interface RegisterKeyMetadata {
-	confirm_key: string;
-}
+export interface RegisterResponse extends Response<{}> {}
 
-export interface RegisterResponse extends Response<RegisterKeyMetadata> {}
-
-export interface ResetResponse extends Response<RegisterKeyMetadata> {}
+export interface ResetResponse extends Response<{}> {}
 
 export interface RegisterRequest {
 	name: string;
@@ -22,7 +18,7 @@ export interface RegisterRequest {
 	country: string;
 }
 
-export interface RegisterOtpRequest {
+export interface OTPRequest {
 	otpCode: string;
 }
 

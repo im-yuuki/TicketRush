@@ -3,9 +3,9 @@ import type {
 	AccountResponse,
 	LoginRequest,
 	LoginResponse,
-	RegisterOtpRequest,
 	RegisterRequest,
 	RegisterResponse,
+	OTPRequest,
 	Response,
 } from "../types/requestDto";
 
@@ -22,10 +22,10 @@ export function getAccount() {
 	return apiGet<AccountResponse>("/account");
 }
 
-export function triggerOTPEmail(key: string) {
-	return apiGet<Response<{}>>(`/auth/register/${key}`);
+export function triggerOTPEmail() {
+	return apiGet<Response<{}>>(`/auth/register/confirmation`);
 }
 
-export function verifyOTPRegister(key: string, payload: RegisterOtpRequest) {
-	return apiPost<Response<{}>, RegisterOtpRequest>(`/auth/register/${key}`, payload);
+export function verifyOTPRegister(payload: OTPRequest) {
+	return apiPost<Response<{}>, OTPRequest>(`/auth/register/confirmation`, payload);
 }

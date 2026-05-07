@@ -45,7 +45,7 @@ export default function Register() {
 		setIsSubmitting(true);
 
 		try {
-			const response = await registerUser({
+			await registerUser({
 				name: displayName,
 				email,
 				password,
@@ -54,12 +54,7 @@ export default function Register() {
 				country: "vn",
 			});
 
-			const confirmKey = response.metadata?.confirm_key;
-			if (!confirmKey) {
-				throw new Error("Missing confirm key from register response");
-			}
-
-			navigate(`/register/${confirmKey}`);
+			navigate(`/otp`);
 		} catch (error) {
 			const message = error instanceof Error ? error.message : "Register failed";
 			setSubmitError(message);
@@ -116,7 +111,7 @@ export default function Register() {
 									<Button
 										variant="tertiary"
 										size="lg"
-										className="w-full justify-between rounded-md border border-border bg-transparent text-foreground transition-colors hover:border-accent focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+										className="w-full justify-between rounded-md border border-border bg-transparent text-foreground font-normal transition-colors hover:border-accent focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
 									>
 										<span className={gender ? "" : "text-muted"}>{genderLabel}</span>
 									</Button>
@@ -128,16 +123,16 @@ export default function Register() {
 										selectedKeys={new Set([gender ?? ""])}
 										onAction={handleGenderChange}
 									>
-										<Dropdown.Item id="" key="" textValue={t("auth.selectGender", "Select gender")}>
+										<Dropdown.Item id="" key="" className="font-normal" textValue={t("auth.selectGender", "Select gender")}>
 											{t("auth.selectGender", "Select gender")}
 										</Dropdown.Item>
-										<Dropdown.Item id="male" key="male" textValue={t("auth.genderMale", "Male")}>
+										<Dropdown.Item id="male" key="male" className="font-normal" textValue={t("auth.genderMale", "Male")}>
 											{t("auth.genderMale", "Male")}
 										</Dropdown.Item>
-										<Dropdown.Item id="female" key="female" textValue={t("auth.genderFemale", "Female")}>
+										<Dropdown.Item id="female" key="female" className="font-normal" textValue={t("auth.genderFemale", "Female")}>
 											{t("auth.genderFemale", "Female")}
 										</Dropdown.Item>
-										<Dropdown.Item id="other" key="other" textValue={t("auth.genderOther", "Other")}>
+										<Dropdown.Item id="other" key="other" className="font-normal" textValue={t("auth.genderOther", "Other")}>
 											{t("auth.genderOther", "Other")}
 										</Dropdown.Item>
 									</Dropdown.Menu>

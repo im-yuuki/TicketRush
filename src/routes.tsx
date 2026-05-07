@@ -52,7 +52,7 @@ const AppRouter = createBrowserRouter([
 		element: <Register />,
 	  },
 	  {
-		path: "/register/:key",
+		path: "/otp",
 		element: <OTP />,
 	  }
     ],

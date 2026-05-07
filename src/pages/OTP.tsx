@@ -1,13 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate } from "react-router";
 import { Card } from "@heroui/react";
 import { triggerOTPEmail, verifyOTPRegister } from "../api/auth";
 
 export default function OTP() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { key } = useParams<{ key: string }>();
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -15,7 +14,7 @@ export default function OTP() {
   const inputRefs = useRef<(HTMLInputElement | null)[]>(Array(6).fill(null));
 
   const handleSubmit = useCallback(async (otpCode: string) => {
-    if (!key || isSubmitting) {
+    if (isSubmitting) {
       return;
     }
 
@@ -23,8 +22,7 @@ export default function OTP() {
     setIsSubmitting(true);
 
     try {
-      await verifyOTPRegister(key, { otpCode });
-      console.log("OTP submitted:", { key, otpCode });
+      await verifyOTPRegister({ otpCode });
       setSuccessMessage("OTP verified successfully");
       window.setTimeout(() => {
         navigate("/login");
@@ -37,20 +35,31 @@ export default function OTP() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [isSubmitting, key]);
+  }, [isSubmitting]);
 
   useEffect(() => {
-    if (!key) return;
-
     const timeoutId = window.setTimeout(() => {
-      triggerOTPEmail(key).catch((error) => {
+      triggerOTPEmail().catch((error) => {
         const message = error instanceof Error ? error.message : "Failed to send OTP email";
         setSubmitError(message);
       });
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
-  }, [key]);
+  }, []);
+
+  const handleResendOTP = async () => {
+    setSubmitError(null);
+    setSuccessMessage(null);
+
+    try {
+      await triggerOTPEmail();
+      setSuccessMessage(t("auth.otpResent", "OTP resent successfully"));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to send OTP email";
+      setSubmitError(message);
+    }
+  };
 
   const handleInputChange = (index: number, value: string) => {
     // Only allow single digit (0-9)
@@ -162,7 +171,11 @@ export default function OTP() {
           <div className="text-center mt-4">
             <p className="text-sm text-muted">
               {t("auth.noCodeReceived", "Didn't receive the code?")}
-              <button className="ml-1 text-accent hover:underline">
+              <button
+                type="button"
+                onClick={handleResendOTP}
+                className="ml-1 text-accent hover:underline"
+              >
                 {t("auth.resendOTP", "Resend OTP")}
               </button>
             </p>
