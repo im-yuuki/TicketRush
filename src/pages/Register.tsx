@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, type Key } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Card, Checkbox, Input } from "@heroui/react";
+import { Button, Card, Checkbox, Dropdown, Input } from "@heroui/react";
 import { Link, useNavigate } from "react-router";
 import { registerUser } from "../api/auth";
 
@@ -9,6 +9,7 @@ export default function Register() {
 	const navigate = useNavigate();
 	const [displayName, setDisplayName] = useState("");
 	const [phoneNumber, setPhoneNumber] = useState("");
+	const [gender, setGender] = useState<"male" | "female" | "other" | null>(null);
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
@@ -23,6 +24,20 @@ export default function Register() {
 		confirmPassword.length > 0 && confirmPassword !== password;
 	const showConfirmPasswordMismatch = confirmPasswordTouched && confirmPasswordMismatch;
 
+	function handleGenderChange(key: Key) {
+		const v = String(key) as "male" | "female" | "other" | "";
+		setGender(v === "" ? null : v);
+	}
+
+	const genderLabel =
+		gender === "male"
+			? t("auth.genderMale", "Male")
+			: gender === "female"
+				? t("auth.genderFemale", "Female")
+				: gender === "other"
+					? t("auth.genderOther", "Other")
+					: t("auth.selectGender", "Select gender");
+
 	const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
 		e.preventDefault();
 
@@ -35,6 +50,7 @@ export default function Register() {
 				email,
 				password,
 				birthDate: dob,
+				gender:gender ?? "other",
 				country: "vn",
 			});
 
@@ -91,6 +107,42 @@ export default function Register() {
 								className="w-full rounded-md border border-border transition-colors hover:border-accent focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
 								required
 							/>
+						</div>
+
+						<div className="space-y-2">
+							<label className="block text-sm font-bold">{t("auth.gender", "Gender")}</label>
+							<Dropdown>
+								<Dropdown.Trigger className="w-full">
+									<Button
+										variant="tertiary"
+										size="lg"
+										className="w-full justify-between rounded-md border border-border bg-transparent text-foreground transition-colors hover:border-accent focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+									>
+										<span className={gender ? "" : "text-muted"}>{genderLabel}</span>
+									</Button>
+								</Dropdown.Trigger>
+								<Dropdown.Popover className="w-[var(--trigger-width)] max-w-full">
+									<Dropdown.Menu
+										className="rounded-md border border-border bg-surface-secondary text-surface-foreground"
+										selectionMode="single"
+										selectedKeys={new Set([gender ?? ""])}
+										onAction={handleGenderChange}
+									>
+										<Dropdown.Item id="" key="" textValue={t("auth.selectGender", "Select gender")}>
+											{t("auth.selectGender", "Select gender")}
+										</Dropdown.Item>
+										<Dropdown.Item id="male" key="male" textValue={t("auth.genderMale", "Male")}>
+											{t("auth.genderMale", "Male")}
+										</Dropdown.Item>
+										<Dropdown.Item id="female" key="female" textValue={t("auth.genderFemale", "Female")}>
+											{t("auth.genderFemale", "Female")}
+										</Dropdown.Item>
+										<Dropdown.Item id="other" key="other" textValue={t("auth.genderOther", "Other")}>
+											{t("auth.genderOther", "Other")}
+										</Dropdown.Item>
+									</Dropdown.Menu>
+								</Dropdown.Popover>
+							</Dropdown>
 						</div>
 
 						<div className="space-y-2">

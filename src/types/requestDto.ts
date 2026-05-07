@@ -18,6 +18,7 @@ export interface RegisterRequest {
 	email: string;
 	password: string;
 	birthDate: string;
+	gender: "male" | "female" | "other";
 	country: string;
 }
 
