@@ -5,7 +5,7 @@ import { useGoogleLogin } from "@react-oauth/google";
 import { Link, useNavigate } from "react-router";
 import { getAccount, loginUser } from "../api/auth";
 import type { AccountResponse } from "../types/requestDto";
-import { writeStoredAccount } from "../auth/accountStorage";
+import { useAuth } from "../contexts/AuthContext";
 
 function readAccountSnapshot(accountResponse: AccountResponse) {
   const displayName = accountResponse.name;
@@ -22,6 +22,7 @@ function readAccountSnapshot(accountResponse: AccountResponse) {
 export default function Login() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { setAccount } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -44,7 +45,7 @@ export default function Login() {
     try {
       await loginUser({ email, password });
       const accountResponse = await getAccount();
-      writeStoredAccount(readAccountSnapshot(accountResponse));
+      setAccount(readAccountSnapshot(accountResponse));
       navigate("/");
     } catch (error) {
       console.error("Login failed:", error);

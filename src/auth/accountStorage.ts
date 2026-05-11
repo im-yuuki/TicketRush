@@ -17,7 +17,7 @@ export function readStoredAccount() {
 	}
 
 	try {
-		const value = window.localStorage.getItem(ACCOUNT_STORAGE_KEY);
+		const value = window.sessionStorage.getItem(ACCOUNT_STORAGE_KEY);
 		if (!value) {
 			return null;
 		}
@@ -33,7 +33,7 @@ export function writeStoredAccount(account: StoredAccount) {
 		return;
 	}
 
-	window.localStorage.setItem(ACCOUNT_STORAGE_KEY, JSON.stringify(account));
+	window.sessionStorage.setItem(ACCOUNT_STORAGE_KEY, JSON.stringify(account));
 	window.dispatchEvent(new Event(ACCOUNT_CHANGE_EVENT));
 }
 
@@ -42,6 +42,6 @@ export function clearStoredAccount() {
 		return;
 	}
 
-	window.localStorage.removeItem(ACCOUNT_STORAGE_KEY);
+	window.sessionStorage.removeItem(ACCOUNT_STORAGE_KEY);
 	window.dispatchEvent(new Event(ACCOUNT_CHANGE_EVENT));
 }

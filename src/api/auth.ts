@@ -29,3 +29,7 @@ export function triggerOTPEmail() {
 export function verifyOTPRegister(payload: OTPRequest) {
 	return apiPost<Response<{}>, OTPRequest>(`/auth/register/confirmation`, payload);
 }
+
+export function logoutUser() {
+	return apiPost<Response<{}>>("/auth/logout");
+}

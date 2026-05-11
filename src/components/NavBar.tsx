@@ -6,7 +6,7 @@ import { useEffect, useState, type Key, type Ref } from "react";
 import { useTranslation } from "react-i18next";
 import { languageOptions, changeLanguage, getCurrentLanguage } from "../i18n";
 import { Link, useNavigate } from "react-router";
-import { clearStoredAccount, readStoredAccount, type StoredAccount } from "../auth/accountStorage";
+import { useAuth } from "../contexts/AuthContext";
 
 function LanguageSelector() {
   const { i18n } = useTranslation();
@@ -69,7 +69,7 @@ function SideMenu() {
 function AccountButton() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [account, setAccount] = useState<StoredAccount | null>(() => readStoredAccount());
+  const { account, isAuthenticated, logout } = useAuth();
   const loginText = t("navigation.login", "Login");
   const unreadNotifications = 5;
 
@@ -79,21 +79,7 @@ function AccountButton() {
   const settingsText = t("navigation.settings", "Settings");
   const logoutText = t("navigation.logout", "Logout");
 
-  useEffect(() => {
-    function handleAccountChange() {
-      setAccount(readStoredAccount());
-    }
-
-    window.addEventListener("ticketrush-account-change", handleAccountChange);
-    window.addEventListener("storage", handleAccountChange);
-
-    return () => {
-      window.removeEventListener("ticketrush-account-change", handleAccountChange);
-      window.removeEventListener("storage", handleAccountChange);
-    };
-  }, []);
-
-  const loggedIn = Boolean(account?.displayName);
+  const loggedIn = isAuthenticated;
   const userFullName = account?.displayName ?? "";
   const userEmail = account?.email ?? "";
   const userShortName = userFullName
@@ -104,9 +90,9 @@ function AccountButton() {
     .slice(0, 2)
     .toUpperCase();
 
-  function handleAccountAction(key: Key) {
-    if (key === "logout") {
-      clearStoredAccount();
+  async function handleAccountAction(key: Key) {
+    if (key.toString() === "logout") {
+      await logout();
       navigate("/login");
     }
   }
@@ -141,23 +127,28 @@ function AccountButton() {
             </div>
           </div>
           <Dropdown.Menu onAction={handleAccountAction}>
-            <Dropdown.Item key="account" textValue="Account">
+            <Dropdown.Item id="account" key="account" textValue="Account">
               <UserRound className="size-3.5 text-muted" />
               <Label>{accountText}</Label>
             </Dropdown.Item>
-            <Dropdown.Item key="tickets" textValue="My Tickets">
+            <Dropdown.Item id="tickets" key="tickets" textValue="My Tickets">
               <Ticket className="size-3.5 text-muted" />
               <Label>{myTicketsText}</Label>
             </Dropdown.Item>
-            <Dropdown.Item key="notifications" textValue="Notifications">
+            <Dropdown.Item id="notifications" key="notifications" textValue="Notifications">
               <Bell className="size-3.5 text-muted" />
               <Label>{notificationsText}</Label>
             </Dropdown.Item>
-            <Dropdown.Item key="settings" textValue="Settings">
+            <Dropdown.Item id="settings" key="settings" textValue="Settings">
               <Settings className="size-3.5 text-muted" />
               <Label>{settingsText}</Label>
             </Dropdown.Item>
-            <Dropdown.Item key="logout" textValue="Logout" variant="danger">
+            <Dropdown.Item
+              id="logout"
+              key="logout"
+              textValue="Logout"
+              variant="danger"
+            >
               <LogOut className="size-3.5 text-danger" />
               <Label>{logoutText}</Label>
             </Dropdown.Item>
