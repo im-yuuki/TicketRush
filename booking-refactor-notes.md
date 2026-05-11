@@ -59,10 +59,6 @@ interface BookingState {
 **Change:** Wrapped `RouterProvider` with `<BookingProvider>`.
 **Intent:** All booking pages can read/write the shared booking state. Provider is placed outside the router because booking pages are outside `AppLayout`.
 
-### `src/api/client.ts`
-**Change:** Added `getAuthToken()`, `setAuthToken()`, `clearAuthToken()` — token stored in `localStorage`. Auto-injects `Authorization: Bearer <token>` header on every request.
-**Intent:** Booking APIs will require authentication. Pre-wired so that after login, you just call `setAuthToken(token)` and all subsequent requests are authenticated.
-
 ### `src/types/requestDto.ts`
 **Change:** Added 12 interfaces for the booking flow:
 
