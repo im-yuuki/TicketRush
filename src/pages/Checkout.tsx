@@ -107,9 +107,9 @@ export default function Checkout() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold">{t("checkout.paymentConfirmed") || "Payment Confirmed!"}</h2>
+          <h2 className="text-2xl font-bold">{t("checkout.paymentConfirmed", "Payment Confirmed!")}</h2>
           <p className="text-white/60 text-sm">
-            {t("checkout.paymentConfirmedDesc") || "Your tickets will be sent to your email shortly."}
+            {t("checkout.paymentConfirmedDesc", "Your tickets will be sent to your email shortly.")}
           </p>
           <Button
             className="mt-4 px-8 py-2.5 text-sm font-bold bg-(--accent) text-black hover:bg-(--accent)/90 rounded-lg"
@@ -118,7 +118,7 @@ export default function Checkout() {
               navigate("/");
             }}
           >
-            {t("common.backToHome") || "Back to Home"}
+            {t("common.backToHome", "Về trang chủ")}
           </Button>
         </div>
       </div>

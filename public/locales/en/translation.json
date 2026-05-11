@@ -201,7 +201,8 @@
   "common": {
     "expand": "Show more",
     "collapse": "Show less",
-    "back": "Back"
+    "back": "Back",
+    "backToHome": "Back to Home"
   },
   "event": {
     "breadcrumb": "Events",
@@ -346,7 +347,9 @@
     "accountHolder": "Account holder",
     "noteTitle": "Note:",
     "noteContent": "After completing the payment, please wait up to 5 minutes. Tickets will be updated automatically.",
-    "confirmPayment": "Mark as paid"
+    "confirmPayment": "Mark as paid",
+    "paymentConfirmed": "Payment Confirmed!",
+    "paymentConfirmedDesc": "Your tickets will be sent to your email shortly."
   }
 }
 

@@ -201,7 +201,8 @@
   "common": {
     "expand": "Xem thêm",
     "collapse": "Thu gọn",
-    "back": "Trở về"
+    "back": "Trở về",
+    "backToHome": "Về trang chủ"
   },
   "event": {
     "breadcrumb": "Sự kiện",
@@ -346,7 +347,9 @@
     "accountHolder": "Tên tài khoản",
     "noteTitle": "Lưu ý:",
     "noteContent": "Sau khi hoàn tất thanh toán, vui lòng chờ tối đa 5 phút. Vé sẽ được cập nhật tự động.",
-    "confirmPayment": "Đã thanh toán"
+    "confirmPayment": "Đã thanh toán",
+    "paymentConfirmed": "Thanh toán thành công!",
+    "paymentConfirmedDesc": "Vé sẽ được gửi về email của bạn trong ít phút."
   }
 }
 

@@ -5,23 +5,20 @@ export interface Response<T> {
 	metadata: T;
 }
 
-export interface RegisterKeyMetadata {
-	confirm_key: string;
-}
+export interface RegisterResponse extends Response<{}> {}
 
-export interface RegisterResponse extends Response<RegisterKeyMetadata> {}
-
-export interface ResetResponse extends Response<RegisterKeyMetadata> {}
+export interface ResetResponse extends Response<{}> {}
 
 export interface RegisterRequest {
 	name: string;
 	email: string;
 	password: string;
 	birthDate: string;
+	gender: "male" | "female" | "other";
 	country: string;
 }
 
-export interface RegisterOtpRequest {
+export interface OTPRequest {
 	otpCode: string;
 }
 
@@ -69,6 +66,4 @@ export interface OrganizationProfileModel extends ProfileModel {
 	websiteUrl: string;
 }
 
-export type AccountMetadata = ProfileModel | UserProfileModel | OrganizationProfileModel;
-
-export interface AccountResponse extends Response<AccountMetadata> {}
+export type AccountResponse = ProfileModel | UserProfileModel | OrganizationProfileModel;

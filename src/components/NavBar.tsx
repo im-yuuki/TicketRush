@@ -6,7 +6,7 @@ import { useEffect, useState, type Key, type Ref } from "react";
 import { useTranslation } from "react-i18next";
 import { languageOptions, changeLanguage, getCurrentLanguage } from "../i18n";
 import { Link, useNavigate } from "react-router";
-import { clearStoredAccount, readStoredAccount, type StoredAccount } from "../auth/accountStorage";
+import { useAuth } from "../contexts/AuthContext";
 
 function LanguageSelector() {
   const { i18n } = useTranslation();
@@ -69,7 +69,7 @@ function SideMenu() {
 function AccountButton() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [account, setAccount] = useState<StoredAccount | null>(() => readStoredAccount());
+  const { account, isAuthenticated, logout } = useAuth();
   const loginText = t("navigation.login", "Login");
   const unreadNotifications = 5;
 
@@ -80,21 +80,7 @@ function AccountButton() {
   const settingsText = t("navigation.settings", "Settings");
   const logoutText = t("navigation.logout", "Logout");
 
-  useEffect(() => {
-    function handleAccountChange() {
-      setAccount(readStoredAccount());
-    }
-
-    window.addEventListener("ticketrush-account-change", handleAccountChange);
-    window.addEventListener("storage", handleAccountChange);
-
-    return () => {
-      window.removeEventListener("ticketrush-account-change", handleAccountChange);
-      window.removeEventListener("storage", handleAccountChange);
-    };
-  }, []);
-
-  const loggedIn = Boolean(account?.displayName);
+  const loggedIn = isAuthenticated;
   const userFullName = account?.displayName ?? "";
   const userEmail = account?.email ?? "";
   const userShortName = userFullName
@@ -105,13 +91,14 @@ function AccountButton() {
     .slice(0, 2)
     .toUpperCase();
 
-  function handleAccountAction(key: Key) {
+  async function handleAccountAction(key: Key) {
     if (key === "organizer-events") {
       navigate("/organizer/events");
+      return;
     }
 
-    if (key === "logout") {
-      clearStoredAccount();
+    if (key.toString() === "logout") {
+      await logout();
       navigate("/login");
     }
   }
