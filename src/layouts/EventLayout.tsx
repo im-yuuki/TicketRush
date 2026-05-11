@@ -1,11 +1,11 @@
 import { useMemo } from "react";
-import { Outlet, useNavigate, useOutletContext, useParams } from "react-router";
+import { Outlet, useNavigate, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Breadcrumbs, Button } from "@heroui/react";
 import { CalendarDays, ChevronRight, MapPin } from "lucide-react";
-import { getEvent, type EventData } from "../data/events";
-
-type EventContext = { event: EventData };
+import { getEvent } from "../data/events";
+import type { EventContext } from "./eventContext";
+import { useLocalImageUrl } from "../utils/useLocalImageUrl";
 
 function formatPrice(value: number, lang: string) {
   const locale = lang === "vn" ? "vi-VN" : "en-US";
@@ -38,16 +38,19 @@ function formatDateRange(start: string, end: string | undefined, lang: string) {
   return `${startStr} - ${formatDateTime(end, lang)}`;
 }
 
-export function useEvent() {
-  return useOutletContext<EventContext>().event;
-}
-
-export default function EventLayout() {
+export default function EventLayout({
+  eventIdOverride,
+}: {
+  eventIdOverride?: string;
+}) {
   const { t, i18n } = useTranslation();
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
+  const resolvedEventId = eventIdOverride ?? eventId;
 
-  const event = useMemo(() => getEvent(eventId), [eventId]);
+  const event = useMemo(() => getEvent(resolvedEventId), [resolvedEventId]);
+  const storedImageUrl = useLocalImageUrl(event?.imageKey);
+  const eventImage = event?.image || storedImageUrl;
 
   const homeLabel = t("navigation.home", "Home");
   const eventsLabel = t("event.breadcrumb", "Events");
@@ -111,7 +114,7 @@ export default function EventLayout() {
             <div className="mt-auto space-y-3 pt-5">
               <button
                 type="button"
-                onClick={() => navigate(`/events/${eventId}/booking`)}
+                onClick={() => navigate(`/events/${resolvedEventId}/booking`)}
                 className="flex w-full items-center justify-between text-sm transition-all hover:opacity-80 active:scale-95 focus:outline-none"
               >
                 <span>
@@ -125,7 +128,7 @@ export default function EventLayout() {
 
               <Button
                 className="w-full bg-(--accent) text-(--accent-foreground) hover:bg-(--accent)/90"
-                onClick={() => navigate(`/events/${eventId}/booking`)}
+                onClick={() => navigate(`/events/${resolvedEventId}/booking`)}
               >
                 {buyNowLabel}
               </Button>
@@ -134,11 +137,15 @@ export default function EventLayout() {
 
           {/* Cot phai: banner/anh cover cua su kien. */}
           <div className="order-1 w-full overflow-hidden bg-black lg:order-2 lg:min-h-90">
-            <img
-              src={event.image}
-              alt={event.title}
-              className="block aspect-video h-full w-full object-cover object-center lg:aspect-auto"
-            />
+            {eventImage ? (
+              <img
+                src={eventImage}
+                alt={event.title}
+                className="block aspect-video h-full w-full object-cover object-center lg:aspect-auto"
+              />
+            ) : (
+              <div className="aspect-video h-full w-full bg-surface-tertiary lg:aspect-auto" />
+            )}
           </div>
         </div>
       </section>

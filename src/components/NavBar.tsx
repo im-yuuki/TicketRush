@@ -1,6 +1,6 @@
 import { Avatar, Badge, Button, Drawer, Dropdown, Label } from "@heroui/react";
 import { Logo } from "./Branding.tsx";
-import { Bell, LogOut, Menu, Settings, Ticket, UserRound } from "lucide-react";
+import { Bell, CalendarDays, LogOut, Menu, Settings, Ticket, UserRound } from "lucide-react";
 
 import { useEffect, useState, type Key, type Ref } from "react";
 import { useTranslation } from "react-i18next";
@@ -75,6 +75,7 @@ function AccountButton() {
 
   const accountText = t("navigation.account", "Account");
   const myTicketsText = t("navigation.myTickets", "My Tickets");
+  const myEventsText = t("navigation.myEvents", "Sự kiện của tôi");
   const notificationsText = t("navigation.notifications", "Notifications");
   const settingsText = t("navigation.settings", "Settings");
   const logoutText = t("navigation.logout", "Logout");
@@ -91,6 +92,11 @@ function AccountButton() {
     .toUpperCase();
 
   async function handleAccountAction(key: Key) {
+    if (key === "organizer-events") {
+      navigate("/organizer/events");
+      return;
+    }
+
     if (key.toString() === "logout") {
       await logout();
       navigate("/login");
@@ -127,28 +133,27 @@ function AccountButton() {
             </div>
           </div>
           <Dropdown.Menu onAction={handleAccountAction}>
-            <Dropdown.Item id="account" key="account" textValue="Account">
+            <Dropdown.Item id="account" key="account" textValue={accountText}>
               <UserRound className="size-3.5 text-muted" />
               <Label>{accountText}</Label>
             </Dropdown.Item>
-            <Dropdown.Item id="tickets" key="tickets" textValue="My Tickets">
+            <Dropdown.Item id="tickets" key="tickets" textValue={myTicketsText}>
               <Ticket className="size-3.5 text-muted" />
               <Label>{myTicketsText}</Label>
             </Dropdown.Item>
-            <Dropdown.Item id="notifications" key="notifications" textValue="Notifications">
+            <Dropdown.Item id="organizer-events" key="organizer-events" textValue={myEventsText}>
+              <CalendarDays className="size-3.5 text-muted" />
+              <Label>{myEventsText}</Label>
+            </Dropdown.Item>
+            <Dropdown.Item id="notifications" key="notifications" textValue={notificationsText}>
               <Bell className="size-3.5 text-muted" />
               <Label>{notificationsText}</Label>
             </Dropdown.Item>
-            <Dropdown.Item id="settings" key="settings" textValue="Settings">
+            <Dropdown.Item id="settings" key="settings" textValue={settingsText}>
               <Settings className="size-3.5 text-muted" />
               <Label>{settingsText}</Label>
             </Dropdown.Item>
-            <Dropdown.Item
-              id="logout"
-              key="logout"
-              textValue="Logout"
-              variant="danger"
-            >
+            <Dropdown.Item id="logout" key="logout" textValue={logoutText} variant="danger">
               <LogOut className="size-3.5 text-danger" />
               <Label>{logoutText}</Label>
             </Dropdown.Item>

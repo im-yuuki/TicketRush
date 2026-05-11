@@ -1,5 +1,11 @@
 // data mẫu để bắn vào event, i vibed
 
+import {
+  getStoredOrganizerEventPreviewId,
+  organizerEventsService,
+  type StoredOrganizerEvent,
+} from "../api/organizerEventsService";
+
 export type DescriptionParagraph = {
   text: string;
   /** Render paragraph in bold. Defaults to false. */
@@ -27,12 +33,15 @@ export type EventData = {
   price: number;
   /** URL to the hero/poster image. */
   image: string;
+  imageKey?: string;
   description: DescriptionParagraph[];
   ticketTiers: TicketTier[];
   organizer: string;
   organizerDescription: string;
   /** Optional URL for the organizer logo. */
   organizerLogo?: string;
+  /** Optional key to load organizer logo from local storage. */
+  organizerLogoKey?: string;
 };
 
 const MOCK_EVENTS: Record<string, EventData> = {
@@ -82,9 +91,85 @@ const MOCK_EVENTS: Record<string, EventData> = {
   },
 };
 
+function mapStoredOrganizerEventToEventData(event: StoredOrganizerEvent): EventData {
+  const ticketTiers =
+    event.ticketTiers && event.ticketTiers.length > 0
+      ? event.ticketTiers
+      : [
+          {
+            id: "preview",
+            name: "Thông tin vé",
+            price: 0,
+          },
+        ];
+  const prices = ticketTiers.map((ticketTier) => ticketTier.price);
+
+  // Determine venue and address based on location mode
+  const isOnline = event.locationMode === "online";
+  const venue = isOnline
+    ? "Online"
+    : event.venueName || "Sự kiện đang chờ duyệt";
+
+  // Build full address from street + ward + province
+  let address: string | undefined;
+  let location = "TicketRush";
+  if (!isOnline) {
+    const addressParts = [
+      event.streetAddress,
+      event.wardName,
+      event.provinceName,
+    ].filter(Boolean);
+    address = addressParts.length > 0
+      ? addressParts.join(", ")
+      : "Trang preview dành cho ban tổ chức";
+    location = event.provinceName || "TicketRush";
+  } else {
+    location = "Online";
+  }
+
+  // Build event description from stored text (split by newlines into paragraphs)
+  const descriptionText = event.eventDescription?.trim();
+  const description: DescriptionParagraph[] = descriptionText
+    ? descriptionText.split("\n").filter(Boolean).map((line) => ({ text: line }))
+    : [
+        {
+          text: "Đây là trang preview của sự kiện đang chờ duyệt. Nội dung chi tiết sẽ được hiển thị sau khi ban tổ chức hoàn tất thông tin sự kiện.",
+        },
+      ];
+
+  return {
+    id: getStoredOrganizerEventPreviewId(event),
+    title: event.title,
+    category: "organizer-preview",
+    date: event.start,
+    endDate: event.end,
+    location,
+    venue,
+    address,
+    price: prices.length > 0 ? Math.min(...prices) : 0,
+    image: event.bannerImageUrl || "",
+    imageKey: event.bannerImageKey,
+    description,
+    ticketTiers,
+    organizer: event.organizerName || "TicketRush Organizer",
+    organizerDescription:
+      event.organizerDescription || "Thông tin ban tổ chức sẽ được cập nhật từ biểu mẫu tạo sự kiện.",
+    organizerLogo: event.organizerLogoUrl,
+    organizerLogoKey: event.organizerLogoKey,
+  };
+}
+
 /** Look up a single event by id. Swap this for a real fetch() later. */
 export function getEvent(id: string | undefined): EventData | null {
   if (!id) return null;
+  const previewId = id.match(/(?:^|-)(\d+)$/)?.[1] ?? id;
+  const storedOrganizerEvent = organizerEventsService.findByPreviewId(previewId);
+  if (storedOrganizerEvent) {
+    return mapStoredOrganizerEventToEventData(storedOrganizerEvent);
+  }
+
+  if (/^\d+$/.test(id)) return null;
+
   // Dev fallback: unknown ids show the "test" event. Remove when wiring real data.
   return MOCK_EVENTS[id] ?? MOCK_EVENTS.test ?? null;
 }
