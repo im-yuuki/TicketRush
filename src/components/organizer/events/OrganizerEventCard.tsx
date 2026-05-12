@@ -39,6 +39,7 @@ export default function OrganizerEventCard({ event }: { event: StoredOrganizerEv
   const storedBannerImageUrl = useLocalImageUrl(event.bannerImageKey);
   const previewPath = `/-${getStoredOrganizerEventPreviewId(event)}`;
   const editPath = `/organizer/events/${event.id}/edit`;
+  const seatsPath = `/organizer/events/${event.id}/seats`;
 
   function openEventPreview() {
     navigate(previewPath);
@@ -113,6 +114,8 @@ export default function OrganizerEventCard({ event }: { event: StoredOrganizerEv
 
               if (labelKey === "edit") {
                 openEventEditor();
+              } else if (labelKey === "seatMap") {
+                navigate(seatsPath);
               } else if (labelKey === "delete") {
                 const confirmed = window.confirm(
                   t("organizer.events.deleteConfirm", { title: event.title }),

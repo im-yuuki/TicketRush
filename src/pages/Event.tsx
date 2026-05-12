@@ -7,6 +7,7 @@ import ReactMarkdown from "react-markdown";
 import ExpandableCard from "../components/ExpandableCard";
 import { useEvent } from "../layouts/eventContext";
 import { useLocalImageUrl } from "../utils/useLocalImageUrl";
+import type { ShowTime } from "../types/organizerCreate";
 
 function formatPrice(value: number, lang: string) {
   const locale = lang === "vn" ? "vi-VN" : "en-US";
@@ -28,11 +29,180 @@ function formatRangeDate(iso: string, lang: string) {
   }).format(new Date(iso));
 }
 
+function ShowtimeScheduleSection({
+  showTimes,
+  lang,
+  scheduleLabel,
+  buyNowLabel,
+  ticketInfoLabel,
+  onGoToBooking,
+}: {
+  showTimes: ShowTime[];
+  lang: string;
+  scheduleLabel: string;
+  buyNowLabel: string;
+  ticketInfoLabel: string;
+  onGoToBooking: (showTimeId: number) => void;
+}) {
+  const [openTier, setOpenTier] = useState<string | null>(null);
+
+  return (
+    <Card>
+      <Card.Header className="flex-row items-center justify-between border-b border-border pb-3">
+        <Card.Title className="text-base font-semibold">
+          {scheduleLabel}
+        </Card.Title>
+      </Card.Header>
+      <Card.Content className="gap-3">
+        {showTimes.map((showTime) => {
+          const allTickets = showTime.tickets.map((ticket) => ({
+            id: `${showTime.id}-${ticket.id}`,
+            name: ticket.name,
+            price: ticket.isFree ? 0 : Number(String(ticket.price).replace(/[^\d]/g, "")) || 0,
+          }));
+
+          return (
+            <div key={showTime.id} className="rounded-lg border border-border">
+              <div className="flex items-center justify-between gap-3 px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <CalendarDays className="size-4 text-muted" />
+                  <span className="text-sm font-medium">
+                    {showTime.name}
+                    {showTime.start && (
+                      <span className="ml-2 text-muted">
+                        — {formatRangeDate(showTime.start, lang)}
+                        {showTime.end ? ` - ${formatRangeDate(showTime.end, lang)}` : ""}
+                      </span>
+                    )}
+                  </span>
+                </div>
+                <Button
+                  size="sm"
+                  className="bg-(--accent) text-(--accent-foreground) hover:bg-(--accent)/90"
+                  onClick={() => onGoToBooking(showTime.id)}
+                >
+                  {buyNowLabel}
+                </Button>
+              </div>
+
+              {allTickets.length > 0 && (
+                <div className="border-t border-border px-4 py-3">
+                  <p className="mb-3 text-sm font-semibold">{ticketInfoLabel}</p>
+                  <div className="space-y-2">
+                    {allTickets.map((tier) => {
+                      const open = openTier === tier.id;
+                      return (
+                        <button
+                          key={tier.id}
+                          type="button"
+                          onClick={() => setOpenTier(open ? null : tier.id)}
+                          aria-expanded={open}
+                          className="flex w-full items-center justify-between rounded-md border border-border bg-surface-secondary px-3 py-2 text-sm transition-colors hover:bg-surface-tertiary focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                        >
+                          <span className="flex items-center gap-2">
+                            <ChevronDown
+                              className={`size-4 transition-transform ${open ? "rotate-0" : "-rotate-90"}`}
+                            />
+                            <span className="font-medium">{tier.name}</span>
+                          </span>
+                          <span className="font-semibold text-accent">
+                            {formatPrice(tier.price, lang)}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </Card.Content>
+    </Card>
+  );
+}
+
+function SingleScheduleSection({
+  date,
+  ticketTiers,
+  lang,
+  scheduleLabel,
+  buyNowLabel,
+  ticketInfoLabel,
+  onGoToBooking,
+}: {
+  date: string;
+  ticketTiers: { id: string; name: string; price: number }[];
+  lang: string;
+  scheduleLabel: string;
+  buyNowLabel: string;
+  ticketInfoLabel: string;
+  onGoToBooking: () => void;
+}) {
+  const [openTier, setOpenTier] = useState<string | null>(null);
+
+  return (
+    <Card>
+      <Card.Header className="flex-row items-center justify-between border-b border-border pb-3">
+        <Card.Title className="text-base font-semibold">
+          {scheduleLabel}
+        </Card.Title>
+      </Card.Header>
+      <Card.Content className="gap-3">
+        <div className="rounded-lg border border-border">
+          <div className="flex items-center justify-between gap-3 px-4 py-3">
+            <div className="flex items-center gap-2">
+              <CalendarDays className="size-4 text-muted" />
+              <span className="text-sm font-medium">
+                {formatRangeDate(date, lang)}
+              </span>
+            </div>
+            <Button
+              size="sm"
+              className="bg-(--accent) text-(--accent-foreground) hover:bg-(--accent)/90"
+              onClick={onGoToBooking}
+            >
+              {buyNowLabel}
+            </Button>
+          </div>
+
+          <div className="border-t border-border px-4 py-3">
+            <p className="mb-3 text-sm font-semibold">{ticketInfoLabel}</p>
+            <div className="space-y-2">
+              {ticketTiers.map((tier) => {
+                const open = openTier === tier.id;
+                return (
+                  <button
+                    key={tier.id}
+                    type="button"
+                    onClick={() => setOpenTier(open ? null : tier.id)}
+                    aria-expanded={open}
+                    className="flex w-full items-center justify-between rounded-md border border-border bg-surface-secondary px-3 py-2 text-sm transition-colors hover:bg-surface-tertiary focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  >
+                    <span className="flex items-center gap-2">
+                      <ChevronDown
+                        className={`size-4 transition-transform ${open ? "rotate-0" : "-rotate-90"}`}
+                      />
+                      <span className="font-medium">{tier.name}</span>
+                    </span>
+                    <span className="font-semibold text-accent">
+                      {formatPrice(tier.price, lang)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </Card.Content>
+    </Card>
+  );
+}
+
 export default function Event() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const event = useEvent();
-  const [openTier, setOpenTier] = useState<string | null>(null);
   const organizerLogoFromStorage = useLocalImageUrl(event.organizerLogoKey);
   const organizerLogoUrl = event.organizerLogo || organizerLogoFromStorage;
 
@@ -42,8 +212,9 @@ export default function Event() {
   const ticketInfoLabel = t("event.ticketInfo", "Thông tin vé");
   const buyNowLabel = t("event.buyNow", "Mua vé ngay");
 
-  const handleGoToBooking = () => {
-    navigate(`/events/${event.id}/booking`);
+  const handleGoToBooking = (showTimeId?: number) => {
+    const query = showTimeId ? `?showTimeId=${showTimeId}` : "";
+    navigate(`/events/${event.id}/booking${query}`);
   };
 
   return (
@@ -56,63 +227,26 @@ export default function Event() {
         </div>
       </ExpandableCard>
 
-      <Card>
-        <Card.Header className="flex-row items-center justify-between border-b border-border pb-3">
-          <Card.Title className="text-base font-semibold">
-            {scheduleLabel}
-          </Card.Title>
-        </Card.Header>
-
-        <Card.Content className="gap-3">
-          <div className="rounded-lg border border-border">
-            <div className="flex items-center justify-between gap-3 px-4 py-3">
-              <div className="flex items-center gap-2">
-                <CalendarDays className="size-4 text-muted" />
-                <span className="text-sm font-medium">
-                  {formatRangeDate(event.date, i18n.language)}
-                </span>
-              </div>
-              <Button
-                size="sm"
-                className="bg-(--accent) text-(--accent-foreground) hover:bg-(--accent)/90"
-                onClick={handleGoToBooking}
-              >
-                {buyNowLabel}
-              </Button>
-            </div>
-
-            <div className="border-t border-border px-4 py-3">
-              <p className="mb-3 text-sm font-semibold">{ticketInfoLabel}</p>
-              <div className="space-y-2">
-                {event.ticketTiers.map((tier) => {
-                  // mở 1 tier khi click, đóng khi click lại hoặc click vào tier khác.
-                  const open = openTier === tier.id;
-                  return (
-                    <button
-                      key={tier.id}
-                      type="button"
-                      onClick={() => setOpenTier(open ? null : tier.id)}
-                      aria-expanded={open}
-                      className="flex w-full items-center justify-between rounded-md border border-border bg-surface-secondary px-3 py-2 text-sm transition-colors hover:bg-surface-tertiary focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                    >
-                      <span className="flex items-center gap-2">
-                        <ChevronDown
-                          className={`size-4 transition-transform ${open ? "rotate-0" : "-rotate-90"
-                            }`}
-                        />
-                        <span className="font-medium">{tier.name}</span>
-                      </span>
-                      <span className="font-semibold text-accent">
-                        {formatPrice(tier.price, i18n.language)}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </Card.Content>
-      </Card>
+      {event.showTimes && event.showTimes.length > 0 ? (
+        <ShowtimeScheduleSection
+          showTimes={event.showTimes}
+          lang={i18n.language}
+          scheduleLabel={scheduleLabel}
+          buyNowLabel={buyNowLabel}
+          ticketInfoLabel={ticketInfoLabel}
+          onGoToBooking={handleGoToBooking}
+        />
+      ) : (
+        <SingleScheduleSection
+          date={event.date}
+          ticketTiers={event.ticketTiers}
+          lang={i18n.language}
+          scheduleLabel={scheduleLabel}
+          buyNowLabel={buyNowLabel}
+          ticketInfoLabel={ticketInfoLabel}
+          onGoToBooking={handleGoToBooking}
+        />
+      )}
 
       <Card>
         <Card.Header className="border-b border-border pb-3">

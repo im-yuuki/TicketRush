@@ -29,6 +29,7 @@ function buildInitialShowTimes(editingEvent?: StoredOrganizerEvent): ShowTime[] 
   return [
     {
       id: Date.now(),
+      name: "Suất diễn 1",
       start: editingEvent.start,
       end: editingEvent.end ?? editingEvent.start,
       tickets: editingEvent.ticketTiers.map((ticketTier, index) => ({
@@ -269,6 +270,7 @@ export function useOrganizerCreateEvent() {
       ...current,
       {
         id: Date.now(),
+        name: `Suất diễn ${current.length + 1}`,
         start: "",
         end: "",
         tickets: [],
@@ -280,7 +282,7 @@ export function useOrganizerCreateEvent() {
     setShowTimes((current) => current.filter((showTime) => showTime.id !== id));
   }
 
-  function handleChangeShowTime(id: number, field: "start" | "end", value: string) {
+  function handleChangeShowTime(id: number, field: "start" | "end" | "name", value: string) {
     setShowTimes((current) =>
       current.map((showTime) =>
         showTime.id === id ? { ...showTime, [field]: value } : showTime,
@@ -326,6 +328,24 @@ export function useOrganizerCreateEvent() {
           : showTime,
       ),
     );
+  }
+
+  function handleImportTicketsFromShowTime(targetShowTimeId: number, sourceShowTimeId: number) {
+    setShowTimes((current) => {
+      const source = current.find((st) => st.id === sourceShowTimeId);
+      if (!source || source.tickets.length === 0) return current;
+      return current.map((st) =>
+        st.id === targetShowTimeId
+          ? {
+              ...st,
+              tickets: source.tickets.map((ticket) => ({
+                ...ticket,
+                id: Date.now() + Math.random(),
+              })),
+            }
+          : st,
+      );
+    });
   }
 
   return {
@@ -384,6 +404,7 @@ export function useOrganizerCreateEvent() {
     onCreateTicketType: handleOpenCreateTicket,
     onEditTicketType: handleOpenEditTicket,
     onRemoveTicketType: handleRemoveTicket,
+    onImportTicketsFromShowTime: handleImportTicketsFromShowTime,
     // Ticket modal
     ticketModalState,
     onCloseTicketModal: handleCloseTicketModal,

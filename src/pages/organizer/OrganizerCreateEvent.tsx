@@ -74,6 +74,7 @@ export default function OrganizerCreateEvent() {
                 onCreateTicketType={w.onCreateTicketType}
                 onEditTicketType={w.onEditTicketType}
                 onRemoveTicketType={w.onRemoveTicketType}
+                onImportTicketsFromShowTime={w.onImportTicketsFromShowTime}
               />
             ) : w.currentStep === 2 ? (
               <SettingsStep eventSequenceId={w.eventSequenceId} />
