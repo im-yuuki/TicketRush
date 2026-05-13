@@ -12,6 +12,7 @@ import Checkout from "./pages/Checkout.tsx";
 import OrganizerEvents from "./pages/organizer/OrganizerEvents.tsx";
 import OrganizerCreateEvent from "./pages/organizer/OrganizerCreateEvent.tsx";
 import OrganizerEventPreview from "./pages/organizer/OrganizerEventPreview.tsx";
+import OrganizerSeatConfig from "./pages/organizer/OrganizerSeatConfig.tsx";
 import { OrganizerReports, OrganizerTerms } from "./pages/organizer/OrganizerPlaceholder.tsx";
 
 import AppLayout from "./layouts/AppLayout.tsx";
@@ -107,6 +108,10 @@ const AppRouter = createBrowserRouter([
       {
         path: "events/:eventId/edit",
         element: <OrganizerCreateEvent />,
+      },
+      {
+        path: "events/:eventId/seats",
+        element: <OrganizerSeatConfig />,
       },
       {
         path: "reports",

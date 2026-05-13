@@ -110,28 +110,49 @@ const swatchBase: CSSProperties = {
 interface SeatButtonProps {
   seat: Seat;
   color?: string;
+  assignedColor?: string;
+  configMode?: boolean;
   onToggle: (seatId: string) => void;
 }
 
-function SeatButton({ seat, color, onToggle }: SeatButtonProps) {
+function SeatButton({ seat, color, assignedColor, configMode, onToggle }: SeatButtonProps) {
   const handleClick = () => {
-    if (seat.status !== "booked") onToggle(seat.id);
+    if (configMode || seat.status !== "booked") onToggle(seat.id);
   };
 
-  const dynamicStyle = { ...seatStyles[seat.status] };
-  if (seat.status === "available" && color) {
-    dynamicStyle.borderColor = color;
+  let dynamicStyle: CSSProperties;
+
+  if (configMode) {
+    // Config mode: ignore selected/booked, only show tier assignment colors
+    dynamicStyle = { ...seatStyles.available };
+    if (assignedColor) {
+      dynamicStyle.borderColor = assignedColor;
+      dynamicStyle.backgroundColor = assignedColor + "33";
+    } else if (color) {
+      dynamicStyle.borderColor = color;
+    }
+  } else {
+    dynamicStyle = { ...seatStyles[seat.status] };
+    if (seat.status === "available") {
+      if (assignedColor) {
+        dynamicStyle.borderColor = assignedColor;
+        dynamicStyle.backgroundColor = assignedColor + "33";
+      } else if (color) {
+        dynamicStyle.borderColor = color;
+      }
+    }
   }
 
   return (
     <motion.button
       type="button"
+      data-seat-id={seat.id}
       style={dynamicStyle}
       onClick={handleClick}
       aria-label={`Row ${seat.row}, Seat ${seat.number} — ${seat.status}`}
-      aria-disabled={seat.status === "booked"}
-      whileHover={seat.status !== "booked" ? { scale: 1.25 } : undefined}
-      whileTap={seat.status !== "booked" ? { scale: 0.85 } : undefined}
+      aria-disabled={!configMode && seat.status === "booked"}
+      whileHover={{ scale: 1.25 }}
+      whileTap={{ scale: 0.85 }}
       transition={{ type: "spring", stiffness: 400, damping: 20 }}
     >
       {seat.number}
@@ -152,9 +173,13 @@ interface SeatMapProps {
   maxSeats?: number;
   /** Map of tierId to color code */
   tierColors?: Record<string, string>;
+  /** Map of seatId → color for displaying assigned tier colors on seats */
+  assignedSeatColors?: Record<string, string>;
+  /** When true, disables selected/booked styling — used for seat configuration mode */
+  configMode?: boolean;
 }
 
-export default function SeatMap({ layout, bookedSeatIds = [], onSelectionChange, maxSeats, tierColors }: SeatMapProps) {
+export default function SeatMap({ layout, bookedSeatIds = [], onSelectionChange, maxSeats, tierColors, assignedSeatColors, configMode }: SeatMapProps) {
   if (!layout) throw new Error("SeatMap requires a layout prop");
 
   const { t } = useTranslation();
@@ -175,8 +200,10 @@ export default function SeatMap({ layout, bookedSeatIds = [], onSelectionChange,
           const seatId = `${block.id}-${rowDef.label}-${i}`;
           
           let status: SeatStatus = "available";
-          if (bookedSeatsSet.has(seatId)) status = "booked";
-          else if (selectedSeatIds.has(seatId)) status = "selected";
+          if (!configMode) {
+            if (bookedSeatsSet.has(seatId)) status = "booked";
+            else if (selectedSeatIds.has(seatId)) status = "selected";
+          }
 
           seats.push({
             id: seatId,
@@ -190,9 +217,15 @@ export default function SeatMap({ layout, bookedSeatIds = [], onSelectionChange,
       });
       return { id: block.id, name: block.name, rows };
     });
-  }, [layout, bookedSeatsSet, selectedSeatIds]);
+  }, [layout, bookedSeatsSet, selectedSeatIds, configMode]);
 
   const toggleSeat = useCallback((seatId: string) => {
+    if (configMode) {
+      // Config mode: don't accumulate selections, just report the clicked seat
+      if (onSelectionChange) onSelectionChange([seatId]);
+      return;
+    }
+
     // If it's booked by someone else on the server, cannot interact
     if (bookedSeatsSet.has(seatId)) return;
 
@@ -213,14 +246,15 @@ export default function SeatMap({ layout, bookedSeatIds = [], onSelectionChange,
       }
       return newSet;
     });
-  }, [bookedSeatsSet, maxSeats]);
+  }, [bookedSeatsSet, maxSeats, configMode, onSelectionChange]);
 
-  // Sync selected seats up to parent whenever the Set changes
+  // Sync selected seats up to parent whenever the Set changes (skip in configMode, handled in toggleSeat)
   useEffect(() => {
+    if (configMode) return;
     if (onSelectionChange) {
       onSelectionChange(Array.from(selectedSeatIds));
     }
-  }, [selectedSeatIds, onSelectionChange]); // <-- Fixed missing dependency
+  }, [selectedSeatIds, onSelectionChange, configMode]);
 
   const selectedCount = selectedSeatIds.size;
   const sortedSelectedList = useMemo(() => {
@@ -282,6 +316,8 @@ export default function SeatMap({ layout, bookedSeatIds = [], onSelectionChange,
                     key={seat.id} 
                     seat={seat} 
                     color={tierColors?.[seat.tierId || ""]} 
+                    assignedColor={assignedSeatColors?.[seat.id]}
+                    configMode={configMode}
                     onToggle={toggleSeat} 
                   />
                 ))}

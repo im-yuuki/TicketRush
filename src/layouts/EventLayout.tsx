@@ -18,17 +18,14 @@ function formatPrice(value: number, lang: string) {
 
 // Chuyen ISO datetime sang chuoi de hien thi o UI.
 function formatDateTime(iso: string, lang: string) {
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const hh = pad(d.getHours());
-  const mm = pad(d.getMinutes());
-  const day = pad(d.getDate());
-  const month = pad(d.getMonth() + 1);
-  const year = d.getFullYear();
-  if (lang === "vn") {
-    return `${hh}:${mm}, ${day} Tháng ${month}, ${year}`;
-  }
-  return `${hh}:${mm}, ${day}/${month}/${year}`;
+  const locale = lang === "vn" ? "vi-VN" : "en-US";
+  return new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(iso));
 }
 
 // Neu co endDate thi hien thi khoang thoi gian, neu khong thi hien thi 1 moc bat dau.

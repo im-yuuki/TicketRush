@@ -7,6 +7,7 @@ export const organizerCreateSteps = [
 
 export type ShowTime = {
   id: number;
+  name: string;
   start: string;
   end: string;
   tickets: TicketTypeData[];

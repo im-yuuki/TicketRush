@@ -5,6 +5,7 @@ import {
   organizerEventsService,
   type StoredOrganizerEvent,
 } from "../api/organizerEventsService";
+import type { ShowTime } from "../types/organizerCreate";
 
 export type DescriptionParagraph = {
   text: string;
@@ -42,6 +43,8 @@ export type EventData = {
   organizerLogo?: string;
   /** Optional key to load organizer logo from local storage. */
   organizerLogoKey?: string;
+  /** Show times for organizer events (displayed in preview after save). */
+  showTimes?: ShowTime[];
 };
 
 const MOCK_EVENTS: Record<string, EventData> = {
@@ -156,6 +159,7 @@ function mapStoredOrganizerEventToEventData(event: StoredOrganizerEvent): EventD
       event.organizerDescription || "Thông tin ban tổ chức sẽ được cập nhật từ biểu mẫu tạo sự kiện.",
     organizerLogo: event.organizerLogoUrl,
     organizerLogoKey: event.organizerLogoKey,
+    showTimes: event.showTimes,
   };
 }
 

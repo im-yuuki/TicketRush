@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { ImagePlus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 function parseImageDimensions(size: string) {
   const match = size.match(/^(\d+)\s*x\s*(\d+)$/i);
@@ -34,6 +35,7 @@ export function OrganizerUploadBox({
   const inputRef = useRef<HTMLInputElement>(null);
   const previewUrlRef = useRef("");
   const validationIdRef = useRef(0);
+  const { t } = useTranslation();
   const [previewUrl, setPreviewUrl] = useState("");
   const [selectedImageName, setSelectedImageName] = useState("");
   const [selectedImageSize, setSelectedImageSize] = useState("");
@@ -93,7 +95,7 @@ export function OrganizerUploadBox({
       ) {
         URL.revokeObjectURL(objectUrl);
         setErrorMessage(
-          `Ảnh phải đúng kích thước ${size}. Ảnh bạn chọn là ${actualSize}.`,
+          t("organizer.create.imageSizeError", "Ảnh phải đúng kích thước {{size}}. Ảnh bạn chọn là {{actualSize}}.", { size, actualSize }),
         );
         resetInput();
         return;
@@ -109,7 +111,7 @@ export function OrganizerUploadBox({
 
         if (typeof reader.result !== "string") {
           URL.revokeObjectURL(objectUrl);
-          setErrorMessage("Không đọc được ảnh. Vui lòng chọn ảnh khác.");
+          setErrorMessage(t("organizer.create.imageReadError", "Không đọc được ảnh. Vui lòng chọn ảnh khác."));
           resetInput();
           return;
         }
@@ -133,7 +135,7 @@ export function OrganizerUploadBox({
       reader.onerror = () => {
         if (validationIdRef.current === validationId) {
           URL.revokeObjectURL(objectUrl);
-          setErrorMessage("Không đọc được ảnh. Vui lòng chọn ảnh khác.");
+          setErrorMessage(t("organizer.create.imageReadError", "Không đọc được ảnh. Vui lòng chọn ảnh khác."));
           resetInput();
         }
       };
@@ -148,7 +150,7 @@ export function OrganizerUploadBox({
       }
 
       URL.revokeObjectURL(objectUrl);
-      setErrorMessage("Không đọc được ảnh. Vui lòng chọn ảnh khác.");
+      setErrorMessage(t("organizer.create.imageReadError", "Không đọc được ảnh. Vui lòng chọn ảnh khác."));
       resetInput();
     };
 
@@ -181,7 +183,7 @@ export function OrganizerUploadBox({
                 {selectedImageName || title}
               </span>
               <span className="block text-xs text-white/80">
-                {selectedImageSize || size} - Nhấn để đổi ảnh
+                {selectedImageSize || size} - {t("organizer.create.clickToChangeImage", "Nhấn để đổi ảnh")}
               </span>
             </span>
           </>
