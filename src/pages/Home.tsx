@@ -1,65 +1,11 @@
-// import { Link } from "react-router";
+import PromotionSection from "../components/PromotionSection";
 import TrendingSection from "../components/TrendingSection";
 
-export default function App() {
+export default function Home() {
   return (
-    <>
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <main>
-        <TrendingSection />
-      </main>
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-    </>
+    <main className="space-y-6 pb-10 pt-4">
+      <PromotionSection />
+      <TrendingSection />
+    </main>
   );
-};
+}
