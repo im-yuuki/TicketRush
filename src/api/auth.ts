@@ -23,13 +23,13 @@ export function getAccount() {
 }
 
 export function triggerOTPEmail() {
-	return apiGet<Response<{}>>(`/auth/register/confirmation`);
+	return apiGet<Response>("/auth/register/confirmation");
 }
 
 export function verifyOTPRegister(payload: OTPRequest) {
-	return apiPost<Response<{}>, OTPRequest>(`/auth/register/confirmation`, payload);
+	return apiPost<Response, OTPRequest>("/auth/register/confirmation", payload);
 }
 
 export function logoutUser() {
-	return apiPost<Response<{}>>("/auth/logout");
+	return apiPost<Response>("/auth/logout");
 }

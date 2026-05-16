@@ -40,12 +40,18 @@ export default function OrganizerEventCard({ event }: { event: StoredOrganizerEv
   const previewPath = `/-${getStoredOrganizerEventPreviewId(event)}`;
   const editPath = `/organizer/events/${event.id}/edit`;
   const seatsPath = `/organizer/events/${event.id}/seats`;
+  const isPublished = event.status === "published";
+  const statusLabel = isPublished ? t("organizer.events.status.published", "Published") : event.status;
+  const statusClassName = isPublished
+    ? "bg-success px-2.5 py-1 text-xs font-bold text-success-foreground"
+    : "bg-warning px-2.5 py-1 text-xs font-bold text-warning-foreground";
 
   function openEventPreview() {
     navigate(previewPath);
   }
 
   function openEventEditor() {
+    if (isPublished) return;
     navigate(editPath);
   }
 
@@ -74,8 +80,8 @@ export default function OrganizerEventCard({ event }: { event: StoredOrganizerEv
             <h2 className="min-w-0 flex-1 truncate text-base font-bold">
               {event.title}
             </h2>
-            <span className="rounded-full bg-warning px-2.5 py-1 text-xs font-bold text-warning-foreground">
-              {event.status}
+            <span className={`rounded-full ${statusClassName}`}>
+              {statusLabel}
             </span>
           </div>
           <div className="space-y-3 text-sm">
@@ -103,35 +109,45 @@ export default function OrganizerEventCard({ event }: { event: StoredOrganizerEv
       </div>
 
       <div className="grid grid-cols-3 border-t border-border bg-surface-tertiary sm:grid-cols-6">
-        {organizerEventActions.map(({ labelKey, icon: Icon }) => (
-          <Button
-            key={labelKey}
-            variant="tertiary"
-            className="h-16 w-full rounded-none bg-transparent text-muted hover:bg-surface-secondary hover:text-foreground"
-            aria-label={t(`organizer.events.actions.${labelKey}`)}
-            onClick={(clickEvent) => {
-              clickEvent.stopPropagation();
+        {organizerEventActions.map(({ labelKey, icon: Icon }) => {
+          const actionDisabled = isPublished && (labelKey === "edit" || labelKey === "delete");
 
-              if (labelKey === "edit") {
-                openEventEditor();
-              } else if (labelKey === "seatMap") {
-                navigate(seatsPath);
-              } else if (labelKey === "delete") {
-                const confirmed = window.confirm(
-                  t("organizer.events.deleteConfirm", { title: event.title }),
-                );
-                if (confirmed) {
-                  organizerEventsService.remove(event.id);
+          return (
+            <Button
+              key={labelKey}
+              variant="tertiary"
+              className="h-16 w-full rounded-none bg-transparent text-muted hover:bg-surface-secondary hover:text-foreground disabled:opacity-45"
+              aria-label={t(`organizer.events.actions.${labelKey}`)}
+              isDisabled={actionDisabled}
+              onClick={async (clickEvent) => {
+                clickEvent.stopPropagation();
+
+                if (labelKey === "edit") {
+                  openEventEditor();
+                } else if (labelKey === "seatMap") {
+                  navigate(seatsPath);
+                } else if (labelKey === "delete") {
+                  const confirmed = window.confirm(
+                    t("organizer.events.deleteConfirm", { title: event.title }),
+                  );
+                  if (confirmed) {
+                    try {
+                      await organizerEventsService.remove(event.id);
+                    } catch (error) {
+                      const message = error instanceof Error ? error.message : "Delete event failed.";
+                      window.alert(message);
+                    }
+                  }
                 }
-              }
-            }}
-          >
-            <span className="flex flex-col items-center gap-1.5">
-              <Icon className="size-5 text-foreground" />
-              <span className="text-xs">{t(`organizer.events.actions.${labelKey}`)}</span>
-            </span>
-          </Button>
-        ))}
+              }}
+            >
+              <span className="flex flex-col items-center gap-1.5">
+                <Icon className="size-5 text-foreground" />
+                <span className="text-xs">{t(`organizer.events.actions.${labelKey}`)}</span>
+              </span>
+            </Button>
+          );
+        })}
       </div>
     </motion.article>
   );

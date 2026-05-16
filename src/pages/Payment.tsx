@@ -11,7 +11,7 @@ import {
   CreditCard,
 } from "lucide-react";
 import { Button, Input, Card } from "@heroui/react";
-import { getEvent } from "../data/events";
+import { getEvent, type EventData } from "../data/events";
 import { Logo } from "../components/Branding";
 import { StepIndicator } from "../components/booking/StepIndicator";
 import { EventMarquee } from "../components/booking/EventMarquee";
@@ -103,7 +103,15 @@ export default function Payment() {
   const { t } = useTranslation();
   const { booking, setPaymentMethod: savePaymentMethod, setTotalAmount } = useBooking();
 
-  const event = useMemo(() => getEvent(eventId), [eventId]);
+  const [event, setEvent] = useState<EventData | null>(null);
+
+  useEffect(() => {
+    async function loadEvent() {
+      const loadedEvent = await getEvent(eventId);
+      setEvent(loadedEvent);
+    }
+    loadEvent();
+  }, [eventId]);
 
   // Read from context instead of location.state
   const selectedSeats = booking?.selectedSeats || [];

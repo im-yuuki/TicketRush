@@ -34,7 +34,14 @@ export interface ApiRequestOptions<TRequest = unknown>
  * Builds an absolute request URL from a relative endpoint and the configured base URL.
  */
 function buildUrl(endpoint: string, baseUrl = API_BASE_URL) {
-	return new URL(endpoint.replace(/^\//, ""), baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`).toString();
+	const appOrigin =
+		typeof window === "undefined" ? "http://localhost" : window.location.origin;
+	const resolvedBaseUrl = new URL(baseUrl, appOrigin).toString();
+
+	return new URL(
+		endpoint.replace(/^\//, ""),
+		resolvedBaseUrl.endsWith("/") ? resolvedBaseUrl : `${resolvedBaseUrl}/`,
+	).toString();
 }
 
 /**
@@ -121,4 +128,33 @@ export async function apiPost<TResponse, TRequest = unknown>(
 	options: Omit<ApiRequestOptions<TRequest>, "body" | "method"> = {},
 ) {
 	return apiRequest<TResponse, TRequest>(endpoint, { ...options, body, method: "POST" });
+}
+
+/**
+ * Convenience helper for typed PUT requests.
+ */
+export async function apiPut<TResponse, TRequest = unknown>(
+	endpoint: string,
+	body?: TRequest,
+	options: Omit<ApiRequestOptions<TRequest>, "body" | "method"> = {},
+) {
+	return apiRequest<TResponse, TRequest>(endpoint, { ...options, body, method: "PUT" });
+}
+
+/**
+ * Convenience helper for typed PATCH requests.
+ */
+export async function apiPatch<TResponse, TRequest = unknown>(
+	endpoint: string,
+	body?: TRequest,
+	options: Omit<ApiRequestOptions<TRequest>, "body" | "method"> = {},
+) {
+	return apiRequest<TResponse, TRequest>(endpoint, { ...options, body, method: "PATCH" });
+}
+
+/**
+ * Convenience helper for typed DELETE requests.
+ */
+export async function apiDelete<TResponse>(endpoint: string, options: Omit<ApiRequestOptions, "body" | "method"> = {}) {
+	return apiRequest<TResponse>(endpoint, { ...options, method: "DELETE" });
 }

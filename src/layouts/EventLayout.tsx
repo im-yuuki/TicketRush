@@ -1,9 +1,9 @@
-import { useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Breadcrumbs, Button } from "@heroui/react";
 import { CalendarDays, ChevronRight, MapPin } from "lucide-react";
-import { getEvent } from "../data/events";
+import { getEvent, type EventData } from "../data/events";
 import type { EventContext } from "./eventContext";
 import { useLocalImageUrl } from "../utils/useLocalImageUrl";
 
@@ -45,7 +45,16 @@ export default function EventLayout({
   const navigate = useNavigate();
   const resolvedEventId = eventIdOverride ?? eventId;
 
-  const event = useMemo(() => getEvent(resolvedEventId), [resolvedEventId]);
+  const [event, setEvent] = useState<EventData | null>(null);
+
+  useEffect(() => {
+    async function loadEvent() {
+      const loadedEvent = await getEvent(resolvedEventId);
+      setEvent(loadedEvent);
+    }
+    loadEvent();
+  }, [resolvedEventId]);
+
   const storedImageUrl = useLocalImageUrl(event?.imageKey);
   const eventImage = event?.image || storedImageUrl;
 

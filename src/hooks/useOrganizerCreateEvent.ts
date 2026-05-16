@@ -1,4 +1,4 @@
-import { useMemo, useState, type Key } from "react";
+import { useEffect, useMemo, useState, type Key } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router";
 import {
@@ -19,20 +19,28 @@ import {
   type StoredOrganizerTicketTier,
 } from "../api/organizerEventsService";
 import { filterLocationOptions } from "../utils/organizer/organizerLocationSearch";
-import { saveLocalImage } from "../utils/localImageStorage";
 import { useLocalImageUrl } from "../utils/useLocalImageUrl";
+
+function toDateTimeLocalValue(value?: string) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  const offsetMs = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+}
 
 function buildInitialShowTimes(editingEvent?: StoredOrganizerEvent): ShowTime[] {
   if (editingEvent?.showTimes?.length) return editingEvent.showTimes;
-  if (!editingEvent?.ticketTiers?.length) return [];
+  if (!editingEvent) return [];
 
   return [
     {
-      id: Date.now(),
-      name: "Suất diễn 1",
-      start: editingEvent.start,
-      end: editingEvent.end ?? editingEvent.start,
-      tickets: editingEvent.ticketTiers.map((ticketTier, index) => ({
+      id: editingEvent.sequenceId ?? Date.now(),
+      name: "Suat dien 1",
+      start: toDateTimeLocalValue(editingEvent.start),
+      end: toDateTimeLocalValue(editingEvent.end ?? editingEvent.start),
+      tickets: (editingEvent.ticketTiers ?? []).map((ticketTier, index) => ({
         id: index + 1,
         name: ticketTier.name,
         price: String(ticketTier.price),
@@ -48,61 +56,115 @@ function buildInitialShowTimes(editingEvent?: StoredOrganizerEvent): ShowTime[] 
   ];
 }
 
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Request failed";
+}
+
 export function useOrganizerCreateEvent() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { eventId } = useParams();
-  const editingEvent = useMemo(
-    () => (eventId ? organizerEventsService.findById(eventId) : undefined),
-    [eventId],
-  );
+  const [editingEvent, setEditingEvent] = useState<StoredOrganizerEvent | undefined>(undefined);
+  const [isLoadingEditingEvent, setIsLoadingEditingEvent] = useState(Boolean(eventId));
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // ── Event basic info ──
-  const [eventName, setEventName] = useState(editingEvent?.title ?? "");
+  const [eventName, setEventName] = useState("");
   const [eventCategory, setEventCategory] = useState<EventCategory | "">("");
-  const [eventLocationMode, setEventLocationMode] = useState<EventLocationMode>(
-    editingEvent?.locationMode ?? "offline",
-  );
-  const [provinceCode, setProvinceCode] = useState(editingEvent?.provinceCode ?? "");
-  const [wardCode, setWardCode] = useState(editingEvent?.wardCode ?? "");
+  const [eventLocationMode, setEventLocationMode] = useState<EventLocationMode>("offline");
+  const [provinceCode, setProvinceCode] = useState("");
+  const [wardCode, setWardCode] = useState("");
   const [provinceSearch, setProvinceSearch] = useState("");
   const [wardSearch, setWardSearch] = useState("");
-  const [venueName, setVenueName] = useState(editingEvent?.venueName ?? "");
-  const [streetAddress, setStreetAddress] = useState(editingEvent?.streetAddress ?? "");
+  const [venueName, setVenueName] = useState("");
+  const [streetAddress, setStreetAddress] = useState("");
 
-  // ── Wizard step ──
   const [currentStep, setCurrentStep] = useState(0);
-  const [eventSequenceId] = useState(
-    () => editingEvent?.sequenceId ?? organizerEventsService.reserveNextSequenceId(),
+  const [eventSequenceId, setEventSequenceId] = useState(() =>
+    organizerEventsService.reserveNextSequenceId(),
   );
 
-  // ── Banner image ──
   const existingBannerImageUrl = useLocalImageUrl(editingEvent?.bannerImageKey);
-  const [bannerImageUrl, setBannerImageUrl] = useState(editingEvent?.bannerImageUrl ?? "");
+  const [bannerImageUrl, setBannerImageUrl] = useState("");
   const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
 
-  // ── Show times & tickets ──
-  const [showTimes, setShowTimes] = useState<ShowTime[]>(() =>
-    buildInitialShowTimes(editingEvent),
-  );
+  const [showTimes, setShowTimes] = useState<ShowTime[]>([]);
   const [ticketModalState, setTicketModalState] = useState<{
     showTimeId: number | null;
     ticket: TicketTypeData | null;
   }>({ showTimeId: null, ticket: null });
 
-  // ── Organizer info ──
-  const [organizerName, setOrganizerName] = useState(editingEvent?.organizerName ?? "");
-  const [organizerDescription, setOrganizerDescription] = useState(
-    editingEvent?.organizerDescription ?? "",
-  );
+  const [organizerName, setOrganizerName] = useState("");
+  const [organizerDescription, setOrganizerDescription] = useState("");
   const existingOrganizerLogoUrl = useLocalImageUrl(editingEvent?.organizerLogoKey);
-  const [organizerLogoUrl, setOrganizerLogoUrl] = useState(editingEvent?.organizerLogoUrl ?? "");
+  const [organizerLogoUrl, setOrganizerLogoUrl] = useState("");
   const [organizerLogoFile, setOrganizerLogoFile] = useState<File | null>(null);
 
-  // ── Event description ──
-  const [eventDescription, setEventDescription] = useState(editingEvent?.eventDescription ?? "");
+  const [eventDescription, setEventDescription] = useState("");
 
-  // ── Derived values ──
+  function hydrateFormFromEvent(event: StoredOrganizerEvent) {
+    setEventName(event.title ?? "");
+    setEventLocationMode(event.locationMode ?? "offline");
+    setProvinceCode(event.provinceCode ?? "");
+    setWardCode(event.wardCode ?? "");
+    setProvinceSearch("");
+    setWardSearch("");
+    setVenueName(event.venueName ?? "");
+    setStreetAddress(event.streetAddress ?? "");
+    setBannerImageUrl(event.bannerImageUrl ?? "");
+    setBannerImageFile(null);
+    setShowTimes(buildInitialShowTimes(event));
+    setOrganizerName(event.organizerName ?? "");
+    setOrganizerDescription(event.organizerDescription ?? "");
+    setOrganizerLogoUrl(event.organizerLogoUrl ?? "");
+    setOrganizerLogoFile(null);
+    setEventDescription(event.eventDescription ?? "");
+    setEventSequenceId(event.sequenceId ?? organizerEventsService.reserveNextSequenceId());
+  }
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadEvent() {
+      if (!eventId) {
+        setEditingEvent(undefined);
+        setIsLoadingEditingEvent(false);
+        setLoadError(null);
+        return;
+      }
+
+      setIsLoadingEditingEvent(true);
+      setLoadError(null);
+
+      try {
+        const event = await organizerEventsService.findById(eventId);
+        if (!cancelled) {
+          setEditingEvent(event);
+          if (event) {
+            if (event.status === "published") {
+              setLoadError("Su kien da public nen khong the chinh sua.");
+            } else {
+              hydrateFormFromEvent(event);
+            }
+          } else {
+            setLoadError("Khong tim thay su kien.");
+          }
+        }
+      } catch (error) {
+        if (!cancelled) setLoadError(getErrorMessage(error));
+      } finally {
+        if (!cancelled) setIsLoadingEditingEvent(false);
+      }
+    }
+
+    loadEvent();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [eventId]);
+
   const stepLabels = useMemo(
     () => organizerCreateSteps.map((step) => t(`organizer.create.steps.${step}`)),
     [t],
@@ -110,14 +172,14 @@ export function useOrganizerCreateEvent() {
 
   const eventCategoryOptions: EventCategoryOption[] = useMemo(
     () => [
-      { value: "music", label: t("organizer.create.eventCategories.music", "Âm nhạc") },
-      { value: "conference", label: t("organizer.create.eventCategories.conference", "Hội thảo") },
-      { value: "workshop", label: t("organizer.create.eventCategories.workshop", "Workshop / Lớp học") },
-      { value: "sports", label: t("organizer.create.eventCategories.sports", "Thể thao") },
-      { value: "theater", label: t("organizer.create.eventCategories.theater", "Sân khấu / Biểu diễn") },
-      { value: "festival", label: t("organizer.create.eventCategories.festival", "Lễ hội") },
-      { value: "exhibition", label: t("organizer.create.eventCategories.exhibition", "Triển lãm") },
-      { value: "networking", label: t("organizer.create.eventCategories.networking", "Gặp gỡ / Networking") },
+      { value: "music", label: t("organizer.create.eventCategories.music", "Music") },
+      { value: "conference", label: t("organizer.create.eventCategories.conference", "Conference") },
+      { value: "workshop", label: t("organizer.create.eventCategories.workshop", "Workshop") },
+      { value: "sports", label: t("organizer.create.eventCategories.sports", "Sports") },
+      { value: "theater", label: t("organizer.create.eventCategories.theater", "Theater") },
+      { value: "festival", label: t("organizer.create.eventCategories.festival", "Festival") },
+      { value: "exhibition", label: t("organizer.create.eventCategories.exhibition", "Exhibition") },
+      { value: "networking", label: t("organizer.create.eventCategories.networking", "Networking") },
     ],
     [t],
   );
@@ -138,7 +200,6 @@ export function useOrganizerCreateEvent() {
     [wardOptions, wardSearch],
   );
 
-  // ── Handlers ──
   function handleEventCategoryChange(key: Key) {
     setEventCategory(key.toString() as EventCategory);
   }
@@ -190,42 +251,24 @@ export function useOrganizerCreateEvent() {
   }
 
   async function completeCreateEvent() {
+    if (isSubmitting) return;
+
+    setSubmitError(null);
+    setIsSubmitting(true);
+
     const firstShowTime = showTimes[0];
     const ticketTiers = getStoredTicketTiers();
-    const eventIdToStore = editingEvent?.id ?? `organizer-event-${eventSequenceId}`;
-    let bannerImageKey = editingEvent?.bannerImageKey;
+    const eventIdToStore = editingEvent?.id ?? String(eventSequenceId);
 
-    if (bannerImageFile) {
-      bannerImageKey = `${eventIdToStore}-banner`;
-      try {
-        await saveLocalImage(bannerImageKey, bannerImageFile);
-      } catch {
-        window.alert("Không lưu được ảnh sự kiện trên trình duyệt này. Vui lòng chọn ảnh khác hoặc thử lại.");
-        return;
-      }
-    }
-
-    let organizerLogoKey = editingEvent?.organizerLogoKey;
-    if (organizerLogoFile) {
-      organizerLogoKey = `${eventIdToStore}-organizer-logo`;
-      try {
-        await saveLocalImage(organizerLogoKey, organizerLogoFile);
-      } catch {
-        window.alert("Không lưu được logo ban tổ chức trên trình duyệt này. Vui lòng chọn ảnh khác hoặc thử lại.");
-        return;
-      }
-    }
-
-    const eventToStore = {
+    const eventToStore: StoredOrganizerEvent = {
       id: eventIdToStore,
       sequenceId: eventSequenceId,
-      bannerImageKey,
       bannerImageUrl: bannerImageFile ? undefined : editingEvent?.bannerImageUrl,
       showTimes,
       ticketTiers,
-      title: eventName.trim() || t("organizer.create.untitledEvent", "Sự kiện chưa đặt tên"),
-      status: t("organizer.events.tabs.pending", "Chờ duyệt"),
-      start: firstShowTime?.start || editingEvent?.start || new Date().toISOString(),
+      title: eventName.trim() || t("organizer.create.untitledEvent", "Untitled event"),
+      status: editingEvent?.status ?? "pending",
+      start: firstShowTime?.start || editingEvent?.start || "",
       end: firstShowTime?.end ?? editingEvent?.end,
       showtimeCount: showTimes.length || editingEvent?.showtimeCount || 0,
       ticketTypeCount: ticketTiers.length || editingEvent?.ticketTypeCount || 0,
@@ -239,22 +282,29 @@ export function useOrganizerCreateEvent() {
       streetAddress: streetAddress.trim(),
       organizerName: organizerName.trim(),
       organizerDescription: organizerDescription.trim(),
-      organizerLogoKey,
       organizerLogoUrl: organizerLogoFile ? undefined : editingEvent?.organizerLogoUrl,
       eventDescription: eventDescription.trim(),
     };
 
-    if (editingEvent) {
-      organizerEventsService.update(editingEvent.id, eventToStore);
-    } else {
-      organizerEventsService.create(eventToStore);
+    try {
+      if (editingEvent) {
+        await organizerEventsService.update(editingEvent.id, eventToStore, { bannerImageFile });
+      } else {
+        await organizerEventsService.create(eventToStore, { bannerImageFile });
+      }
+      navigate("/organizer/events");
+    } catch (error) {
+      const message = getErrorMessage(error);
+      setSubmitError(message);
+      window.alert(message);
+    } finally {
+      setIsSubmitting(false);
     }
-    navigate("/organizer/events");
   }
 
   function goToNextStep() {
     if (currentStep === organizerCreateSteps.length - 1) {
-      completeCreateEvent();
+      void completeCreateEvent();
       return;
     }
     setCurrentStep((step) => Math.min(step + 1, organizerCreateSteps.length - 1));
@@ -264,13 +314,12 @@ export function useOrganizerCreateEvent() {
     setCurrentStep((step) => (index <= Math.max(step, organizerCreateSteps.length - 1) ? index : step));
   }
 
-  // ── Show time handlers ──
   function handleAddShowTime() {
     setShowTimes((current) => [
       ...current,
       {
         id: Date.now(),
-        name: `Suất diễn ${current.length + 1}`,
+        name: `Suat dien ${current.length + 1}`,
         start: "",
         end: "",
         tickets: [],
@@ -290,7 +339,6 @@ export function useOrganizerCreateEvent() {
     );
   }
 
-  // ── Ticket modal handlers ──
   function handleOpenCreateTicket(showTimeId: number) {
     setTicketModalState({ showTimeId, ticket: null });
   }
@@ -349,12 +397,10 @@ export function useOrganizerCreateEvent() {
   }
 
   return {
-    // Wizard
     currentStep,
     stepLabels,
     goToNextStep,
     handleStepSelect,
-    // Event info
     eventName,
     eventCategory,
     eventCategoryOptions,
@@ -363,7 +409,6 @@ export function useOrganizerCreateEvent() {
     eventLocationMode,
     venueName,
     streetAddress,
-    // Location
     provinceCode,
     provinceSearch,
     selectedProvince,
@@ -382,7 +427,6 @@ export function useOrganizerCreateEvent() {
     onWardSelect: handleWardChange,
     onVenueNameChange: setVenueName,
     onStreetAddressChange: setStreetAddress,
-    // Organizer info
     organizerName,
     organizerDescription,
     organizerLogoUrl: organizerLogoUrl || existingOrganizerLogoUrl,
@@ -392,24 +436,23 @@ export function useOrganizerCreateEvent() {
       setOrganizerLogoUrl(url);
       setOrganizerLogoFile(file);
     },
-    // Event description
     eventDescription,
     onEventDescriptionChange: setEventDescription,
-    // Show times
     showTimes,
     onAddShowTime: handleAddShowTime,
     onRemoveShowTime: handleRemoveShowTime,
     onChangeShowTime: handleChangeShowTime,
-    // Tickets
     onCreateTicketType: handleOpenCreateTicket,
     onEditTicketType: handleOpenEditTicket,
     onRemoveTicketType: handleRemoveTicket,
     onImportTicketsFromShowTime: handleImportTicketsFromShowTime,
-    // Ticket modal
     ticketModalState,
     onCloseTicketModal: handleCloseTicketModal,
     onSaveTicket: handleSaveTicket,
-    // Misc
     eventSequenceId,
+    isLoadingEditingEvent,
+    loadError,
+    submitError,
+    isSubmitting,
   };
 }

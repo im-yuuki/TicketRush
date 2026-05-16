@@ -8,7 +8,7 @@ import {
   Clock,
 } from "lucide-react";
 import { Button, Card } from "@heroui/react";
-import { getEvent } from "../data/events";
+import { getEvent, type EventData } from "../data/events";
 import { Logo } from "../components/Branding";
 import { StepIndicator } from "../components/booking/StepIndicator";
 import { EventMarquee } from "../components/booking/EventMarquee";
@@ -36,7 +36,15 @@ export default function Checkout() {
   const phone = booking?.phone || "";
   const totalAmountFromContext = booking?.totalAmount || 0;
 
-  const event = useMemo(() => getEvent(eventId), [eventId]);
+  const [event, setEvent] = useState<EventData | null>(null);
+
+  useEffect(() => {
+    async function loadEvent() {
+      const loadedEvent = await getEvent(eventId);
+      setEvent(loadedEvent);
+    }
+    loadEvent();
+  }, [eventId]);
 
   const [isConfirming, setIsConfirming] = useState(false);
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);

@@ -45,14 +45,13 @@ export default function Register() {
 		setIsSubmitting(true);
 
 		try {
-			await registerUser({
-				name: displayName,
-				email,
-				password,
-				birthDate: dob,
-				gender:gender ?? "other",
-				country: "vn",
-			});
+		await registerUser({
+			name: displayName,
+			email,
+			password,
+			birthDate: dob,
+			gender:gender ?? "other",
+		});
 
 			navigate(`/otp`);
 		} catch (error) {
