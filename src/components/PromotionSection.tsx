@@ -2,86 +2,94 @@ import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import { Button } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
-
-const promotions = [
-  {
-    id: 1,
-    title: '2026 KIMSUNGKYU LIVE',
-    image: 'https://placehold.co/1280x720/2a2a2a/ffffff?text=KIMSUNGKYU+LIVE',
-  },
-  {
-    id: 2,
-    title: 'OCB 30',
-    image: 'https://placehold.co/1280x720/a3e635/000000?text=OCB+30',
-  },
-  {
-    id: 3,
-    title: 'SS LABEL OFFICIAL MEMBERSHIP',
-    image: 'https://placehold.co/1280x720/0ea5e9/ffffff?text=SS+LABEL',
-  },
-  {
-    id: 4,
-    title: 'Placeholder 4',
-    image: 'https://placehold.co/1280x720/f43f5e/ffffff?text=Placeholder+4',
-  },
-];
+import { getPromotedEvents } from '../api/feeds';
 
 export default function PromotionSection() {
   const { t } = useTranslation();
-  const N = promotions.length;
-  // Duplicate array 3 times to create an infinite scroll illusion
-  const extendedPromotions = [...promotions, ...promotions, ...promotions];
+  const [promotions, setPromotions] = useState<{ id: number; title: string; image: string }[]>([]);
 
-  // Start at the middle set
-  const [currentIndex, setCurrentIndex] = useState(N);
+  useEffect(() => {
+    let isMounted = true;
+
+    async function load() {
+      try {
+        const data = await getPromotedEvents();
+        if (!isMounted) return;
+        setPromotions(
+          data.map((item) => ({
+            id: item.id,
+            title: item.name,
+            image: item.bannerUrl,
+          })),
+        );
+      } catch {
+        if (isMounted) setPromotions([]);
+      }
+    }
+
+    load();
+    return () => { isMounted = false; };
+  }, []);
+
+  const N = promotions.length >= 2 ? promotions.length : 0;
+  const extendedPromotions = N > 0 ? [...promotions, ...promotions, ...promotions] : [];
+
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [hasTransition, setHasTransition] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
+  useEffect(() => {
+    if (N === 0) return;
+    setCurrentIndex(N);
+  }, [N]);
+
   // Auto slide
   useEffect(() => {
-    if (isHovered) return;
+    if (isHovered || N === 0) return;
     const interval = setInterval(() => {
       handleNext();
     }, 4000);
     return () => clearInterval(interval);
-  }, [currentIndex, isHovered, isAnimating]);
+  }, [currentIndex, isHovered, isAnimating, N]);
 
   // Handle seamless loops
   useEffect(() => {
-    if (!isAnimating) return;
+    if (!isAnimating || N === 0) return;
 
     const timeout = setTimeout(() => {
       setIsAnimating(false);
-      
-      // If we've reached the start of the 3rd set, silently jump back to the start of the 2nd set
+
       if (currentIndex >= 2 * N) {
         setHasTransition(false);
         setCurrentIndex(N);
-      } 
-      // If we've reached the end of the 1st set, silently jump forward to the end of the 2nd set
+      }
       else if (currentIndex <= N - 1) {
         setHasTransition(false);
         setCurrentIndex(2 * N - 1);
       }
-    }, 500); // Matches CSS transition duration
+    }, 500);
 
     return () => clearTimeout(timeout);
   }, [currentIndex, isAnimating, N]);
 
   const handleNext = () => {
-    if (isAnimating) return;
+    if (isAnimating || N === 0) return;
     setHasTransition(true);
     setIsAnimating(true);
     setCurrentIndex((prev) => prev + 1);
   };
 
   const handlePrev = () => {
-    if (isAnimating) return;
+    if (isAnimating || N === 0) return;
     setHasTransition(true);
     setIsAnimating(true);
     setCurrentIndex((prev) => prev - 1);
   };
+
+  if (N === 0) {
+    return null;
+  }
 
   return (
     <section className="container mx-auto px-10 pt-10">
@@ -149,7 +157,6 @@ export default function PromotionSection() {
                 if (isAnimating || activeDotIndex === idx) return;
                 setHasTransition(true);
                 setIsAnimating(true);
-                // Move to the exact selected slide in the middle set
                 setCurrentIndex(N + idx);
               }}
               className={`w-2 h-2 rounded-full transition-colors ${
