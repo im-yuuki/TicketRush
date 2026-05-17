@@ -47,6 +47,12 @@ export interface ActiveHoldView {
   totalAmount: number;
 }
 
+export interface SeatStatusCollectionView {
+  eventId: number;
+  seatZones: ServerSeatZoneView[];
+  myActiveHold: ActiveHoldView | null;
+}
+
 export interface PurchaseEventView {
   eventId: number;
   eventName: string;

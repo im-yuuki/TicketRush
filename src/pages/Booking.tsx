@@ -10,7 +10,7 @@ import { useEventData } from "../hooks/useEventData";
 import { formatPrice, formatDateTime } from "../utils/format";
 import { useBooking } from "../contexts/BookingContext";
 import { useAuth } from "../contexts/AuthContext";
-import { getPurchaseEvent, getSeatStatuses, createHold, addSeatToHold } from "../api/purchaseApi";
+import { getPurchaseEvent, getSeatStatuses, createHold, addSeatToHold, getHold, releaseHold } from "../api/purchaseApi";
 import { buildLayoutFromZone, buildSeatIdMap, getOccupiedSeatIds } from "../utils/seatLayoutBuilder";
 import type { PurchaseEventView, ServerSeatZoneView } from "../types/seat";
 import type { VenueLayout } from "../components/SeatMap";
@@ -31,7 +31,7 @@ export default function Booking() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
-  const { setSeatSelection, setSessionId, setExpiresAt } = useBooking();
+  const { booking, setSeatSelection, setSessionId, setExpiresAt } = useBooking();
   const { event, loading: eventLoading } = useEventData(eventId);
 
   // ── Auth guard ──
@@ -63,6 +63,14 @@ export default function Booking() {
       if (cancelled) return;
       setPurchaseData(purchase);
       setSeatZonesWithStatus(seatData?.seatZones ?? purchase.seatZones);
+
+      // Restore existing hold if available (server knows about active holds)
+      const existingHold = seatData?.myActiveHold ?? purchase.myActiveHold;
+      if (existingHold && new Date(existingHold.expiresAt) > new Date()) {
+        setSessionId(existingHold.holdId);
+        setExpiresAt(existingHold.expiresAt);
+      }
+
       setPurchaseLoading(false);
     }).catch((err) => {
       if (cancelled) return;
@@ -71,7 +79,7 @@ export default function Booking() {
     });
 
     return () => { cancelled = true; };
-  }, [numericEventId, isAuthenticated]);
+  }, [numericEventId, isAuthenticated, setSessionId, setExpiresAt]);
 
   // ── Build tiers from ticketClasses ──
   const tiers = useMemo<TierInfo[]>(() => {
@@ -160,24 +168,69 @@ export default function Booking() {
     setSelectedSeats([]);
   }, []);
 
-  // Continue to booking details — create hold + add seats via API
+  // Continue to booking details — reuse or create hold + add seats via API
   const handleContinue = useCallback(async () => {
     if (selectedSeats.length === 0 || !event || !selectedTier) return;
     setIsSubmitting(true);
 
     try {
-      // 1. Create a hold session
-      const hold = await createHold(numericEventId);
+      const selectedServerSeatIds = selectedSeats
+        .map(id => seatIdMap[id])
+        .filter((id): id is number => id !== undefined);
 
-      // 2. Add each selected seat to the hold
-      for (const uiSeatId of selectedSeats) {
-        const serverSeatId = seatIdMap[uiSeatId];
-        if (serverSeatId !== undefined) {
-          await addSeatToHold(hold.holdId, serverSeatId, selectedTier.ticketClassId);
+      let holdId: string;
+      let holdExpiresAt: string;
+      let holdReused = false;
+
+      // Check for reusable existing hold (not expired)
+      const existingHoldId = booking?.sessionId;
+      const existingExpiresAt = booking?.expiresAt;
+
+      if (existingHoldId && existingExpiresAt && new Date(existingExpiresAt) > new Date()) {
+        try {
+          const currentHold = await getHold(existingHoldId);
+          const heldSeatIds = currentHold.items.map(i => i.seatId).sort();
+          const selectedSorted = [...selectedServerSeatIds].sort();
+
+          const sameSeats = heldSeatIds.length === selectedSorted.length &&
+            heldSeatIds.every((id, i) => id === selectedSorted[i]);
+
+          if (sameSeats) {
+            // Same seats → reuse hold as-is
+            holdId = currentHold.holdId;
+            holdExpiresAt = currentHold.expiresAt;
+            holdReused = true;
+          } else {
+            // Different seats → release old, create new
+            await releaseHold(existingHoldId).catch(() => {});
+            const hold = await createHold(numericEventId);
+            holdId = hold.holdId;
+            holdExpiresAt = hold.expiresAt;
+          }
+        } catch {
+          // Hold expired or invalid → create new
+          const hold = await createHold(numericEventId);
+          holdId = hold.holdId;
+          holdExpiresAt = hold.expiresAt;
+        }
+      } else {
+        // No existing hold → create new
+        const hold = await createHold(numericEventId);
+        holdId = hold.holdId;
+        holdExpiresAt = hold.expiresAt;
+      }
+
+      // Add seats to hold (skip if reusing with same seats)
+      if (!holdReused) {
+        for (const uiSeatId of selectedSeats) {
+          const serverSeatId = seatIdMap[uiSeatId];
+          if (serverSeatId !== undefined) {
+            await addSeatToHold(holdId, serverSeatId, selectedTier.ticketClassId);
+          }
         }
       }
 
-      // 3. Save to booking context with server expiresAt
+      // Save to booking context (setSeatSelection preserves existing sessionId/expiresAt)
       setSeatSelection(
         event.id,
         selectedSeats,
@@ -185,10 +238,10 @@ export default function Booking() {
         selectedTier.name,
         selectedTier.price,
       );
-      setSessionId(hold.holdId);
-      setExpiresAt(hold.expiresAt);
+      // Explicitly set hold state for new holds
+      setSessionId(holdId);
+      setExpiresAt(holdExpiresAt);
 
-      // 4. Navigate to booking details
       navigate(`/events/${event.id}/booking-details`);
     } catch (err) {
       console.error("Failed to create hold:", err);
@@ -196,7 +249,7 @@ export default function Booking() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [selectedSeats, event, selectedTier, numericEventId, seatIdMap, setSeatSelection, setSessionId, setExpiresAt, navigate]);
+  }, [selectedSeats, event, selectedTier, numericEventId, seatIdMap, booking, setSeatSelection, setSessionId, setExpiresAt, navigate]);
 
   // ── Loading state ──
   const isLoading = eventLoading || purchaseLoading;

@@ -69,21 +69,20 @@ export function BookingProvider({ children }: { children: ReactNode }) {
 
   const setSeatSelection = useCallback(
     (eventId: string, selectedSeats: string[], tierId: string, tierName: string, tierPrice: number) => {
-      update(() => ({
+      update((prev) => ({
         eventId,
         selectedSeats,
         selectedTierId: tierId,
         selectedTierName: tierName,
         selectedTierPrice: tierPrice,
-        fullName: "",
-        email: "",
-        phone: "",
-        idDocument: "",
-        paymentMethod: "bank_transfer",
+        fullName: prev?.fullName ?? "",
+        email: prev?.email ?? "",
+        phone: prev?.phone ?? "",
+        idDocument: prev?.idDocument ?? "",
+        paymentMethod: prev?.paymentMethod ?? "bank_transfer",
         totalAmount: 0,
-        sessionId: undefined,
-        // Always reset timer when seats are (re)selected
-        expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+        sessionId: prev?.sessionId,
+        expiresAt: prev?.expiresAt,
       }));
     },
     [update],
