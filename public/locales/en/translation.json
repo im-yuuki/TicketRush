@@ -272,6 +272,12 @@
     "followUsCapitalized": "FOLLOW US",
     "serverStatus": "Server status"
   },
+  "recommend": {
+    "title": "Recommended For You",
+    "from": "From",
+    "prev": "Scroll left",
+    "next": "Scroll right"
+  },
   "trending": {
     "title": "Trending Events",
     "from": "From",

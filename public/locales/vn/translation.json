@@ -272,6 +272,12 @@
     "followUsCapitalized": "THEO DÕI CHÚNG TÔI",
     "serverStatus": "Trạng thái máy chủ"
   },
+  "recommend": {
+    "title": "Đề xuất cho bạn",
+    "from": "Chỉ từ",
+    "prev": "Cuộn trái",
+    "next": "Cuộn phải"
+  },
   "trending": {
     "title": "Sự kiện xu hướng",
     "from": "Chỉ từ",
