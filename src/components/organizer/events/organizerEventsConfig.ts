@@ -7,12 +7,11 @@ import {
   UsersRound,
 } from "lucide-react";
 
-export type OrganizerEventTab = "upcoming" | "past" | "pending" | "draft";
+export type OrganizerEventTab = "upcoming" | "past" | "draft";
 
 export const organizerEventTabs: Array<{ key: OrganizerEventTab; labelKey: string }> = [
   { key: "upcoming", labelKey: "upcoming" },
   { key: "past", labelKey: "past" },
-  { key: "pending", labelKey: "pending" },
   { key: "draft", labelKey: "draft" },
 ];
 

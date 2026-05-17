@@ -13,7 +13,7 @@ import {
 
 export default function OrganizerEvents() {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<OrganizerEventTab>("pending");
+  const [activeTab, setActiveTab] = useState<OrganizerEventTab>("draft");
   const [searchQuery, setSearchQuery] = useState("");
   const [createdEvents, setCreatedEvents] = useState<StoredOrganizerEvent[]>(() =>
     organizerEventsService.list(),
@@ -34,11 +34,16 @@ export default function OrganizerEvents() {
   }, []);
 
   const visibleEvents = useMemo(() => {
-    if (activeTab !== "pending") return [];
-
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return createdEvents;
-    return createdEvents.filter((event) => event.title.toLowerCase().includes(query));
+    const filtered = query
+      ? createdEvents.filter((event) => event.title.toLowerCase().includes(query))
+      : createdEvents;
+
+    if (activeTab === "draft") {
+      return filtered.filter((event) => !event.published);
+    }
+    // upcoming / past — placeholder logic, show all for now
+    return filtered;
   }, [activeTab, createdEvents, searchQuery]);
 
   return (
@@ -50,15 +55,6 @@ export default function OrganizerEvents() {
           onSearchQueryChange={setSearchQuery}
           onTabChange={setActiveTab}
         />
-
-        {activeTab === "pending" && (
-          <div className="mt-3 rounded-lg bg-warning px-4 py-3 text-center text-sm font-bold text-warning-foreground">
-            {t(
-              "organizer.events.pendingNotice",
-              "Lưu ý: Sự kiện đang chờ duyệt. Để đảm bảo tính bảo mật cho sự kiện của bạn, quyền truy cập vào trang chỉ dành cho chủ sở hữu và quản trị viên được ủy quyền",
-            )}
-          </div>
-        )}
 
         <div className="mt-5">
           {visibleEvents.length > 0 ? (

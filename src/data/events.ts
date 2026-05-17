@@ -5,6 +5,8 @@ import {
   organizerEventsService,
   type StoredOrganizerEvent,
 } from "../api/organizerEventsService";
+import { getEventInfo } from "../api/public";
+import type { PublicEventInfo } from "../types/requestDto";
 import type { ShowTime } from "../types/organizerCreate";
 
 export type DescriptionParagraph = {
@@ -172,10 +174,48 @@ export function getEvent(id: string | undefined): EventData | null {
     return mapStoredOrganizerEventToEventData(storedOrganizerEvent);
   }
 
+  // Numeric IDs need async fetch — return null here, caller should use fetchEventById
   if (/^\d+$/.test(id)) return null;
 
   // Dev fallback: unknown ids show the "test" event. Remove when wiring real data.
   return MOCK_EVENTS[id] ?? MOCK_EVENTS.test ?? null;
+}
+
+/** Map backend PublicEventInfo to frontend EventData */
+function mapPublicEventInfoToEventData(info: PublicEventInfo): EventData {
+  const descriptionText = info.description?.trim();
+  const description: DescriptionParagraph[] = descriptionText
+    ? descriptionText.split("\n").filter(Boolean).map((line) => ({ text: line }))
+    : [{ text: "Chưa có mô tả cho sự kiện này." }];
+
+  return {
+    id: String(info.id),
+    title: info.name,
+    category: "event",
+    date: info.dateTime,
+    location: info.venue,
+    venue: info.venue,
+    address: info.address || undefined,
+    price: 0,
+    image: info.bannerUrl || "",
+    description,
+    ticketTiers: [],
+    organizer: info.organizationName || "",
+    organizerDescription: "",
+  };
+}
+
+/** Fetch event from server API by numeric ID */
+export async function fetchEventById(id: string | number): Promise<EventData | null> {
+  const numericId = typeof id === "string" ? parseInt(id, 10) : id;
+  if (!Number.isFinite(numericId) || numericId <= 0) return null;
+
+  try {
+    const info = await getEventInfo(numericId);
+    return mapPublicEventInfoToEventData(info);
+  } catch {
+    return null;
+  }
 }
 
 /** Get all events (useful for listings, sitemap, etc). */

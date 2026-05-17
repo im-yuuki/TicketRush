@@ -16,6 +16,7 @@ import {
   reserveNextOrganizerEventSequenceId,
   getStoredOrganizerEventPreviewId,
   ORGANIZER_EVENTS_CHANGE_EVENT,
+  ORGANIZER_EVENTS_STORAGE_KEY,
   type StoredOrganizerEvent,
   type StoredOrganizerTicketTier,
 } from "../utils/organizer/organizerEventsStorage";
@@ -26,6 +27,7 @@ import {
   createSeatZone,
   createTicketClass,
   uploadEventBanner,
+  publishEvent,
 } from "./organization";
 
 // ── Re-export types so callers import from service only ───
@@ -129,15 +131,14 @@ export interface CreateEventOnServerResult {
 }
 
 /**
- * Phase 1: Event creation via API.
+ * Event creation via API.
  * 1. POST /organization/events → eventId
  * 2. PATCH /organization/events/{eventId} → description
  * 3. PUT  /organization/events/{eventId}/banner (if banner)
  * 4. POST /organization/events/{eventId}/sales-rounds (×N)
- * 5. Save server IDs to localStorage for Phase 2
- * 6. Save event to localStorage for UI caching
+ * 5. Save server IDs + event to localStorage
  *
- * Seat zones + ticket classes are created in Phase 2
+ * Seat zones + ticket classes are created separately
  * from the seat config page.
  */
 export async function createEventOnServer(
@@ -231,7 +232,7 @@ export async function createEventOnServer(
     salesRoundIds.push(roundResult.resourceId);
   }
 
-  // ── Step 4: Save server IDs for Phase 2 (seat config page) ──
+  // ── Step 4: Save server IDs for seat config page ──
   const eventKey = String(event.sequenceId ?? eventId);
   saveServerIds(eventKey, {
     eventId,
@@ -313,6 +314,44 @@ export async function createSeatZonesOnServer(
   if (serverIds) {
     saveServerIds(eventKey, { ...serverIds, seatZoneIds });
   }
+
+  return { success: true };
+}
+
+/**
+ * Publish event from organizer card.
+ * Calls POST /organization/events/{eventId}/publish
+ * and updates localStorage.
+ */
+export async function publishOrganizerEvent(
+  eventLocalId: string,
+): Promise<{ success: boolean; message?: string }> {
+  // Get server eventId
+  const serverIds = getServerIds(eventLocalId) ?? getServerIds(String(parseInt(eventLocalId, 10)));
+  const numericEventId = serverIds?.eventId ?? parseInt(eventLocalId, 10);
+
+  if (!numericEventId || numericEventId <= 0) {
+    return { success: false, message: "Không tìm thấy sự kiện trên server" };
+  }
+
+  // Guard: must have seat zones configured
+  if (!serverIds?.seatZoneIds || serverIds.seatZoneIds.length === 0) {
+    return { success: false, message: "Cần cấu hình sơ đồ ghế trước khi publish" };
+  }
+
+  const result = await publishEvent(numericEventId);
+
+  if (!result.success) {
+    return { success: false, message: result.message };
+  }
+
+  // Update localStorage — mark as published
+  const events = readStoredOrganizerEvents();
+  const updated = events.map((e) =>
+    e.id === eventLocalId ? { ...e, published: true } : e,
+  );
+  window.localStorage.setItem(ORGANIZER_EVENTS_STORAGE_KEY, JSON.stringify(updated));
+  window.dispatchEvent(new Event(ORGANIZER_EVENTS_CHANGE_EVENT));
 
   return { success: true };
 }

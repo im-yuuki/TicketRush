@@ -13,6 +13,7 @@ export type StoredOrganizerEvent = {
   ticketTiers?: StoredOrganizerTicketTier[];
   title: string;
   status: string;
+  published?: boolean;
   start: string;
   end?: string;
   showtimeCount: number;

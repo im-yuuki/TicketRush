@@ -1,12 +1,14 @@
+import { useState } from "react";
 import { Button } from "@heroui/react";
 import { motion } from "framer-motion";
-import { CalendarDays, MapPin } from "lucide-react";
+import { CalendarDays, MapPin, Upload } from "lucide-react";
 import type { KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import {
   getStoredOrganizerEventPreviewId,
   organizerEventsService,
+  publishOrganizerEvent,
   type StoredOrganizerEvent,
 } from "../../../api/organizerEventsService";
 import { useLocalImageUrl } from "../../../utils/useLocalImageUrl";
@@ -40,6 +42,7 @@ export default function OrganizerEventCard({ event }: { event: StoredOrganizerEv
   const previewPath = `/-${getStoredOrganizerEventPreviewId(event)}`;
   const editPath = `/organizer/events/${event.id}/edit`;
   const seatsPath = `/organizer/events/${event.id}/seats`;
+  const [isPublishing, setIsPublishing] = useState(false);
 
   function openEventPreview() {
     navigate(previewPath);
@@ -47,6 +50,20 @@ export default function OrganizerEventCard({ event }: { event: StoredOrganizerEv
 
   function openEventEditor() {
     navigate(editPath);
+  }
+
+  async function handlePublish(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (isPublishing) return;
+    setIsPublishing(true);
+    try {
+      const result = await publishOrganizerEvent(event.id);
+      if (!result.success) {
+        window.alert(result.message ?? "Không thể publish sự kiện");
+      }
+    } finally {
+      setIsPublishing(false);
+    }
   }
 
   function handleCardKeyDown(event: KeyboardEvent<HTMLElement>) {
@@ -74,9 +91,19 @@ export default function OrganizerEventCard({ event }: { event: StoredOrganizerEv
             <h2 className="min-w-0 flex-1 truncate text-base font-bold">
               {event.title}
             </h2>
-            <span className="rounded-full bg-warning px-2.5 py-1 text-xs font-bold text-warning-foreground">
-              {event.status}
-            </span>
+            {!event.published && (
+              <Button
+                size="sm"
+                className="bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-xs"
+                onClick={handlePublish}
+                isDisabled={isPublishing}
+              >
+                <Upload className="size-3.5 mr-1" />
+                {isPublishing
+                  ? t("organizer.events.publishing", "Đang publish...")
+                  : t("organizer.events.publish", "Publish")}
+              </Button>
+            )}
           </div>
           <div className="space-y-3 text-sm">
             <p className="flex items-center gap-3 font-semibold text-accent">
