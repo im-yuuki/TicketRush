@@ -273,7 +273,9 @@
     "schedule": "Schedule",
     "ticketInfo": "Ticket info",
     "notFound": "Event not found.",
-    "seatSelection": "Select Seats"
+    "seatSelection": "Select Seats",
+    "follow": "Follow",
+    "following": "Following"
   },
   "seatMap": {
     "stage": "🎤 Stage",

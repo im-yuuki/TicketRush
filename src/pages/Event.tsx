@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { Button, Card } from "@heroui/react";
-import { CalendarDays, ChevronDown } from "lucide-react";
+import { CalendarDays, ChevronDown, Plus } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import ExpandableCard from "../components/ExpandableCard";
 import { useEvent } from "../layouts/eventContext";
 import { useLocalImageUrl } from "../utils/useLocalImageUrl";
+import { getEventInfo, getOrganizationInfo } from "../api/public";
+import { followOrganization } from "../api/user";
 import type { ShowTime } from "../types/organizerCreate";
 
 function formatPrice(value: number, lang: string) {
@@ -205,16 +207,65 @@ export default function Event() {
   const event = useEvent();
   const organizerLogoFromStorage = useLocalImageUrl(event.organizerLogoKey);
   const organizerLogoUrl = event.organizerLogo || organizerLogoFromStorage;
+  const [organizerDescription, setOrganizerDescription] = useState(event.organizerDescription);
+  const [organizerId, setOrganizerId] = useState<number | null>(null);
+  const [isFollowLoading, setIsFollowLoading] = useState(false);
+  const [isFollowed, setIsFollowed] = useState(false);
 
   const aboutLabel = t("event.about", "Giới thiệu");
   const scheduleLabel = t("event.schedule", "Lịch diễn");
   const organizerLabel = t("event.organizer", "Ban tổ chức");
   const ticketInfoLabel = t("event.ticketInfo", "Thông tin vé");
   const buyNowLabel = t("event.buyNow", "Mua vé ngay");
+  const followLabel = isFollowed
+    ? t("event.following", "Following")
+    : t("event.follow", "Follow");
 
   const handleGoToBooking = (showTimeId?: number) => {
     const query = showTimeId ? `?showTimeId=${showTimeId}` : "";
     navigate(`/events/${event.id}/booking${query}`);
+  };
+
+  useEffect(() => {
+    setOrganizerDescription(event.organizerDescription);
+  }, [event.organizerDescription]);
+
+  useEffect(() => {
+    const numericEventId = Number(event.id);
+    if (!Number.isFinite(numericEventId) || numericEventId <= 0) return;
+
+    let isActive = true;
+
+    (async () => {
+      try {
+        const info = await getEventInfo(numericEventId);
+        if (!isActive) return;
+        setOrganizerId(info.organizationId ?? null);
+
+        if (info.organizationId) {
+          const orgInfo = await getOrganizationInfo(info.organizationId);
+          if (!isActive) return;
+          setOrganizerDescription(orgInfo.description || event.organizerDescription);
+        }
+      } catch {
+        if (isActive) setOrganizerDescription(event.organizerDescription);
+      }
+    })();
+
+    return () => {
+      isActive = false;
+    };
+  }, [event.id, event.organizerDescription]);
+
+  const handleFollow = async () => {
+    if (!organizerId || isFollowLoading || isFollowed) return;
+    setIsFollowLoading(true);
+    try {
+      await followOrganization(organizerId);
+      setIsFollowed(true);
+    } finally {
+      setIsFollowLoading(false);
+    }
   };
 
   return (
@@ -274,8 +325,21 @@ export default function Event() {
                 {event.organizer}
               </p>
               <p className="text-sm leading-relaxed text-muted">
-                {event.organizerDescription}
+                {organizerDescription}
               </p>
+            </div>
+            <div className="ml-auto flex items-start">
+              <Button
+                type="button"
+                variant="tertiary"
+                className="border border-border"
+                onClick={handleFollow}
+                isLoading={isFollowLoading}
+                isDisabled={!organizerId || isFollowed}
+              >
+                <Plus className="size-4" />
+                {followLabel}
+              </Button>
             </div>
           </div>
         </Card.Content>

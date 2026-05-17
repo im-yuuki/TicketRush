@@ -273,7 +273,9 @@
     "schedule": "Lịch diễn",
     "ticketInfo": "Thông tin vé",
     "notFound": "Không tìm thấy sự kiện này.",
-    "seatSelection": "Chọn chỗ ngồi"
+    "seatSelection": "Chọn chỗ ngồi",
+    "follow": "Theo dõi",
+    "following": "Đang theo dõi"
   },
   "seatMap": {
     "stage": "🎤 Sân khấu",
