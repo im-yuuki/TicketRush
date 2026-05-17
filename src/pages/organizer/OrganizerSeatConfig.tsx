@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, Check, Minus, Plus, Save } from "lucide-react";
 import { Button } from "@heroui/react";
-import { organizerEventsService, getStoredOrganizerEventPreviewId } from "../../api/organizerEventsService";
+import { organizerEventsService, getStoredOrganizerEventPreviewId, getServerIds, createSeatZonesOnServer } from "../../api/organizerEventsService";
 import { getSeatConfig, saveSeatConfig } from "../../utils/organizer/organizerSeatLayoutStorage";
 import type { ShowTime, TicketTypeData } from "../../types/organizerCreate";
 import type { TierDimensions } from "../../types/seat";
@@ -49,6 +49,7 @@ export default function OrganizerSeatConfig() {
 
   const [tierDims, setTierDims] = useState<TierDimensions[]>([]);
   const [saved, setSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const prevConfigKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -90,12 +91,42 @@ export default function OrganizerSeatConfig() {
     [tierDims],
   );
 
-  const handleSave = useCallback(() => {
-    if (!storageKey) return;
-    saveSeatConfig(storageKey, tierDims);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  }, [storageKey, tierDims]);
+  const handleSave = useCallback(async () => {
+    if (!storageKey || isSaving) return;
+    setIsSaving(true);
+
+    try {
+      // Save locally first
+      saveSeatConfig(storageKey, tierDims);
+
+      // Send to server
+      const serverIds = getServerIds(storageKey);
+      const numericEventId = serverIds?.eventId ?? parseInt(eventId ?? "0", 10);
+
+      if (numericEventId > 0) {
+        const tiersForServer = tierDims.map((dim) => {
+          const tier = tiers.find((t) => t.id === dim.tierId);
+          return {
+            name: dim.name,
+            rows: dim.rows,
+            cols: dim.cols,
+            price: tier?.price,
+          };
+        });
+
+        const result = await createSeatZonesOnServer(numericEventId, storageKey, tiersForServer);
+
+        if (!result.success) {
+          window.alert(`Không thể lưu cấu hình ghế lên server: ${result.message ?? "Lỗi không xác định"}`);
+        }
+      }
+
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [storageKey, tierDims, tiers, eventId, isSaving]);
 
   if (!event) {
     return (
@@ -133,13 +164,17 @@ export default function OrganizerSeatConfig() {
                 saved ? "bg-green-500 text-white" : "bg-(--accent) text-black hover:bg-(--accent)/90"
               }`}
               onClick={handleSave}
-              isDisabled={tierDims.length === 0}
+              isDisabled={tierDims.length === 0 || isSaving}
             >
               <AnimatePresence mode="wait">
                 {saved ? (
                   <motion.span key="saved" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="flex items-center gap-1">
                     <Check className="size-4" />
                     {t("common.saved", "Đã lưu")}
+                  </motion.span>
+                ) : isSaving ? (
+                  <motion.span key="saving" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="flex items-center gap-1">
+                    {t("common.saving", "Đang lưu...")}
                   </motion.span>
                 ) : (
                   <motion.span key="save" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="flex items-center gap-1">

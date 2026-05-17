@@ -2,8 +2,8 @@
  * Organizer Events Service
  *
  * Abstraction layer between components and data source.
- * Currently backed by localStorage. Swap implementation to API
- * when backend is ready — callers stay unchanged.
+ * Read operations use localStorage (cached from server).
+ * Create/update/delete operations call the backend API.
  */
 
 import {
@@ -19,6 +19,14 @@ import {
   type StoredOrganizerEvent,
   type StoredOrganizerTicketTier,
 } from "../utils/organizer/organizerEventsStorage";
+import {
+  createEvent,
+  updateEvent,
+  addSalesRound,
+  createSeatZone,
+  createTicketClass,
+  uploadEventBanner,
+} from "./organization";
 
 // ── Re-export types so callers import from service only ───
 
@@ -26,8 +34,6 @@ export type { StoredOrganizerEvent, StoredOrganizerTicketTier };
 export { getStoredOrganizerEventPreviewId, ORGANIZER_EVENTS_CHANGE_EVENT };
 
 // ── Service Interface ────────────────────────────────────
-// Define shape here. When switching to API, re-implement
-// these functions with fetch calls — signature stays the same.
 
 export interface OrganizerEventsService {
   list(): StoredOrganizerEvent[];
@@ -53,35 +59,246 @@ function createLocalService(): OrganizerEventsService {
   };
 }
 
-// ── Future: API Implementation ───────────────────────────
-// Uncomment and implement when backend is ready.
-//
-// import {
-//   fetchOrganizerEvents,
-//   fetchOrganizerEvent,
-//   createOrganizerEventAPI,
-//   updateOrganizerEventAPI,
-//   deleteOrganizerEventAPI,
-// } from "../api/organizerEvents";
-//
-// function createApiService(): OrganizerEventsService {
-//   return {
-//     async list() {
-//       const res = await fetchOrganizerEvents();
-//       return res.metadata;
-//     },
-//     async findById(id) {
-//       const res = await fetchOrganizerEvent(id);
-//       return res.metadata;
-//     },
-//     // ... etc
-//   };
-// }
+// ── Server ID storage (salesRoundIds, seatZoneIds) ───────
+
+const SERVER_IDS_KEY = "ticketrush.organizer.serverIds";
+
+export interface EventServerIds {
+  eventId: number;
+  salesRoundIds: number[];
+  seatZoneIds: number[];
+}
+
+function readAllServerIds(): Record<string, EventServerIds> {
+  try {
+    const raw = window.localStorage.getItem(SERVER_IDS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveServerIds(eventKey: string, ids: EventServerIds) {
+  const all = readAllServerIds();
+  all[eventKey] = ids;
+  window.localStorage.setItem(SERVER_IDS_KEY, JSON.stringify(all));
+}
+
+export function getServerIds(eventKey: string): EventServerIds | null {
+  return readAllServerIds()[eventKey] ?? null;
+}
+
+// ── API Implementation ───────────────────────────────────
+
+const ROW_LABELS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+export function buildSeatZonePayload(name: string, rows: number, cols: number) {
+  const seatRows = [];
+  for (let r = 0; r < rows; r++) {
+    const seats = [];
+    for (let c = 0; c < cols; c++) {
+      seats.push({ index: c, number: r * cols + c + 1 });
+    }
+    seatRows.push({
+      index: r,
+      label: ROW_LABELS[r] ?? String(r + 1),
+      seats,
+    });
+  }
+  return { name, positionX: 0, positionY: 0, rows: seatRows };
+}
+
+export interface CreateEventOnServerParams {
+  event: StoredOrganizerEvent;
+  bannerFile?: File;
+}
+
+export interface CreateEventOnServerResult {
+  success: boolean;
+  eventId?: number;
+  message?: string;
+}
+
+/**
+ * Phase 1: Event creation via API.
+ * 1. POST /organization/events → eventId
+ * 2. PATCH /organization/events/{eventId} → description
+ * 3. PUT  /organization/events/{eventId}/banner (if banner)
+ * 4. POST /organization/events/{eventId}/sales-rounds (×N)
+ * 5. Save server IDs to localStorage for Phase 2
+ * 6. Save event to localStorage for UI caching
+ *
+ * Seat zones + ticket classes are created in Phase 2
+ * from the seat config page.
+ */
+export async function createEventOnServer(
+  params: CreateEventOnServerParams,
+): Promise<CreateEventOnServerResult> {
+  const { event, bannerFile } = params;
+
+  // ── Step 1: Create event ──
+  const isOnline = event.locationMode === "online";
+  const addressParts = [event.streetAddress, event.wardName, event.provinceName].filter(Boolean);
+  const address = isOnline ? "Online" : addressParts.join(", ");
+  const venue = isOnline ? "Online" : (event.venueName || "TBD");
+
+  // Validate required date
+  if (!event.start || isNaN(Date.parse(event.start))) {
+    return { success: false, message: "Vui lòng chọn ngày giờ cho sự kiện" };
+  }
+
+  const createResult = await createEvent({
+    name: event.title,
+    description: event.eventDescription || "",
+    isOnlineEvent: isOnline,
+    venue,
+    address,
+    dateTime: event.start,
+  });
+
+  if (!createResult.success || !createResult.resourceId) {
+    return { success: false, message: createResult.message ?? "Failed to create event" };
+  }
+
+  const eventId = createResult.resourceId;
+
+  // ── Step 1b: Patch description (backend createEvent ignores description) ──
+  const description = event.eventDescription?.trim();
+  if (description) {
+    try {
+      await updateEvent(eventId, { description });
+    } catch (err) {
+      console.warn("Description patch failed:", err);
+    }
+  }
+
+  // ── Step 2: Upload banner (if provided) ──
+  if (bannerFile) {
+    try {
+      await uploadEventBanner(eventId, bannerFile);
+    } catch (err) {
+      console.warn("Banner upload failed:", err);
+    }
+  }
+
+  // ── Step 3: Create sales rounds from showTimes ──
+  const salesRoundIds: number[] = [];
+  const showTimes = event.showTimes ?? [];
+
+  for (const showTime of showTimes) {
+    // Validate showTime dates
+    if (!showTime.start || isNaN(Date.parse(showTime.start))) {
+      return { success: false, message: `Suất diễn "${showTime.name}": thiếu thời gian bắt đầu` };
+    }
+    if (!showTime.end || isNaN(Date.parse(showTime.end))) {
+      return { success: false, message: `Suất diễn "${showTime.name}": thiếu thời gian kết thúc` };
+    }
+
+    const maxPerTicket = showTime.tickets
+      .map((t) => parseInt(t.maxPerOrder, 10) || 0)
+      .filter((n) => n > 0);
+    const maxTickets = maxPerTicket.length > 0 ? Math.max(...maxPerTicket) : 10;
+
+    const roundResult = await addSalesRound(eventId, {
+      name: showTime.name,
+      startTime: showTime.start,
+      endTime: showTime.end,
+      maxTicketsPerPurchase: maxTickets,
+    });
+
+    if (!roundResult.success || !roundResult.resourceId) {
+      console.error(`Failed to create sales round "${showTime.name}":`, roundResult.message);
+      continue;
+    }
+    salesRoundIds.push(roundResult.resourceId);
+  }
+
+  // ── Step 4: Save server IDs for Phase 2 (seat config page) ──
+  const eventKey = String(event.sequenceId ?? eventId);
+  saveServerIds(eventKey, {
+    eventId,
+    salesRoundIds,
+    seatZoneIds: [],
+  });
+
+  // ── Step 5: Sync event to localStorage for UI caching ──
+  const localEvent: StoredOrganizerEvent = {
+    ...event,
+    id: String(eventId),
+    sequenceId: event.sequenceId ?? eventId,
+    status: "Chờ duyệt",
+    createdAt: event.createdAt || new Date().toISOString(),
+  };
+  appendStoredOrganizerEvent(localEvent);
+
+  return { success: true, eventId };
+}
+
+/**
+ * Phase 2: Create seat zones + ticket classes from seat config page.
+ * Called when user saves seat configuration.
+ */
+export async function createSeatZonesOnServer(
+  eventId: number,
+  eventKey: string,
+  tiers: { name: string; rows: number; cols: number; ticketName?: string; price?: number }[],
+): Promise<{ success: boolean; message?: string }> {
+  // Get server IDs from Phase 1
+  const serverIds = getServerIds(eventKey);
+  const salesRoundIds = serverIds?.salesRoundIds ?? [];
+  const firstSalesRoundId = salesRoundIds[0];
+
+  // ── Guard: need at least one sales round ──
+  if (!firstSalesRoundId) {
+    return { success: false, message: "Không tìm thấy suất diễn. Hãy tạo sự kiện lại." };
+  }
+
+  // ── Guard: don't create duplicate zones ──
+  if (serverIds?.seatZoneIds && serverIds.seatZoneIds.length > 0) {
+    return { success: true, message: "Seat zones already created" };
+  }
+
+  // ── Create seat zones ──
+  const seatZoneIds: number[] = [];
+
+  for (let i = 0; i < tiers.length; i++) {
+    const tier = tiers[i];
+    const zonePayload = buildSeatZonePayload(tier.name, tier.rows, tier.cols);
+    // Stagger positionY so zones don't overlap
+    zonePayload.positionY = i * 10;
+    const zoneResult = await createSeatZone(eventId, zonePayload);
+
+    if (!zoneResult.success || !zoneResult.resourceId) {
+      return { success: false, message: zoneResult.message ?? `Failed to create seat zone "${tier.name}"` };
+    }
+    seatZoneIds.push(zoneResult.resourceId);
+  }
+
+  // ── Create ticket classes (link each zone to first sales round) ──
+  if (firstSalesRoundId) {
+    for (let i = 0; i < tiers.length; i++) {
+      const tier = tiers[i];
+      const seatZoneId = seatZoneIds[i];
+      if (!seatZoneId) continue;
+
+      await createTicketClass(eventId, {
+        name: tier.ticketName || tier.name,
+        description: tier.ticketName || tier.name,
+        price: tier.price ?? 0,
+        salesRoundId: firstSalesRoundId,
+        seatZoneId,
+      });
+    }
+  }
+
+  // ── Update server IDs with seatZoneIds ──
+  if (serverIds) {
+    saveServerIds(eventKey, { ...serverIds, seatZoneIds });
+  }
+
+  return { success: true };
+}
 
 // ── Active Service Instance ──────────────────────────────
 
-/**
- * Switch this to `createApiService()` when backend is ready.
- * All components use `organizerEventsService` — no import changes needed.
- */
 export const organizerEventsService: OrganizerEventsService = createLocalService();
