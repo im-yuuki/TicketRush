@@ -162,13 +162,15 @@
       "createdTicketSummary": "{{ticketTypeCount}} loại vé",
       "seatConfig": {
         "title": "Cấu hình sơ đồ ghế",
-        "selectShowtime": "Chọn suất diễn",
-        "selectLayout": "Chọn sơ đồ",
-        "selectTier": "Chọn hạng vé để gán ghế",
-        "active": "Đang chọn",
-        "noTiers": "Suất diễn này chưa có loại vé. Hãy tạo vé trước.",
-        "instructions": "Click vào ghế hoặc kéo thả để gán hạng vé đã chọn. Click lại vào ghế đã gán để đổi hạng.",
-        "selectFirst": "Hãy chọn một hạng vé bên trên trước khi gán ghế."
+        "showtime": "Suất diễn",
+        "tiers": "Cấu hình kích thước ghế mỗi hạng vé",
+        "noTiers": "Chưa có hạng vé. Hãy tạo vé trước.",
+        "seats": "ghế",
+        "rowsLabel": "Số hàng (Y)",
+        "colsLabel": "Số ghế/hàng (X)",
+        "rowLabels": "Hàng",
+        "perRow": "Mỗi hàng {{cols}} ghế",
+        "help": "Nhập số hàng (Y) và số ghế mỗi hàng (X) cho mỗi hạng vé."
       },
       "tabs": {
         "upcoming": "Sắp tới",
@@ -318,12 +320,16 @@
   },
   "booking": {
     "selectTicket": "Chọn vé",
+    "chooseTier": "Chọn hạng vé",
+    "noTiers": "Chưa có cấu hình ghế cho sự kiện này.",
+    "seats": "ghế",
+    "perSeat": "/ ghế",
     "loadingSeatMap": "Đang tải sơ đồ ghế...",
     "ticketPrice": "Giá vé",
     "ticketsSelected": "{{count}} vé đang chọn",
     "processing": "Đang xử lý...",
     "continue": "Tiếp tục",
-    "pleaseSelectTicket": "Vui lòng chọn vé »",
+    "pleaseSelectTicket": "Vui lòng chọn ghế",
     "conflictError": "Rất tiếc! Một số ghế bạn chọn vừa được người khác thanh toán thành công.\nHệ thống sẽ tự động tải lại sơ đồ ghế mới nhất.",
     "genericError": "Có lỗi xảy ra khi đặt vé. Vui lòng kiểm tra lại kết nối.",
     "success": "Đặt vé thành công!"

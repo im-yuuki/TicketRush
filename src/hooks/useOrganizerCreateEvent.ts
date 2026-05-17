@@ -28,7 +28,7 @@ function buildInitialShowTimes(editingEvent?: StoredOrganizerEvent): ShowTime[] 
 
   return [
     {
-      id: Date.now(),
+      id: 1,
       name: "Suất diễn 1",
       start: editingEvent.start,
       end: editingEvent.end ?? editingEvent.start,
@@ -269,7 +269,7 @@ export function useOrganizerCreateEvent() {
     setShowTimes((current) => [
       ...current,
       {
-        id: Date.now(),
+        id: current.length + 1,
         name: `Suất diễn ${current.length + 1}`,
         start: "",
         end: "",
@@ -338,9 +338,9 @@ export function useOrganizerCreateEvent() {
         st.id === targetShowTimeId
           ? {
               ...st,
-              tickets: source.tickets.map((ticket) => ({
+              tickets: source.tickets.map((ticket, idx) => ({
                 ...ticket,
-                id: Date.now() + Math.random(),
+                id: Date.now() + idx,
               })),
             }
           : st,

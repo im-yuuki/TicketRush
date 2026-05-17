@@ -122,3 +122,24 @@ export async function apiPost<TResponse, TRequest = unknown>(
 ) {
 	return apiRequest<TResponse, TRequest>(endpoint, { ...options, body, method: "POST" });
 }
+
+/**
+ * Convenience helper for typed PUT requests.
+ */
+export async function apiPut<TResponse, TRequest = unknown>(
+	endpoint: string,
+	body?: TRequest,
+	options: Omit<ApiRequestOptions<TRequest>, "body" | "method"> = {},
+) {
+	return apiRequest<TResponse, TRequest>(endpoint, { ...options, body, method: "PUT" });
+}
+
+/**
+ * Convenience helper for typed DELETE requests.
+ */
+export async function apiDelete<TResponse>(
+	endpoint: string,
+	options: Omit<ApiRequestOptions, "body" | "method"> = {},
+) {
+	return apiRequest<TResponse>(endpoint, { ...options, method: "DELETE" });
+}

@@ -1,24 +1,14 @@
-const STORAGE_KEY = "ticketrush.organizer.seatLayouts";
+import type { TierDimensions } from "../../types/seat";
 
-export type SeatLayoutConfig = {
-  /** Preset layout id (e.g. "cinema", "concert-hall", "small-theater") */
-  layoutId: string;
-  /** Map of seatId → tierId (e.g. "screen-A-1" → "svip") */
-  seatTierMap: Record<string, string>;
-};
-
-/** Key = `${eventId}::${showTimeId}` */
-export type SeatLayoutRecord = Record<string, SeatLayoutConfig>;
+const STORAGE_KEY = "ticketrush.organizer.seatConfigs";
 
 function canUseStorage() {
   return typeof window !== "undefined";
 }
 
-function buildKey(eventId: string, showTimeId: number) {
-  return `${eventId}::${showTimeId}`;
-}
+// Key = eventId (no showTimeId — one showtime per event)
 
-export function readAllSeatLayouts(): SeatLayoutRecord {
+export function readAllSeatConfigs(): Record<string, TierDimensions[]> {
   if (!canUseStorage()) return {};
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -28,18 +18,14 @@ export function readAllSeatLayouts(): SeatLayoutRecord {
   }
 }
 
-export function getSeatLayout(eventId: string, showTimeId: number): SeatLayoutConfig | null {
-  const all = readAllSeatLayouts();
-  return all[buildKey(eventId, showTimeId)] ?? null;
+export function getSeatConfig(eventId: string): TierDimensions[] | null {
+  const all = readAllSeatConfigs();
+  return all[eventId] ?? null;
 }
 
-export function saveSeatLayout(
-  eventId: string,
-  showTimeId: number,
-  config: SeatLayoutConfig,
-) {
+export function saveSeatConfig(eventId: string, tiers: TierDimensions[]) {
   if (!canUseStorage()) return;
-  const all = readAllSeatLayouts();
-  all[buildKey(eventId, showTimeId)] = config;
+  const all = readAllSeatConfigs();
+  all[eventId] = tiers;
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
 }

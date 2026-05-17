@@ -1,323 +1,315 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router";
+import { useState, useCallback, useMemo } from "react";
+import { useParams, useNavigate, Link } from "react-router";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, CalendarDays, MapPin } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowLeft, CalendarDays, MapPin, Armchair } from "lucide-react";
 import { Button } from "@heroui/react";
-import SeatMap, { type VenueLayout } from "../components/SeatMap";
+import SeatMap from "../components/SeatMap";
+import { Logo } from "../components/Branding";
 import { getEvent } from "../data/events";
-import { apiGet } from "../api/client";
 import { formatPrice, formatDateTime } from "../utils/format";
 import { useBooking } from "../contexts/BookingContext";
-import { getSeatLayout } from "../utils/organizer/organizerSeatLayoutStorage";
-import { organizerEventsService } from "../api/organizerEventsService";
-
-// Preset layouts
-import cinemaLayout from "../data/layouts/cinema.json";
-import concertHallLayout from "../data/layouts/concert-hall.json";
-import smallTheaterLayout from "../data/layouts/small-theater.json";
-
-const PRESET_LAYOUTS: Record<string, VenueLayout> = {
-  cinema: cinemaLayout as VenueLayout,
-  "concert-hall": concertHallLayout as VenueLayout,
-  "small-theater": smallTheaterLayout as VenueLayout,
-};
+import { getSeatConfig } from "../utils/organizer/organizerSeatLayoutStorage";
+import { buildLayoutFromTiers } from "../utils/seatLayoutBuilder";
+import type { TierDimensions } from "../types/seat";
 
 const TIER_COLORS = ["#ef4444", "#fcd34d", "#a3e635", "#86efac", "#5eead4", "#fca5a5", "#93c5fd", "#c084fc", "#fb923c"];
 
+// Mock booked seats — will be replaced by server API
+function getMockBookedSeats(tierId: string): string[] {
+  return [`${tierId}-B-2`, `${tierId}-B-3`, `${tierId}-C-1`];
+}
+
+type TierInfo = TierDimensions & { price: number; color: string; seatCount: number };
+
 export default function Booking() {
   const { eventId } = useParams<{ eventId: string }>();
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { setSeatSelection } = useBooking();
+
   const event = useMemo(() => getEvent(eventId), [eventId]);
 
-  const showTimeIdParam = searchParams.get("showTimeId");
-
-  const activeShowTime = useMemo(() => {
-    if (!event?.showTimes || event.showTimes.length === 0) return null;
-    if (showTimeIdParam) {
-      const found = event.showTimes.find((st) => String(st.id) === showTimeIdParam);
-      if (found) return found;
-    }
-    return event.showTimes[0];
-  }, [event, showTimeIdParam]);
-
-  // Resolve preview eventId to actual stored event ID
-  const storedEventId = useMemo(() => {
-    if (!eventId) return null;
-    const stored = organizerEventsService.findByPreviewId(eventId);
-    return stored?.id ?? eventId;
+  // Load seat config from localStorage (saved by organizer)
+  const tierDims = useMemo(() => {
+    if (!eventId) return [];
+    return getSeatConfig(eventId) ?? [];
   }, [eventId]);
 
-  // Seat config from organizer
-  const seatConfig = useMemo(() => {
-    if (!storedEventId || !activeShowTime) return null;
-    return getSeatLayout(storedEventId, activeShowTime.id);
-  }, [storedEventId, activeShowTime]);
+  // Build tier info with colors and prices from event tickets
+  const tiers = useMemo(() => {
+    if (!event?.showTimes?.[0]) return [];
+    const showTime = event.showTimes[0];
+    return tierDims.map((dim, idx) => {
+      const ticket = showTime.tickets.find((t) => `${showTime.id}-${t.id}` === dim.tierId);
+      return {
+        ...dim,
+        price: ticket ? (ticket.isFree ? 0 : Number(String(ticket.price).replace(/[^\d]/g, "")) || 0) : 0,
+        color: TIER_COLORS[idx % TIER_COLORS.length],
+        seatCount: dim.rows * dim.cols,
+      };
+    });
+  }, [tierDims, event]);
 
-  // Active layout: from config or fallback to cinema
-  const activeLayout = useMemo(() => {
-    if (seatConfig) {
-      return PRESET_LAYOUTS[seatConfig.layoutId] ?? PRESET_LAYOUTS.cinema;
-    }
-    return PRESET_LAYOUTS.cinema;
-  }, [seatConfig]);
+  // Selected tier state
+  const [selectedTier, setSelectedTier] = useState<TierInfo | null>(null);
+  const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
 
-  // Active ticket tiers: from seat config or from showtime/event
-  const activeTicketTiers = useMemo(() => {
-    if (seatConfig) {
-      // Build tiers from unique tierIds in the seat config
-      const uniqueTierIds = [...new Set(Object.values(seatConfig.seatTierMap))];
-      const showTime = activeShowTime;
-      if (showTime) {
-        return uniqueTierIds.map((tierId, idx) => {
-          // tierId format: "showTimeId-ticketId"
-          const parts = tierId.split("-");
-          const ticketIdStr = parts.length > 1 ? parts.slice(1).join("-") : tierId;
-          const ticket = showTime.tickets.find((t) => String(t.id) === ticketIdStr);
-          return {
-            id: tierId,
-            name: ticket?.name ?? `Hạng ${idx + 1}`,
-            price: ticket ? (ticket.isFree ? 0 : Number(String(ticket.price).replace(/[^\d]/g, "")) || 0) : 0,
-          };
-        });
+  // Build seatmap layout for selected tier
+  const seatLayout = useMemo(() => {
+    if (!selectedTier) return null;
+    return buildLayoutFromTiers([selectedTier]);
+  }, [selectedTier]);
+
+  // Booked seats for current tier (mock)
+  const bookedSeatIds = useMemo(() => {
+    if (!selectedTier) return [];
+    return getMockBookedSeats(selectedTier.tierId);
+  }, [selectedTier]);
+
+  // Assigned colors for seatmap (all seats same color = same tier)
+  const assignedSeatColors = useMemo(() => {
+    if (!selectedTier || !seatLayout) return {};
+    const colors: Record<string, string> = {};
+    const blockId = seatLayout.blocks[0]?.id;
+    if (!blockId) return colors;
+    for (const row of seatLayout.blocks[0].rows) {
+      for (let i = 1; i <= row.count; i++) {
+        colors[`${blockId}-${row.label}-${i}`] = selectedTier.color;
       }
     }
-    // Fallback: no seat config
-    if (activeShowTime) {
-      return activeShowTime.tickets.map((ticket) => ({
-        id: `${activeShowTime.id}-${ticket.id}`,
-        name: ticket.name,
-        price: ticket.isFree ? 0 : Number(String(ticket.price).replace(/[^\d]/g, "")) || 0,
-      }));
-    }
-    return event?.ticketTiers ?? [];
-  }, [seatConfig, activeShowTime, event?.ticketTiers]);
+    return colors;
+  }, [selectedTier, seatLayout]);
 
-  const activeDate = activeShowTime?.start || event?.date || "";
-  const activeVenue = event?.venue || "";
+  // Max seats per purchase (from server salesRound.maxTicketsPerPurchase, hardcoded for now)
+  const MAX_SEATS = 10;
 
-  const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
-  const [bookedSeatIds, setBookedSeatIds] = useState<string[]>([]);
+  const totalAmount = useMemo(
+    () => selectedSeats.length * (selectedTier?.price ?? 0),
+    [selectedSeats, selectedTier],
+  );
 
-  // 1. Real-time Synchronization (Giả lập WebSockets / Polling)
-  useEffect(() => {
-    if (!event) return;
-
-    let isMounted = true;
-    const fetchBookedSeats = () => {
-      apiGet<string[]>(`/events/${event.id}/booked-seats`)
-        .then((data) => {
-          if (isMounted) setBookedSeatIds(data);
-        })
-        .catch((_err) => {
-          // ── MOCK DATA: Xóa đoạn này khi nối API thật ──
-          // 3 ghế giả lập "đã đặt" để test UI. Khi nối API, backend sẽ trả danh sách ghế booked.
-          if (isMounted && bookedSeatIds.length === 0) {
-            setBookedSeatIds(["screen-B-2", "screen-B-3", "screen-C-1"]);
-          }
-          // ── END MOCK DATA ──
-        });
-    };
-
-    // Lần đầu tải trang
-    fetchBookedSeats();
-
-    // POLING: Tự động tải lại ghế sau mỗi 5 giây.
-    // Lưu ý kiến trúc: Khi có Backend, thay đoạn setInterval này bằng WebSockets (VD: socket.on('seat_update', data => ...))
-    const interval = setInterval(fetchBookedSeats, 5000);
-
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
+  // Full venue address
+  const fullAddress = useMemo(() => {
+    if (!event) return "";
+    return [event.venue, event.address].filter(Boolean).join(", ");
   }, [event]);
 
-  const handleSeatSelection = useCallback((seats: string[]) => {
-    setSelectedSeats(seats);
+  // Select a tier → show seatmap
+  const handleSelectTier = useCallback((tier: TierInfo) => {
+    setSelectedTier(tier);
+    setSelectedSeats([]);
   }, []);
 
-  // 2. Concurrency Control (Xử lý Đụng độ khi Đặt vé)
-  const handleBuyTickets = async () => {
-    if (selectedSeats.length === 0 || !event) return;
+  // Back to tier list
+  const handleBackToTiers = useCallback(() => {
+    setSelectedTier(null);
+    setSelectedSeats([]);
+  }, []);
 
-    // Save selection to context (survives page refresh)
-    setSeatSelection(event.id, selectedSeats, seatToTierMap);
-
-    // TODO: Tạm thời chuyển thẳng sang BookingDetails
+  // Continue to booking details
+  const handleContinue = useCallback(() => {
+    if (selectedSeats.length === 0 || !event || !selectedTier) return;
+    setSeatSelection(event.id, selectedSeats, selectedTier.tierId, selectedTier.name, selectedTier.price);
     navigate(`/events/${event.id}/booking-details`);
-
-    /* 
-    // === KIỂM TRA API, COMMENT TẠM LẠI ĐỂ TEST UI ===
-    setIsBooking(true);
-    try {
-      await apiPost("/bookings", { eventId: event.id, seats: selectedSeats });
-      // Khi API phản hồi thành công, ta chuyển sang trang BookingDetails
-      navigate(`/events/${event.id}/booking-details`);
-    } catch (err: any) {
-      // Kiến trúc Scalable: Xử lý riêng lỗi HTTP 409 Conflict (Trùng ghế)
-      const isConflict = err?.status === 409 || err?.response?.status === 409;
-
-      if (isConflict) {
-        alert(t("booking.conflictError"));
-        // 1. Xóa các ghế bị trùng khỏi giỏ hàng của user (Giả lập: Xóa hết)
-        setSelectedSeats([]);
-        // 2. Gọi lại API để cập nhật ghế nào vừa biến thành màu đỏ (Booked)
-        // fetchBookedSeats(); // (Nếu tách hàm fetch ra ngoài useEffect, bạn gọi ở đây)
-      } else {
-        alert(t("booking.genericError"));
-      }
-    } finally {
-      setIsBooking(false);
-    }
-    // =========================================================
-    */
-  };
+  }, [selectedSeats, event, selectedTier, setSeatSelection, navigate]);
 
   if (!event) return <div className="p-10 text-white">{t("event.notFound")}</div>;
 
-  const { tierColors, seatToTierMap, assignedSeatColors } = useMemo(() => {
-    const tColors: Record<string, string> = {};
-
-    // 1. Gắn màu tĩnh cho từng Hạng vé
-    activeTicketTiers.forEach((tier, idx) => {
-      tColors[tier.id] = TIER_COLORS[idx % TIER_COLORS.length];
-    });
-
-    // 2. Map ID ghế -> ID Hạng vé
-    const sMap: Record<string, string> = {};
-    if (seatConfig) {
-      Object.assign(sMap, seatConfig.seatTierMap);
-    } else {
-      const defaultTierId = activeTicketTiers[0]?.id || "";
-      activeLayout.blocks.forEach(block => {
-        block.rows.forEach(row => {
-          for (let i = 1; i <= row.count; i++) {
-            sMap[`${block.id}-${row.label}-${i}`] = defaultTierId;
-          }
-        });
-      });
-    }
-
-    // 3. Map seatId → color for SeatMap display
-    const aColors: Record<string, string> = {};
-    for (const [seatId, tierId] of Object.entries(sMap)) {
-      const color = tColors[tierId];
-      if (color) aColors[seatId] = color;
-    }
-
-    return { tierColors: tColors, seatToTierMap: sMap, assignedSeatColors: aColors };
-  }, [activeTicketTiers, seatConfig, activeLayout]);
-
-  // Tính tổng tiền dựa trên hạng ghế thực tế
-  const totalAmount = useMemo(() => {
-    return selectedSeats.reduce((sum, seatId) => {
-      const tierId = seatToTierMap[seatId];
-      const tier = activeTicketTiers.find(t => t.id === tierId);
-      return sum + (tier ? tier.price : activeTicketTiers[0]?.price ?? 0);
-    }, 0);
-  }, [selectedSeats, seatToTierMap, activeTicketTiers]);
-
-  return (
-    <div className="flex flex-col md:flex-row h-[100dvh] w-full bg-[#0a0a0a] text-white font-sans overflow-hidden">
-      {/* ── Cột Trái: Sơ đồ ghế ── */}
-      <div className="flex flex-col flex-1 relative border-b md:border-b-0 md:border-r border-white/5 overflow-hidden">
-        {/* Header trái */}
-        <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 md:p-6 bg-gradient-to-b from-black to-transparent">
-          <button
-            onClick={() => navigate(`/events/${event.id}`)}
-            className="flex items-center gap-2 text-(--accent) hover:text-(--accent)/80 font-medium transition-colors shrink-0"
+  // ── Step 1: Pick a tier ──
+  if (!selectedTier) {
+    return (
+      <div className="flex flex-col h-[100dvh] w-full bg-[#0a0a0a] text-white font-sans overflow-hidden">
+        {/* Header */}
+        <header className="relative shrink-0 flex items-center justify-between px-4 md:px-8 py-3 bg-[#111] border-b border-white/5">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate(`/events/${event.id}`)}
+              className="flex shrink-0 items-center gap-2 text-(--accent) hover:text-(--accent)/80 font-semibold transition-colors text-sm"
+            >
+              <ArrowLeft size={18} />
+              <span className="hidden md:inline">{t("common.back", "Trở về")}</span>
+            </button>
+            <div className="hidden md:block h-5 w-px bg-white/15" />
+            <Link to="/">
+              <Logo className="hidden md:flex text-2xl md:text-3xl" />
+            </Link>
+          </div>
+          <Link
+            to="/"
+            className="pointer-events-auto absolute inset-x-0 top-1/2 flex -translate-y-1/2 justify-center md:hidden"
           >
-            <ArrowLeft size={20} />
-            <span className="hidden md:inline">{t("common.back")}</span>
-          </button>
-          <h1 className="absolute inset-x-0 text-center text-xl font-bold tracking-wide text-(--accent) pointer-events-none md:static md:inset-auto md:pointer-events-auto">
-            {t("booking.selectTicket")}
-          </h1>
-          <div className="w-24" /> {/* Spacer */}
+            <Logo className="text-2xl" />
+          </Link>
+          <div className="w-20" />
+        </header>
+
+        {/* Event info centered */}
+        <div className="shrink-0 text-center px-6 py-6 border-b border-white/5">
+          <h2 className="text-lg md:text-xl font-bold mb-3 leading-snug max-w-xl mx-auto">{event.title}</h2>
+          <div className="flex flex-col items-center gap-1.5 text-sm text-gray-400">
+            <div className="flex items-center gap-2">
+              <CalendarDays size={14} className="text-gray-500" />
+              <span>{formatDateTime(event.date)}</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <MapPin size={14} className="text-gray-500 mt-0.5 shrink-0" />
+              <span className="leading-relaxed">{fullAddress || event.venue}</span>
+            </div>
+          </div>
         </div>
 
-        {/* Bản đồ ghế */}
-        <div className="flex-1 flex items-center justify-center pt-24 pb-10 overflow-auto">
-          {/* Ta bọc SeatMap trong div custom để ẩn bớt Legend cũ (nếu muốn) hoặc dùng y nguyên */}
-          <div className="scale-90 md:scale-100 origin-center">
-            <SeatMap
-              layout={activeLayout}
-              bookedSeatIds={bookedSeatIds}
-              onSelectionChange={handleSeatSelection}
-              maxSeats={10}
-              tierColors={tierColors}
-              assignedSeatColors={assignedSeatColors}
-            />
+        {/* Tier cards */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
+          <div className="p-6 max-w-lg mx-auto">
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-5">
+              {t("booking.chooseTier", "Chọn hạng vé")}
+            </h3>
+            {tiers.length === 0 ? (
+              <p className="text-sm text-gray-500">{t("booking.noTiers", "Chưa có cấu hình ghế cho sự kiện này.")}</p>
+            ) : (
+              <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
+                className="space-y-3"
+              >
+                {tiers.map((tier) => (
+                  <motion.button
+                    key={tier.tierId}
+                    type="button"
+                    onClick={() => handleSelectTier(tier)}
+                    variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }}
+                    whileHover={{ scale: 1.015 }}
+                    whileTap={{ scale: 0.985 }}
+                    className="group flex items-stretch w-full rounded-xl border border-white/8 bg-[#141414] hover:bg-[#1c1c1c] hover:border-white/15 text-left transition-all overflow-hidden"
+                  >
+                    {/* Color strip */}
+                    <div className="w-1.5 shrink-0" style={{ backgroundColor: tier.color }} />
+
+                    {/* Content */}
+                    <div className="flex items-center gap-4 flex-1 px-4 py-4">
+                      {/* Seat icon */}
+                      <div
+                        className="size-11 shrink-0 rounded-lg flex items-center justify-center"
+                        style={{ backgroundColor: tier.color + "18" }}
+                      >
+                        <Armchair size={20} style={{ color: tier.color }} />
+                      </div>
+
+                      {/* Info */}
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-white text-sm">{tier.name}</p>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-xs text-gray-500">{tier.seatCount} {t("booking.seats", "ghế")}</span>
+                          <span className="text-xs text-gray-600">·</span>
+                          <span className="text-xs text-gray-500">{tier.rows}×{tier.cols}</span>
+                        </div>
+                      </div>
+
+                      {/* Price */}
+                      <div className="text-right shrink-0">
+                        <p className="text-base font-bold text-(--accent) leading-tight">{formatPrice(tier.price)}</p>
+                        <p className="text-[0.65rem] text-gray-600 mt-0.5">{t("booking.perSeat", "/ ghế")}</p>
+                      </div>
+                    </div>
+                  </motion.button>
+                ))}
+              </motion.div>
+            )}
           </div>
         </div>
       </div>
+    );
+  }
 
-      {/* ── Cột Phải: Thông tin ── */}
+  // ── Step 2: Pick seats within selected tier ──
+  return (
+    <div className="flex flex-col md:flex-row h-[100dvh] w-full bg-[#0a0a0a] text-white font-sans overflow-hidden">
+      {/* Left: Seatmap */}
+      <div className="flex flex-col flex-1 relative border-b md:border-b-0 md:border-r border-white/5 overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 md:p-6 bg-gradient-to-b from-black to-transparent">
+          <button
+            onClick={handleBackToTiers}
+            className="flex items-center gap-2 text-(--accent) hover:text-(--accent)/80 font-medium transition-colors shrink-0"
+          >
+            <ArrowLeft size={20} />
+            <span className="hidden md:inline">{t("common.back", "Trở về")}</span>
+          </button>
+          <h1 className="absolute inset-x-0 text-center text-lg md:text-xl font-bold tracking-wide text-(--accent) pointer-events-none md:static md:inset-auto md:pointer-events-auto">
+            {selectedTier.name}
+          </h1>
+          <div className="w-20" />
+        </div>
+
+        <div className="flex-1 flex items-center justify-center pt-24 pb-10 overflow-auto">
+          {seatLayout && (
+            <div className="scale-90 md:scale-100 origin-center">
+              <SeatMap
+                layout={seatLayout}
+                bookedSeatIds={bookedSeatIds}
+                onSelectionChange={setSelectedSeats}
+                maxSeats={MAX_SEATS}
+                assignedSeatColors={assignedSeatColors}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Right: Info */}
       <div className="flex flex-col w-full md:w-[380px] h-auto max-h-[50vh] md:max-h-none md:h-full bg-[#2d2d2d] shrink-0 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] md:shadow-[-10px_0_30px_rgba(0,0,0,0.5)] z-20">
-        {/* Thông tin sự kiện */}
+        {/* Event info (desktop) */}
         <div className="p-6 border-b border-white/5 hidden md:block">
-          <h2 className="text-lg font-bold mb-4 uppercase tracking-wide leading-snug">
-            [{activeVenue.split(",")[0]}] {event.title}
-            {activeShowTime && (
-              <span className="block text-sm font-medium normal-case text-gray-400 mt-1">
-                {activeShowTime.name}
-              </span>
-            )}
-          </h2>
-          <div className="space-y-3 text-sm text-gray-300">
+          <h2 className="text-base font-bold mb-3 uppercase tracking-wide leading-snug">{event.title}</h2>
+          <div className="space-y-2.5 text-sm text-gray-300">
             <div className="flex items-center gap-3">
-              <CalendarDays size={18} className="shrink-0 text-white" />
-              <span className="font-medium">{formatDateTime(activeDate)}</span>
+              <CalendarDays size={16} className="shrink-0 text-gray-400" />
+              <span className="font-medium">{formatDateTime(event.date)}</span>
             </div>
             <div className="flex items-start gap-3">
-              <MapPin size={18} className="shrink-0 text-(--accent) mt-0.5" />
-              <span className="font-medium leading-tight">{activeVenue}</span>
+              <MapPin size={16} className="shrink-0 text-(--accent) mt-0.5" />
+              <span className="font-medium leading-relaxed">{fullAddress || event.venue}</span>
             </div>
           </div>
         </div>
 
-        {/* Danh sách giá vé */}
-        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar hidden md:block">
-          <h3 className="text-sm font-bold mb-5 text-gray-400 uppercase tracking-wider">{t("booking.ticketPrice")}</h3>
-          <div className="space-y-4">
-            {activeTicketTiers.map((tier) => {
-              const color = tierColors[tier.id];
-              return (
-                <div key={tier.id} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-4 rounded shadow-sm" style={{ backgroundColor: color }} />
-                    <span className="font-medium text-gray-100">{tier.name}</span>
-                  </div>
-                  <span className="font-bold text-(--accent)">{formatPrice(tier.price)}</span>
-                </div>
-              );
-            })}
+        {/* Tier info */}
+        <div className="p-6 border-b border-white/5">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="size-5 rounded" style={{ backgroundColor: selectedTier.color }} />
+            <span className="font-bold text-white text-sm">{selectedTier.name}</span>
           </div>
+          <p className="text-sm text-gray-400">
+            {formatPrice(selectedTier.price)} {t("booking.perSeat", "/ ghế")}
+          </p>
         </div>
 
-        {/* Bottom Actions */}
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Bottom actions */}
         <div className="p-4 md:p-6 bg-[#262626] border-t-0 md:border-t border-white/5">
           {selectedSeats.length > 0 && (
             <div className="flex justify-between items-center mb-4">
               <span className="text-sm text-gray-300 font-medium">
                 {t("booking.ticketsSelected", { count: selectedSeats.length })}
               </span>
-              <span className="font-bold text-xl text-(--accent)">
-                {formatPrice(totalAmount)}
-              </span>
+              <span className="font-bold text-xl text-(--accent)">{formatPrice(totalAmount)}</span>
             </div>
           )}
           <Button
-            className={`w-full py-6 text-base font-bold transition-all rounded-md ${selectedSeats.length > 0
-              ? "bg-(--accent) text-black hover:bg-(--accent)/90 shadow-[0_0_15px_oklch(83.77%_0.1655_81.92_/_0.4)]"
-              : "bg-[#e5e5e5] text-gray-500 cursor-not-allowed"
-              }`}
-            onClick={handleBuyTickets}
+            className={`w-full py-6 text-base font-bold transition-all rounded-md ${
+              selectedSeats.length > 0
+                ? "bg-(--accent) text-black hover:bg-(--accent)/90 shadow-[0_0_15px_oklch(83.77%_0.1655_81.92_/_0.4)]"
+                : "bg-[#e5e5e5] text-gray-500 cursor-not-allowed"
+            }`}
+            onClick={handleContinue}
             isDisabled={selectedSeats.length === 0}
           >
-            {selectedSeats.length > 0 ? t("booking.continue") : t("booking.pleaseSelectTicket")}
+            {selectedSeats.length > 0
+              ? t("booking.continue", "Tiếp tục")
+              : t("booking.pleaseSelectTicket", "Vui lòng chọn ghế")}
           </Button>
         </div>
       </div>

@@ -3,7 +3,9 @@ import { createContext, useContext, useState, useCallback, type ReactNode } from
 export interface BookingState {
   eventId: string;
   selectedSeats: string[];
-  seatToTierMap: Record<string, string>;
+  selectedTierId: string;
+  selectedTierName: string;
+  selectedTierPrice: number;
   fullName: string;
   email: string;
   phone: string;
@@ -17,7 +19,13 @@ export interface BookingState {
 
 interface BookingContextValue {
   booking: BookingState | null;
-  setSeatSelection: (eventId: string, selectedSeats: string[], seatToTierMap: Record<string, string>) => void;
+  setSeatSelection: (
+    eventId: string,
+    selectedSeats: string[],
+    tierId: string,
+    tierName: string,
+    tierPrice: number,
+  ) => void;
   setCustomerInfo: (info: { fullName: string; email: string; phone: string; idDocument: string }) => void;
   setPaymentMethod: (method: "bank_transfer" | "credit_card") => void;
   setTotalAmount: (amount: number) => void;
@@ -58,38 +66,55 @@ export function BookingProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const setSeatSelection = useCallback((eventId: string, selectedSeats: string[], seatToTierMap: Record<string, string>) => {
-    update((prev) => ({
-      eventId,
-      selectedSeats,
-      seatToTierMap,
-      fullName: prev?.fullName ?? "",
-      email: prev?.email ?? "",
-      phone: prev?.phone ?? "",
-      idDocument: prev?.idDocument ?? "",
-      paymentMethod: prev?.paymentMethod ?? "bank_transfer",
-      totalAmount: prev?.totalAmount ?? 0,
-      sessionId: prev?.sessionId,
-      // Always reset timer when seats are (re)selected
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-    }));
-  }, [update]);
+  const setSeatSelection = useCallback(
+    (eventId: string, selectedSeats: string[], tierId: string, tierName: string, tierPrice: number) => {
+      update(() => ({
+        eventId,
+        selectedSeats,
+        selectedTierId: tierId,
+        selectedTierName: tierName,
+        selectedTierPrice: tierPrice,
+        fullName: "",
+        email: "",
+        phone: "",
+        idDocument: "",
+        paymentMethod: "bank_transfer",
+        totalAmount: 0,
+        sessionId: undefined,
+        // Always reset timer when seats are (re)selected
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+      }));
+    },
+    [update],
+  );
 
-  const setCustomerInfo = useCallback((info: { fullName: string; email: string; phone: string; idDocument: string }) => {
-    update((prev) => prev ? { ...prev, ...info } : prev);
-  }, [update]);
+  const setCustomerInfo = useCallback(
+    (info: { fullName: string; email: string; phone: string; idDocument: string }) => {
+      update((prev) => (prev ? { ...prev, ...info } : prev));
+    },
+    [update],
+  );
 
-  const setPaymentMethod = useCallback((method: "bank_transfer" | "credit_card") => {
-    update((prev) => prev ? { ...prev, paymentMethod: method } : prev);
-  }, [update]);
+  const setPaymentMethod = useCallback(
+    (method: "bank_transfer" | "credit_card") => {
+      update((prev) => (prev ? { ...prev, paymentMethod: method } : prev));
+    },
+    [update],
+  );
 
-  const setTotalAmount = useCallback((amount: number) => {
-    update((prev) => prev ? { ...prev, totalAmount: amount } : prev);
-  }, [update]);
+  const setTotalAmount = useCallback(
+    (amount: number) => {
+      update((prev) => (prev ? { ...prev, totalAmount: amount } : prev));
+    },
+    [update],
+  );
 
-  const setSessionId = useCallback((sessionId: string) => {
-    update((prev) => prev ? { ...prev, sessionId } : prev);
-  }, [update]);
+  const setSessionId = useCallback(
+    (sessionId: string) => {
+      update((prev) => (prev ? { ...prev, sessionId } : prev));
+    },
+    [update],
+  );
 
   const clearBooking = useCallback(() => {
     setBooking(null);
@@ -97,7 +122,9 @@ export function BookingProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <BookingContext.Provider value={{ booking, setSeatSelection, setCustomerInfo, setPaymentMethod, setTotalAmount, setSessionId, clearBooking }}>
+    <BookingContext.Provider
+      value={{ booking, setSeatSelection, setCustomerInfo, setPaymentMethod, setTotalAmount, setSessionId, clearBooking }}
+    >
       {children}
     </BookingContext.Provider>
   );
