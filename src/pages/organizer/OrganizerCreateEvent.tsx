@@ -17,6 +17,7 @@ export default function OrganizerCreateEvent() {
         stepLabels={w.stepLabels}
         onNext={w.goToNextStep}
         onStepSelect={w.handleStepSelect}
+        isSubmitting={w.isSubmitting}
       />
 
       <div className="px-4 pt-32 pb-10 md:px-6 lg:px-10 xl:px-11">

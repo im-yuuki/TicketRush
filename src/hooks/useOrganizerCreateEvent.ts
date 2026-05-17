@@ -15,6 +15,7 @@ import {
 } from "../types/organizerCreate";
 import {
   organizerEventsService,
+  createEventOnServer,
   type StoredOrganizerEvent,
   type StoredOrganizerTicketTier,
 } from "../api/organizerEventsService";
@@ -72,6 +73,7 @@ export function useOrganizerCreateEvent() {
 
   // ── Wizard step ──
   const [currentStep, setCurrentStep] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [eventSequenceId] = useState(
     () => editingEvent?.sequenceId ?? organizerEventsService.reserveNextSequenceId(),
   );
@@ -190,71 +192,90 @@ export function useOrganizerCreateEvent() {
   }
 
   async function completeCreateEvent() {
-    const firstShowTime = showTimes[0];
-    const ticketTiers = getStoredTicketTiers();
-    const eventIdToStore = editingEvent?.id ?? `organizer-event-${eventSequenceId}`;
-    let bannerImageKey = editingEvent?.bannerImageKey;
+    if (isSubmitting) return;
+    setIsSubmitting(true);
 
-    if (bannerImageFile) {
-      bannerImageKey = `${eventIdToStore}-banner`;
-      try {
-        await saveLocalImage(bannerImageKey, bannerImageFile);
-      } catch {
-        window.alert("Không lưu được ảnh sự kiện trên trình duyệt này. Vui lòng chọn ảnh khác hoặc thử lại.");
-        return;
+    try {
+      const firstShowTime = showTimes[0];
+      const ticketTiers = getStoredTicketTiers();
+      const eventIdToStore = editingEvent?.id ?? `organizer-event-${eventSequenceId}`;
+      let bannerImageKey = editingEvent?.bannerImageKey;
+
+      if (bannerImageFile) {
+        bannerImageKey = `${eventIdToStore}-banner`;
+        try {
+          await saveLocalImage(bannerImageKey, bannerImageFile);
+        } catch {
+          window.alert("Không lưu được ảnh sự kiện trên trình duyệt này. Vui lòng chọn ảnh khác hoặc thử lại.");
+          return;
+        }
       }
-    }
 
-    let organizerLogoKey = editingEvent?.organizerLogoKey;
-    if (organizerLogoFile) {
-      organizerLogoKey = `${eventIdToStore}-organizer-logo`;
-      try {
-        await saveLocalImage(organizerLogoKey, organizerLogoFile);
-      } catch {
-        window.alert("Không lưu được logo ban tổ chức trên trình duyệt này. Vui lòng chọn ảnh khác hoặc thử lại.");
-        return;
+      let organizerLogoKey = editingEvent?.organizerLogoKey;
+      if (organizerLogoFile) {
+        organizerLogoKey = `${eventIdToStore}-organizer-logo`;
+        try {
+          await saveLocalImage(organizerLogoKey, organizerLogoFile);
+        } catch {
+          window.alert("Không lưu được logo ban tổ chức trên trình duyệt này. Vui lòng chọn ảnh khác hoặc thử lại.");
+          return;
+        }
       }
-    }
 
-    const eventToStore = {
-      id: eventIdToStore,
-      sequenceId: eventSequenceId,
-      bannerImageKey,
-      bannerImageUrl: bannerImageFile ? undefined : editingEvent?.bannerImageUrl,
-      showTimes,
-      ticketTiers,
-      title: eventName.trim() || t("organizer.create.untitledEvent", "Sự kiện chưa đặt tên"),
-      status: t("organizer.events.tabs.pending", "Chờ duyệt"),
-      start: firstShowTime?.start || editingEvent?.start || new Date().toISOString(),
-      end: firstShowTime?.end ?? editingEvent?.end,
-      showtimeCount: showTimes.length || editingEvent?.showtimeCount || 0,
-      ticketTypeCount: ticketTiers.length || editingEvent?.ticketTypeCount || 0,
-      createdAt: editingEvent?.createdAt ?? new Date().toISOString(),
-      locationMode: eventLocationMode,
-      venueName: venueName.trim(),
-      provinceCode,
-      provinceName: selectedProvince?.name ?? "",
-      wardCode,
-      wardName: selectedWard?.name ?? "",
-      streetAddress: streetAddress.trim(),
-      organizerName: organizerName.trim(),
-      organizerDescription: organizerDescription.trim(),
-      organizerLogoKey,
-      organizerLogoUrl: organizerLogoFile ? undefined : editingEvent?.organizerLogoUrl,
-      eventDescription: eventDescription.trim(),
-    };
+      const eventToStore: StoredOrganizerEvent = {
+        id: eventIdToStore,
+        sequenceId: eventSequenceId,
+        bannerImageKey,
+        bannerImageUrl: bannerImageFile ? undefined : editingEvent?.bannerImageUrl,
+        showTimes,
+        ticketTiers,
+        title: eventName.trim() || t("organizer.create.untitledEvent", "Sự kiện chưa đặt tên"),
+        status: t("organizer.events.tabs.pending", "Chờ duyệt"),
+        start: firstShowTime?.start || editingEvent?.start || new Date().toISOString(),
+        end: firstShowTime?.end ?? editingEvent?.end,
+        showtimeCount: showTimes.length || editingEvent?.showtimeCount || 0,
+        ticketTypeCount: ticketTiers.length || editingEvent?.ticketTypeCount || 0,
+        createdAt: editingEvent?.createdAt ?? new Date().toISOString(),
+        locationMode: eventLocationMode,
+        venueName: venueName.trim(),
+        provinceCode,
+        provinceName: selectedProvince?.name ?? "",
+        wardCode,
+        wardName: selectedWard?.name ?? "",
+        streetAddress: streetAddress.trim(),
+        organizerName: organizerName.trim(),
+        organizerDescription: organizerDescription.trim(),
+        organizerLogoKey,
+        organizerLogoUrl: organizerLogoFile ? undefined : editingEvent?.organizerLogoUrl,
+        eventDescription: eventDescription.trim(),
+      };
 
-    if (editingEvent) {
-      organizerEventsService.update(editingEvent.id, eventToStore);
-    } else {
-      organizerEventsService.create(eventToStore);
+      if (editingEvent) {
+        // Editing existing event — save locally for now
+        organizerEventsService.update(editingEvent.id, eventToStore);
+        navigate("/organizer/events");
+      } else {
+        // Creating new event — send to server
+        const result = await createEventOnServer({
+          event: eventToStore,
+          bannerFile: bannerImageFile ?? undefined,
+        });
+
+        if (!result.success) {
+          window.alert(`Không thể tạo sự kiện: ${result.message ?? "Lỗi không xác định"}`);
+          return;
+        }
+
+        navigate("/organizer/events");
+      }
+    } finally {
+      setIsSubmitting(false);
     }
-    navigate("/organizer/events");
   }
 
-  function goToNextStep() {
+  async function goToNextStep() {
     if (currentStep === organizerCreateSteps.length - 1) {
-      completeCreateEvent();
+      await completeCreateEvent();
       return;
     }
     setCurrentStep((step) => Math.min(step + 1, organizerCreateSteps.length - 1));
@@ -354,6 +375,7 @@ export function useOrganizerCreateEvent() {
     stepLabels,
     goToNextStep,
     handleStepSelect,
+    isSubmitting,
     // Event info
     eventName,
     eventCategory,
