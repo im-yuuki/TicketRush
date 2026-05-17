@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import { Button } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router';
 import { getPromotedEvents } from '../api/feeds';
 
 export default function PromotionSection() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [promotions, setPromotions] = useState<{ id: number; title: string; image: string }[]>([]);
 
   useEffect(() => {
@@ -119,6 +121,7 @@ export default function PromotionSection() {
                 <Button 
                   className="bg-white text-black font-semibold rounded-md px-4 py-2 hover:bg-default-200 transition-colors"
                   size="sm"
+                  onPress={() => navigate(`/events/${promo.id}`)}
                 >
                   {t("promotionSection.details", "View details")}
                 </Button>
