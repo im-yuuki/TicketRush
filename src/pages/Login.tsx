@@ -11,11 +11,13 @@ function readAccountSnapshot(accountResponse: AccountResponse) {
   const displayName = accountResponse.name;
   const accountEmail = accountResponse.email;
   const avatarUrl = "avatarUrl" in accountResponse ? accountResponse.avatarUrl : undefined;
+  const role = accountResponse.type;
 
   return {
     displayName,
     email: accountEmail,
     avatarUrl,
+    role,
   };
 }
 

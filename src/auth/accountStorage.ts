@@ -5,6 +5,7 @@ export type StoredAccount = {
 	displayName: string;
 	email?: string;
 	avatarUrl?: string;
+	role?: string;
 };
 
 function canUseStorage() {
