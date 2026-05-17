@@ -23,6 +23,7 @@ import OrganizerLayout from "./layouts/OrganizerLayout.tsx";
 import Login from "./pages/Login.tsx";
 import Register from "./pages/Register.tsx";
 import OTP from "./pages/OTP.tsx";
+import AdminControl from "./pages/AdminControl.tsx";
 
 const AppRouter = createBrowserRouter([
   {
@@ -43,6 +44,10 @@ const AppRouter = createBrowserRouter([
       {
         path: "/my-tickets",
         element: <MyTickets />,
+      },
+      {
+        path: "/admin",
+        element: <AdminControl />,
       },
       {
         path: "/events/:eventId",
