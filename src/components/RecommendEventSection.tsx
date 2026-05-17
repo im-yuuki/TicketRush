@@ -10,6 +10,7 @@ import {
   MapPin,
   Sparkles,
 } from "lucide-react";
+import { getRecommendedEvents } from "../api/feeds";
 
 type RecommendEvent = {
   id: string;
@@ -20,99 +21,6 @@ type RecommendEvent = {
   price: number;
   image: string;
 };
-
-const MOCK_EVENTS: RecommendEvent[] = [
-  {
-    id: "1",
-    title: "",
-    category: "music",
-    date: "2026-05-18T20:00:00",
-    location: "Hà Nội",
-    price: 360000,
-    image: "",
-  },
-  {
-    id: "2",
-    title: "",
-    category: "festival",
-    date: "2026-06-02T18:30:00",
-    location: "TP.HCM",
-    price: 180000,
-    image: "",
-  },
-  {
-    id: "3",
-    title: "",
-    category: "sports",
-    date: "2026-05-25T19:15:00",
-    location: "TP.HCM",
-    price: 450000,
-    image: "",
-  },
-  {
-    id: "4",
-    title: "",
-    category: "workshop",
-    date: "2026-05-10T09:00:00",
-    location: "TP.HCM",
-    price: 350000,
-    image: "",
-  },
-  {
-    id: "5",
-    title: "",
-    category: "music",
-    date: "2026-05-22T19:30:00",
-    location: "TP.HCM",
-    price: 550000,
-    image: "",
-  },
-  {
-    id: "6",
-    title: "",
-    category: "festival",
-    date: "2026-05-30T10:00:00",
-    location: "Hà Nội",
-    price: 120000,
-    image: "",
-  },
-  {
-    id: "7",
-    title: "",
-    category: "sports",
-    date: "2026-06-08T05:00:00",
-    location: "Hà Nội",
-    price: 680000,
-    image: "",
-  },
-  {
-    id: "8",
-    title: "",
-    category: "workshop",
-    date: "2026-05-14T18:00:00",
-    location: "Hà Nội",
-    price: 199000,
-    image: "",
-  },
-  {
-    id: "9",
-    title: "",
-    category: "music",
-    date: "2026-06-15T20:00:00",
-    location: "Hà Nội",
-    price: 990000,
-    image: "",
-  },
-  {
-    id: "10",
-    title: "",
-    category: "festival",
-    date: "2026-05-28T17:00:00",
-    location: "TP.HCM",
-    price: 80000,
-    image: "",
-  },
-];
 
 function formatPrice(value: number, lang: string) {
   const locale = lang === "vn" ? "vi-VN" : "en-US";
@@ -167,7 +75,7 @@ function EventCard({ event }: { event: RecommendEvent }) {
   const fromText = t("recommend.from", "Chỉ từ");
 
   const handleClick = () => navigate(`/events/${event.id}`);
-  const hasImage = event.image.length > 0;
+  const hasImage = (event.image?.length ?? 0) > 0;
 
   return (
     <button
@@ -231,11 +139,33 @@ export default function RecommendEventSection({
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setEvents(MOCK_EVENTS);
-      setLoading(false);
-    }, 1200);
-    return () => clearTimeout(timer);
+    let isMounted = true;
+
+    async function load() {
+      try {
+        const data = await getRecommendedEvents();
+        if (!isMounted) return;
+        setEvents(
+          (data ?? []).map((item) => ({
+            id: String(item.id),
+            title: item.name ?? "",
+            category: "",
+            date: item.dateTime ?? "",
+            location: item.venue ?? "",
+            price: item.minimumTicketPrice,
+            image: item.bannerUrl ?? "",
+          })),
+        );
+      } catch {
+        if (!isMounted) return;
+        setEvents([]);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+
+    load();
+    return () => { isMounted = false; };
   }, []);
 
   useEffect(() => {

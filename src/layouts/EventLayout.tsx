@@ -1,9 +1,10 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Outlet, useNavigate, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Breadcrumbs, Button } from "@heroui/react";
+import { Breadcrumbs, Button, Skeleton } from "@heroui/react";
 import { CalendarDays, ChevronRight, MapPin } from "lucide-react";
-import { getEvent } from "../data/events";
+import { getEvent, fetchEventById } from "../data/events";
+import type { EventData } from "../data/events";
 import type { EventContext } from "./eventContext";
 import { useLocalImageUrl } from "../utils/useLocalImageUrl";
 
@@ -45,7 +46,26 @@ export default function EventLayout({
   const navigate = useNavigate();
   const resolvedEventId = eventIdOverride ?? eventId;
 
-  const event = useMemo(() => getEvent(resolvedEventId), [resolvedEventId]);
+  // Try localStorage first, then fetch from server
+  const localEvent = useMemo(() => getEvent(resolvedEventId), [resolvedEventId]);
+  const [serverEvent, setServerEvent] = useState<EventData | null>(null);
+  const shouldFetch = !localEvent && !!resolvedEventId && /^\d+$/.test(resolvedEventId);
+  const [loading, setLoading] = useState(shouldFetch);
+
+  useEffect(() => {
+    if (!shouldFetch) return;
+
+    let cancelled = false;
+    fetchEventById(resolvedEventId).then((result) => {
+      if (!cancelled) {
+        setServerEvent(result);
+        setLoading(false);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [resolvedEventId, shouldFetch]);
+
+  const event = localEvent ?? serverEvent;
   const storedImageUrl = useLocalImageUrl(event?.imageKey);
   const eventImage = event?.image || storedImageUrl;
 
@@ -59,6 +79,15 @@ export default function EventLayout({
   );
 
   // Guard: neu eventId khong hop le hoac khong tim thay, hien thi thong bao.
+  if (loading) {
+    return (
+      <div className="container mx-auto px-6 py-6 pb-20 md:px-10">
+        <Skeleton className="h-6 w-48 mb-4 rounded-lg" />
+        <Skeleton className="h-80 w-full rounded-2xl" />
+      </div>
+    );
+  }
+
   if (!event) {
     return (
       <div className="mx-auto max-w-2xl px-6 py-24 text-center">

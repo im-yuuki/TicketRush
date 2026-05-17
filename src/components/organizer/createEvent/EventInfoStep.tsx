@@ -333,7 +333,7 @@ export default function EventInfoStep({
               <OrganizerCountedInput
                 id="organizer-event-name"
                 value={eventName}
-                maxLength={100}
+                maxLength={50}
                 placeholder={t("organizer.create.eventNamePlaceholder", "Tên sự kiện")}
                 onChange={onEventNameChange}
               />
@@ -414,7 +414,7 @@ export default function EventInfoStep({
                 <OrganizerFieldLabel>{t("organizer.create.venueName", "Tên địa điểm")}</OrganizerFieldLabel>
                 <OrganizerCharacterInput
                   placeholder={t("organizer.create.venueNamePlaceholder", "Tên địa điểm")}
-                  maxLength={80}
+                  maxLength={50}
                   value={venueName}
                   onChange={onVenueNameChange}
                 />

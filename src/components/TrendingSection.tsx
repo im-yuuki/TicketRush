@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { Skeleton } from "@heroui/react";
 import { CalendarDays, ChevronLeft, ChevronRight, Flame, MapPin } from "lucide-react";
+import { getTrendingEvents } from "../api/feeds";
 
 type TrendingEvent = {
   id: string;
@@ -14,119 +15,6 @@ type TrendingEvent = {
   image: string;
   rank: number;
 };
-
-const MOCK_EVENTS: TrendingEvent[] = [
-  {
-    id: "1",
-    title: "",
-    category: "music",
-    date: "2026-05-18T20:00:00",
-    location: "Hà Nội",
-    price: 360000,
-    image:
-      "",
-    rank: 1,
-  },
-  {
-    id: "2",
-    title: "",
-    category: "festival",
-    date: "2026-06-02T18:30:00",
-    location: "TP.HCM",
-    price: 180000,
-    image:
-      "",
-    rank: 2,
-  },
-  {
-    id: "3",
-    title: "",
-    category: "sports",
-    date: "2026-05-25T19:15:00",
-    location: "TP.HCM",
-    price: 450000,
-    image:
-      "",
-    rank: 3,
-  },
-  {
-    id: "4",
-    title: "",
-    category: "workshop",
-    date: "2026-05-10T09:00:00",
-    location: "TP.HCM",
-    price: 350000,
-    image:
-      "",
-    rank: 4,
-  },
-  {
-    id: "5",
-    title: "",
-    category: "music",
-    date: "2026-05-22T19:30:00",
-    location: "TP.HCM",
-    price: 550000,
-    image:
-      "",
-    rank: 5,
-  },
-  {
-    id: "6",
-    title: "",
-    category: "festival",
-    date: "2026-05-30T10:00:00",
-    location: "Hà Nội",
-    price: 120000,
-    image:
-      "",
-    rank: 6,
-  },
-  {
-    id: "7",
-    title: "",
-    category: "sports",
-    date: "2026-06-08T05:00:00",
-    location: "Hà Nội",
-    price: 680000,
-    image:
-      "",
-    rank: 7,
-  },
-  {
-    id: "8",
-    title: "",
-    category: "workshop",
-    date: "2026-05-14T18:00:00",
-    location: "Hà Nội",
-    price: 199000,
-    image:
-      "",
-    rank: 8,
-  },
-  {
-    id: "9",
-    title: "",
-    category: "music",
-    date: "2026-06-15T20:00:00",
-    location: "Hà Nội",
-    price: 990000,
-    image:
-      "",
-    rank: 9,
-  },
-  {
-    id: "10",
-    title: "",
-    category: "festival",
-    date: "2026-05-28T17:00:00",
-    location: "TP.HCM",
-    price: 80000,
-    image:
-      "",
-    rank: 10,
-  },
-];
 
 function formatPrice(value: number, lang: string) {
   const locale = lang === "vn" ? "vi-VN" : "en-US";
@@ -225,11 +113,34 @@ export default function TrendingSection({ className }: { className?: string }) {
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setEvents(MOCK_EVENTS);
-      setLoading(false);
-    }, 1200);
-    return () => clearTimeout(timer);
+    let isMounted = true;
+
+    async function load() {
+      try {
+        const data = await getTrendingEvents();
+        if (!isMounted) return;
+        setEvents(
+          (data ?? []).map((item, idx) => ({
+            id: String(item.id),
+            title: item.name ?? "",
+            category: "",
+            date: item.dateTime ?? "",
+            location: item.venue ?? "",
+            price: item.minimumTicketPrice,
+            image: item.bannerUrl ?? "",
+            rank: idx + 1,
+          })),
+        );
+      } catch {
+        if (!isMounted) return;
+        setEvents([]);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+
+    load();
+    return () => { isMounted = false; };
   }, []);
 
   useEffect(() => {

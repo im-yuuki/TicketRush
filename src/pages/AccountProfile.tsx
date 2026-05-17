@@ -59,6 +59,18 @@ export default function AccountProfile() {
     };
   }, []);
 
+  function formatDate(raw: string) {
+    if (!raw) return "";
+    const d = new Date(raw);
+    if (isNaN(d.getTime())) return raw;
+    return d.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+  }
+
+  function titleCase(raw: string) {
+    if (!raw) return "";
+    return raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
+  }
+
   const titleText = t("account.title", "Account Profile");
   const subtitleText = t("account.subtitle", "Your personal account details");
   const details = useMemo(
@@ -85,12 +97,12 @@ export default function AccountProfile() {
       },
       {
         label: t("account.birthDate", "Birth date"),
-        value: profile.birthDate,
+        value: formatDate(profile.birthDate),
         icon: CalendarDays,
       },
       {
         label: t("account.gender", "Gender"),
-        value: profile.gender,
+        value: titleCase(profile.gender),
         icon: UserRound,
       },
     ],

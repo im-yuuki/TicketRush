@@ -179,6 +179,7 @@ export interface BasicEventInfo {
 	bannerUrl: string;
 	dateTime: string;
 	venue: string;
+	minimumTicketPrice: number;
 }
 
 // ── Public ──────────────────────────────────────────────────────────────────────────────────

@@ -10,35 +10,95 @@ import {
   ORGANIZER_EVENTS_CHANGE_EVENT,
   type StoredOrganizerEvent,
 } from "../../api/organizerEventsService";
+import { getOrgEvents } from "../../api/organization";
 
 export default function OrganizerEvents() {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<OrganizerEventTab>("pending");
+  const [activeTab, setActiveTab] = useState<OrganizerEventTab>("draft");
   const [searchQuery, setSearchQuery] = useState("");
   const [createdEvents, setCreatedEvents] = useState<StoredOrganizerEvent[]>(() =>
     organizerEventsService.list(),
   );
 
   useEffect(() => {
+    let isMounted = true;
+
+    async function fetchBackendEvents() {
+      try {
+        const backendEvents = await getOrgEvents();
+        if (!isMounted) return;
+
+        const localEvents = organizerEventsService.list();
+        const localMap = new Map(localEvents.map((e) => [e.id, e]));
+
+        const allBackendEvents = backendEvents.map(
+          (ev) => {
+            const localEvent = localMap.get(String(ev.id));
+            const isPublished = ev.published || localEvent?.published || false;
+
+            return {
+              id: String(ev.id),
+              title: ev.name,
+              start: ev.dateTime,
+              venueName: ev.venue,
+              bannerImageUrl: ev.bannerUrl,
+              status: isPublished ? "Đã duyệt" : "Nháp",
+              published: isPublished,
+              showtimeCount: localEvent?.showtimeCount ?? 1,
+              ticketTypeCount: localEvent?.ticketTypeCount ?? 1,
+              createdAt: ev.dateTime,
+            } as StoredOrganizerEvent;
+          }
+        );
+
+        setCreatedEvents(() => {
+          const backendIds = new Set(allBackendEvents.map((e) => e.id));
+          const localOnlyDrafts = localEvents.filter(
+            (e) => !backendIds.has(e.id) && !e.published
+          );
+
+          return [...allBackendEvents, ...localOnlyDrafts].sort(
+            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+        });
+      } catch (err) {
+        console.error("Failed to fetch backend events:", err);
+      }
+    }
+
     function refreshEvents() {
       setCreatedEvents(organizerEventsService.list());
+      fetchBackendEvents();
     }
+
+    fetchBackendEvents();
 
     window.addEventListener(ORGANIZER_EVENTS_CHANGE_EVENT, refreshEvents);
     window.addEventListener("storage", refreshEvents);
 
     return () => {
+      isMounted = false;
       window.removeEventListener(ORGANIZER_EVENTS_CHANGE_EVENT, refreshEvents);
       window.removeEventListener("storage", refreshEvents);
     };
   }, []);
 
   const visibleEvents = useMemo(() => {
-    if (activeTab !== "pending") return [];
-
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return createdEvents;
-    return createdEvents.filter((event) => event.title.toLowerCase().includes(query));
+    const filtered = query
+      ? createdEvents.filter((event) => event.title.toLowerCase().includes(query))
+      : createdEvents;
+
+    if (activeTab === "draft") {
+      return filtered.filter((event) => !event.published);
+    } else if (activeTab === "upcoming") {
+      const now = new Date();
+      return filtered.filter((event) => event.published && new Date(event.start) >= now);
+    } else if (activeTab === "past") {
+      const now = new Date();
+      return filtered.filter((event) => event.published && new Date(event.start) < now);
+    }
+    return filtered;
   }, [activeTab, createdEvents, searchQuery]);
 
   return (
@@ -50,15 +110,6 @@ export default function OrganizerEvents() {
           onSearchQueryChange={setSearchQuery}
           onTabChange={setActiveTab}
         />
-
-        {activeTab === "pending" && (
-          <div className="mt-3 rounded-lg bg-warning px-4 py-3 text-center text-sm font-bold text-warning-foreground">
-            {t(
-              "organizer.events.pendingNotice",
-              "Lưu ý: Sự kiện đang chờ duyệt. Để đảm bảo tính bảo mật cho sự kiện của bạn, quyền truy cập vào trang chỉ dành cho chủ sở hữu và quản trị viên được ủy quyền",
-            )}
-          </div>
-        )}
 
         <div className="mt-5">
           {visibleEvents.length > 0 ? (

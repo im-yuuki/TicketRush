@@ -5,6 +5,8 @@ import {
   organizerEventsService,
   type StoredOrganizerEvent,
 } from "../api/organizerEventsService";
+import { getEventInfo } from "../api/public";
+import type { PublicEventInfo } from "../types/requestDto";
 import type { ShowTime } from "../types/organizerCreate";
 
 export type DescriptionParagraph = {
@@ -95,6 +97,7 @@ const MOCK_EVENTS: Record<string, EventData> = {
 };
 
 function mapStoredOrganizerEventToEventData(event: StoredOrganizerEvent): EventData {
+  const previewId = getStoredOrganizerEventPreviewId(event);
   const ticketTiers =
     event.ticketTiers && event.ticketTiers.length > 0
       ? event.ticketTiers
@@ -141,7 +144,7 @@ function mapStoredOrganizerEventToEventData(event: StoredOrganizerEvent): EventD
       ];
 
   return {
-    id: getStoredOrganizerEventPreviewId(event),
+    id: `-${previewId}`,
     title: event.title,
     category: "organizer-preview",
     date: event.start,
@@ -163,19 +166,70 @@ function mapStoredOrganizerEventToEventData(event: StoredOrganizerEvent): EventD
   };
 }
 
+function getOrganizerPreviewIdFromRoute(id: string): string | null {
+  if (id.startsWith("-")) {
+    const previewId = id.slice(1);
+    return previewId || null;
+  }
+
+  const slugMatch = id.match(/^[a-z0-9][a-z0-9-]*-(\d+)$/i);
+  return slugMatch?.[1] ?? null;
+}
+
 /** Look up a single event by id. Swap this for a real fetch() later. */
 export function getEvent(id: string | undefined): EventData | null {
   if (!id) return null;
-  const previewId = id.match(/(?:^|-)(\d+)$/)?.[1] ?? id;
-  const storedOrganizerEvent = organizerEventsService.findByPreviewId(previewId);
-  if (storedOrganizerEvent) {
-    return mapStoredOrganizerEventToEventData(storedOrganizerEvent);
+  const normalizedId = id.trim();
+  const isExplicitPreviewRoute = normalizedId.startsWith("-");
+  const previewId = getOrganizerPreviewIdFromRoute(normalizedId);
+  if (isExplicitPreviewRoute || previewId) {
+    if (!previewId) return null;
+    const storedOrganizerEvent = organizerEventsService.findByPreviewId(previewId);
+    return storedOrganizerEvent ? mapStoredOrganizerEventToEventData(storedOrganizerEvent) : null;
   }
 
-  if (/^\d+$/.test(id)) return null;
+  // Numeric IDs need async fetch — return null here, caller should use fetchEventById
+  if (/^\d+$/.test(normalizedId)) return null;
 
   // Dev fallback: unknown ids show the "test" event. Remove when wiring real data.
-  return MOCK_EVENTS[id] ?? MOCK_EVENTS.test ?? null;
+  return MOCK_EVENTS[normalizedId] ?? MOCK_EVENTS.test ?? null;
+}
+
+/** Map backend PublicEventInfo to frontend EventData */
+function mapPublicEventInfoToEventData(info: PublicEventInfo): EventData {
+  const descriptionText = info.description?.trim();
+  const description: DescriptionParagraph[] = descriptionText
+    ? descriptionText.split("\n").filter(Boolean).map((line) => ({ text: line }))
+    : [{ text: "Chưa có mô tả cho sự kiện này." }];
+
+  return {
+    id: String(info.id),
+    title: info.name,
+    category: "event",
+    date: info.dateTime,
+    location: info.venue,
+    venue: info.venue,
+    address: info.address || undefined,
+    price: 0,
+    image: info.bannerUrl || "",
+    description,
+    ticketTiers: [],
+    organizer: info.organizationName || "",
+    organizerDescription: "",
+  };
+}
+
+/** Fetch event from server API by numeric ID */
+export async function fetchEventById(id: string | number): Promise<EventData | null> {
+  const numericId = typeof id === "string" ? parseInt(id, 10) : id;
+  if (!Number.isFinite(numericId) || numericId <= 0) return null;
+
+  try {
+    const info = await getEventInfo(numericId);
+    return mapPublicEventInfoToEventData(info);
+  } catch {
+    return null;
+  }
 }
 
 /** Get all events (useful for listings, sitemap, etc). */

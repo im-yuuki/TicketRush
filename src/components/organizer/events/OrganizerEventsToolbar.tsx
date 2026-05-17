@@ -45,7 +45,7 @@ export default function OrganizerEventsToolbar({
         </button>
       </form>
 
-      <div className="grid grid-cols-2 overflow-hidden rounded-lg bg-foreground p-1 text-sm font-medium text-muted shadow-sm sm:grid-cols-4">
+      <div className="grid grid-cols-3 overflow-hidden rounded-lg bg-foreground p-1 text-sm font-medium text-muted shadow-sm">
         {organizerEventTabs.map((tab) => {
           const isActive = activeTab === tab.key;
 
