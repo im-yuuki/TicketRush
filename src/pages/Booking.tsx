@@ -31,7 +31,7 @@ export default function Booking() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
-  const { booking, setSeatSelection, setSessionId, setExpiresAt } = useBooking();
+  const { booking, setSeatSelection, setSessionId, setExpiresAt, releaseAndClearBooking } = useBooking();
   const { event, loading: eventLoading } = useEventData(eventId);
 
   // ── Auth guard ──
@@ -173,10 +173,14 @@ export default function Booking() {
     if (selectedSeats.length === 0 || !event || !selectedTier) return;
     setIsSubmitting(true);
 
+	console.log("Selected seats:", selectedSeats);
+
     try {
       const selectedServerSeatIds = selectedSeats
         .map(id => seatIdMap[id])
         .filter((id): id is number => id !== undefined);
+
+	  console.log("Mapped server seat IDs:", selectedServerSeatIds);
 
       let holdId: string;
       let holdExpiresAt: string;
@@ -251,6 +255,17 @@ export default function Booking() {
     }
   }, [selectedSeats, event, selectedTier, numericEventId, seatIdMap, booking, setSeatSelection, setSessionId, setExpiresAt, navigate]);
 
+  // Exit booking flow — release hold if any, then navigate
+  const handleExitToEvent = useCallback(() => {
+    releaseAndClearBooking();
+    navigate(`/events/${event?.id}`);
+  }, [releaseAndClearBooking, event, navigate]);
+
+  const handleExitToHome = useCallback(() => {
+    releaseAndClearBooking();
+    navigate("/");
+  }, [releaseAndClearBooking, navigate]);
+
   // ── Loading state ──
   const isLoading = eventLoading || purchaseLoading;
 
@@ -258,7 +273,7 @@ export default function Booking() {
     return (
       <div className="flex flex-col h-[100dvh] w-full bg-[#0a0a0a] text-white font-sans overflow-hidden">
         <header className="relative shrink-0 flex items-center justify-between px-4 md:px-8 py-3 bg-[#111] border-b border-white/5">
-          <Link to="/">
+          <Link to="/" onClick={handleExitToHome}>
             <Logo className="text-2xl md:text-3xl" />
           </Link>
         </header>
@@ -295,19 +310,20 @@ export default function Booking() {
         <header className="relative shrink-0 flex items-center justify-between px-4 md:px-8 py-3 bg-[#111] border-b border-white/5">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => navigate(`/events/${event.id}`)}
+              onClick={handleExitToEvent}
               className="flex shrink-0 items-center gap-2 text-(--accent) hover:text-(--accent)/80 font-semibold transition-colors text-sm"
             >
               <ArrowLeft size={18} />
               <span className="hidden md:inline">{t("common.back", "Trở về")}</span>
             </button>
             <div className="hidden md:block h-5 w-px bg-white/15" />
-            <Link to="/">
+            <Link to="/" onClick={handleExitToHome}>
               <Logo className="hidden md:flex text-2xl md:text-3xl" />
             </Link>
           </div>
           <Link
             to="/"
+            onClick={handleExitToHome}
             className="pointer-events-auto absolute inset-x-0 top-1/2 flex -translate-y-1/2 justify-center md:hidden"
           >
             <Logo className="text-2xl" />

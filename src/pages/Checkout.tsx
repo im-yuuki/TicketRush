@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import {
@@ -26,7 +26,7 @@ export default function Checkout() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { booking, clearBooking } = useBooking();
+  const { booking, clearBooking, releaseAndClearBooking } = useBooking();
 
   // Read from context instead of location.state
   const eventId = booking?.eventId || "";
@@ -56,6 +56,12 @@ export default function Checkout() {
     if (typeof totalAmountFromContext === "number" && totalAmountFromContext > 0) return totalAmountFromContext;
     return selectedSeats.length * tierPrice;
   }, [selectedSeats, tierPrice, totalAmountFromContext]);
+
+  // Exit booking flow — release hold if any, then navigate home
+  const handleExitToHome = useCallback(() => {
+    releaseAndClearBooking();
+    navigate("/");
+  }, [releaseAndClearBooking, navigate]);
 
   // Payment receiver info (from your provided data)
   const bankName = "BIDV";
@@ -137,13 +143,14 @@ export default function Checkout() {
             <span className="hidden md:inline">{t("common.back")}</span>
           </button>
           <div className="hidden md:block h-5 w-px bg-white/15" />
-          <Link to="/">
-            <Logo className="hidden md:flex text-2xl md:text-3xl" />
-          </Link>
+      <Link to="/" onClick={handleExitToHome}>
+        <Logo className="hidden md:flex text-2xl md:text-3xl" />
+      </Link>
         </div>
 
         <Link
           to="/"
+          onClick={handleExitToHome}
           className="pointer-events-auto absolute inset-x-0 top-1/2 flex -translate-y-1/2 justify-center md:hidden"
         >
           <Logo className="text-2xl" />
