@@ -124,7 +124,7 @@ export default function AccountSettingsSections() {
 
     try {
       const formData = new FormData();
-      formData.append("avatar", file);
+      formData.append("file", file);
 
       if (isOrganization) {
         await updateOrganizationAvatar(formData);
