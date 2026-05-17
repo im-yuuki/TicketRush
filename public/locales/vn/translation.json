@@ -1,4 +1,8 @@
 {
+  "promotionSection": {
+    "details": "Xem chi tiết",
+    "goToSlide": "Đi tới slide {{index}}"
+  },
   "navigation": {
     "menu": "Menu",
     "home": "Trang chủ",

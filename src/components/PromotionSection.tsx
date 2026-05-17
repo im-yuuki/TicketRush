@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import { Button } from '@heroui/react';
+import { useTranslation } from 'react-i18next';
 
 const promotions = [
   {
@@ -26,6 +27,7 @@ const promotions = [
 ];
 
 export default function PromotionSection() {
+  const { t } = useTranslation();
   const N = promotions.length;
   // Duplicate array 3 times to create an infinite scroll illusion
   const extendedPromotions = [...promotions, ...promotions, ...promotions];
@@ -110,7 +112,7 @@ export default function PromotionSection() {
                   className="bg-white text-black font-semibold rounded-md px-4 py-2 hover:bg-default-200 transition-colors"
                   size="sm"
                 >
-                  Xem chi tiết
+                  {t("promotionSection.details", "View details")}
                 </Button>
                 
                 <button className="bg-black/40 hover:bg-black/60 text-white rounded-md p-2 backdrop-blur-sm transition-colors">
@@ -153,7 +155,7 @@ export default function PromotionSection() {
               className={`w-2 h-2 rounded-full transition-colors ${
                 idx === activeDotIndex ? 'bg-white' : 'bg-white/30'
               }`}
-              aria-label={`Go to slide ${idx + 1}`}
+              aria-label={t("promotionSection.goToSlide", "Go to slide {{index}}", { index: idx + 1 })}
             />
           );
         })}

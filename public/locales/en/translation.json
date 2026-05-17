@@ -1,4 +1,8 @@
 {
+  "promotionSection": {
+    "details": "View details",
+    "goToSlide": "Go to slide {{index}}"
+  },
   "navigation": {
     "menu": "Menu",
     "home": "Home",
