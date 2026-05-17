@@ -1,20 +1,19 @@
 import { Avatar, Badge, Button, Drawer, Dropdown, Label } from "@heroui/react";
 import { Logo } from "./Branding.tsx";
-import { Bell, CalendarDays, LogOut, Menu, Settings, Ticket, UserRound } from "lucide-react";
+import { Bell, CalendarDays, LogOut, Menu, Settings, ShieldCheck, Ticket, UserRound } from "lucide-react";
 
-import { useEffect, useState, type Key, type Ref } from "react";
+import { useEffect, type Key, type Ref } from "react";
 import { useTranslation } from "react-i18next";
-import { languageOptions, changeLanguage, getCurrentLanguage } from "../i18n";
+import { languageOptions, changeLanguage, getLanguage } from "../i18n";
 import { Link, useNavigate } from "react-router";
 import { useAuth } from "../contexts/AuthContext";
 
 function LanguageSelector() {
   const { i18n } = useTranslation();
-  const [ language, setLanguage ] = useState(getCurrentLanguage());
+  const language = getLanguage(i18n.language) ?? languageOptions[0];
 
   function handleLanguageChange(key: Key) {
-    const selectedLanguage = changeLanguage(key.toString());
-    if (selectedLanguage) setLanguage(selectedLanguage);
+    changeLanguage(key.toString());
   }
 
   useEffect(() => {
@@ -76,6 +75,7 @@ function AccountButton() {
   const accountText = t("navigation.account", "Account");
   const myTicketsText = t("navigation.myTickets", "My Tickets");
   const myEventsText = t("navigation.myEvents", "Sự kiện của tôi");
+  const adminText = t("navigation.admin", "Admin");
   const notificationsText = t("navigation.notifications", "Notifications");
   const settingsText = t("navigation.settings", "Settings");
   const logoutText = t("navigation.logout", "Logout");
@@ -83,6 +83,7 @@ function AccountButton() {
   const loggedIn = isAuthenticated;
   const isOrganization = account?.role === "ORGANIZATION";
   const isUser = account?.role === "USER";
+  const isAdmin = account?.role === "ADMINISTRATOR";
   const userFullName = account?.displayName ?? "";
   const userEmail = account?.email ?? "";
   const userShortName = userFullName
@@ -96,6 +97,7 @@ function AccountButton() {
   const accountRoutes: Record<string, string> = {
     tickets: "/my-tickets",
     "organizer-events": "/organizer/events",
+    admin: "/admin",
   };
 
   async function handleAccountAction(key: Key) {
@@ -155,6 +157,12 @@ function AccountButton() {
               <Dropdown.Item id="organizer-events" key="organizer-events" textValue={myEventsText}>
                 <CalendarDays className="size-3.5 text-muted" />
                 <Label>{myEventsText}</Label>
+              </Dropdown.Item>
+            )}
+            {isAdmin && (
+              <Dropdown.Item id="admin" key="admin" textValue={adminText}>
+                <ShieldCheck className="size-3.5 text-muted" />
+                <Label>{adminText}</Label>
               </Dropdown.Item>
             )}
             <Dropdown.Item id="notifications" key="notifications" textValue={notificationsText}>
