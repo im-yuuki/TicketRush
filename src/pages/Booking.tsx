@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { ArrowLeft, CalendarDays, MapPin, Armchair, Loader2 } from "lucide-react";
-import { Button, Skeleton } from "@heroui/react";
+import { Button } from "@heroui/react";
 import SeatMap from "../components/SeatMap";
 import { Logo } from "../components/Branding";
 import { useEventData } from "../hooks/useEventData";
@@ -12,7 +12,7 @@ import { useBooking } from "../contexts/BookingContext";
 import { useAuth } from "../contexts/AuthContext";
 import { getPurchaseEvent, getSeatStatuses, createHold, addSeatToHold } from "../api/purchaseApi";
 import { buildLayoutFromZone, buildSeatIdMap, getOccupiedSeatIds } from "../utils/seatLayoutBuilder";
-import type { PurchaseEventView, ServerSeatZoneView, ServerTicketClassView } from "../types/seat";
+import type { PurchaseEventView, ServerSeatZoneView } from "../types/seat";
 import type { VenueLayout } from "../components/SeatMap";
 
 const TIER_COLORS = ["#ef4444", "#fcd34d", "#a3e635", "#86efac", "#5eead4", "#fca5a5", "#93c5fd", "#c084fc", "#fb923c"];
