@@ -1,6 +1,5 @@
 import { Button, Card, Input } from "@heroui/react";
-import { ShieldCheck } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 import { Navigate } from "react-router";
 import {
   createOrganization,
@@ -55,7 +54,7 @@ export default function AdminControl() {
     return <Navigate to="/login" replace />;
   }
 
-  async function handleLookup(event: FormEvent<HTMLFormElement>) {
+  async function handleLookup(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const query = lookupValue.trim();
@@ -110,7 +109,7 @@ export default function AdminControl() {
     }
   }
 
-  async function handleCreateOrganization(event: FormEvent<HTMLFormElement>) {
+  async function handleCreateOrganization(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setCreateState({ loading: "create", message: null, error: null });
 
@@ -131,28 +130,11 @@ export default function AdminControl() {
 
   return (
     <div className="mx-auto flex min-h-[calc(100dvh-6rem)] w-full max-w-6xl flex-col gap-6 px-4 py-8 md:px-6 lg:px-8">
-      <section className="rounded-3xl border border-border bg-[radial-gradient(circle_at_top_left,rgba(72,187,120,0.18),transparent_34%),linear-gradient(135deg,var(--surface),rgba(20,20,20,0.96))] p-6 shadow-2xl md:p-8">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-accent">Admin Control</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight md:text-4xl">
-              Resolve first, operate second.
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted md:text-base">
-              Look up an organization by public ID or alias, then use the resolved unique account ID for admin actions.
-            </p>
-          </div>
-          <div className="flex size-16 items-center justify-center rounded-2xl bg-accent text-accent-foreground shadow-lg">
-            <ShieldCheck className="size-8" />
-          </div>
-        </div>
-      </section>
-
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)]">
         <Card className="border border-border bg-surface/95">
           <Card.Header className="flex flex-col items-start gap-2 border-b border-border pb-4">
             <h2 className="text-xl font-bold">Find Account</h2>
-            <p className="text-sm text-muted">Use a numeric ID or organization alias from the public API.</p>
+            <p className="text-sm text-muted">Use account ID or organization alias.</p>
           </Card.Header>
           <Card.Content className="gap-5 p-5">
             <form onSubmit={handleLookup} className="flex flex-col gap-3 sm:flex-row">
@@ -183,13 +165,12 @@ export default function AdminControl() {
               <div className="rounded-2xl border border-border bg-background/60 p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-muted">Resolved Target</p>
                     <h3 className="mt-1 text-2xl font-black">{target.name}</h3>
                     <p className="mt-1 text-sm text-muted">@{target.aliasName || "no-alias"}</p>
                   </div>
                   <span
                     className={`w-fit rounded-full px-3 py-1 text-xs font-bold ${
-                      target.verified ? "bg-success/15 text-success" : "bg-warning/15 text-warning"
+                      target.verified ? "bg-success-soft text-success" : "bg-warning-soft text-warning"
                     }`}
                   >
                     {target.verified ? "Verified" : "Unverified"}
@@ -211,7 +192,7 @@ export default function AdminControl() {
                   </div>
                 </dl>
 
-                <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                <div className="mt-5 flex flex-col flex-1 gap-3 sm:flex-row">
                   <Button
                     type="button"
                     className="bg-success font-semibold text-success-foreground hover:bg-success/90"
@@ -252,7 +233,6 @@ export default function AdminControl() {
         <Card className="border border-border bg-surface/95">
           <Card.Header className="flex flex-col items-start gap-2 border-b border-border pb-4">
             <h2 className="text-xl font-bold">Create Organization</h2>
-            <p className="text-sm text-muted">Create a new organization account with admin privileges.</p>
           </Card.Header>
           <Card.Content className="p-5">
             <form onSubmit={handleCreateOrganization} className="space-y-4">
@@ -261,7 +241,8 @@ export default function AdminControl() {
                 <Input
                   value={organizationForm.name}
                   onInput={(event) => setOrganizationForm({ ...organizationForm, name: event.currentTarget.value })}
-                  placeholder="TicketRush Partner"
+                  placeholder="Partner name"
+                  className="w-full"
                   required
                 />
               </div>
@@ -271,17 +252,19 @@ export default function AdminControl() {
                   type="email"
                   value={organizationForm.email}
                   onInput={(event) => setOrganizationForm({ ...organizationForm, email: event.currentTarget.value })}
-                  placeholder="partner@example.com"
+                  placeholder="mail@example.com"
+                  className="w-full"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <label className="block text-sm font-bold">Temporary password</label>
+                <label className="block text-sm font-bold">Password</label>
                 <Input
                   type="password"
                   value={organizationForm.password}
                   onInput={(event) => setOrganizationForm({ ...organizationForm, password: event.currentTarget.value })}
-                  placeholder="Minimum backend requirement"
+                  placeholder="Password"
+                  className="w-full"
                   required
                 />
               </div>
