@@ -15,6 +15,7 @@ export interface OrgBasicEventInfo {
 	dateTime: string;
 	venue: string;
 	minimumTicketPrice: number;
+	published: boolean;
 }
 
 export interface OrgFullEventInfo {

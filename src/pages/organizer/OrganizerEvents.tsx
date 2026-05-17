@@ -28,7 +28,7 @@ export default function OrganizerEvents() {
         const backendEvents = await getOrgEvents();
         if (!isMounted) return;
 
-        const publishedEvents = backendEvents.map(
+        const allBackendEvents = backendEvents.map(
           (ev) =>
             ({
               id: String(ev.id),
@@ -36,8 +36,8 @@ export default function OrganizerEvents() {
               start: ev.dateTime,
               venueName: ev.venue,
               bannerImageUrl: ev.bannerUrl,
-              status: "Đã duyệt",
-              published: true,
+              status: ev.published ? "Đã duyệt" : "Nháp",
+              published: ev.published,
               showtimeCount: 1,
               ticketTypeCount: 1,
               createdAt: ev.dateTime,
@@ -46,12 +46,12 @@ export default function OrganizerEvents() {
 
         setCreatedEvents(() => {
           const localEvents = organizerEventsService.list();
-          const backendIds = new Set(publishedEvents.map((e) => e.id));
-          const drafts = localEvents.filter(
+          const backendIds = new Set(allBackendEvents.map((e) => e.id));
+          const localOnlyDrafts = localEvents.filter(
             (e) => !backendIds.has(e.id) && !e.published
           );
 
-          return [...publishedEvents, ...drafts].sort(
+          return [...allBackendEvents, ...localOnlyDrafts].sort(
             (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           );
         });
@@ -86,8 +86,8 @@ export default function OrganizerEvents() {
     if (activeTab === "draft") {
       return filtered.filter((event) => !event.published);
     }
-    // upcoming / past — placeholder logic, show all for now
-    return filtered;
+    // upcoming / past — only show published events
+    return filtered.filter((event) => event.published);
   }, [activeTab, createdEvents, searchQuery]);
 
   return (

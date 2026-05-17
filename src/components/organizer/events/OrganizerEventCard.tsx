@@ -12,6 +12,7 @@ import {
   publishOrganizerEvent,
   type StoredOrganizerEvent,
 } from "../../../api/organizerEventsService";
+import { deleteEvent } from "../../../api/organization";
 import { useLocalImageUrl } from "../../../utils/useLocalImageUrl";
 import {
   formatStoredEventDate,
@@ -161,7 +162,19 @@ export default function OrganizerEventCard({ event }: { event: StoredOrganizerEv
                   t("organizer.events.deleteConfirm", { title: event.title }),
                 );
                 if (confirmed) {
-                  organizerEventsService.remove(event.id);
+                  const numericId = Number(event.id);
+                  if (Number.isFinite(numericId) && numericId > 0) {
+                    deleteEvent(numericId)
+                      .then(() => {
+                        organizerEventsService.remove(event.id);
+                      })
+                      .catch((err) => {
+                        console.error("Failed to delete event on server:", err);
+                        window.alert("Không thể xoá sự kiện trên server");
+                      });
+                  } else {
+                    organizerEventsService.remove(event.id);
+                  }
                 }
               }
             }}
