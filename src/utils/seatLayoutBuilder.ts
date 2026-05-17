@@ -91,8 +91,10 @@ export function seatIdToLabel(seatId: string): string {
 export function buildSeatIdMap(zone: ServerSeatZoneView): Record<string, number> {
   const map: Record<string, number> = {};
   for (const row of zone.rows) {
+    let seatIndex = 1;
     for (const seat of row.seats) {
-      map[`${zone.id}-${row.label}-${seat.number}`] = seat.id;
+      map[`${zone.id}-${row.label}-${seatIndex}`] = seat.id;
+      seatIndex++;
     }
   }
   return map;
@@ -105,10 +107,12 @@ export function buildSeatIdMap(zone: ServerSeatZoneView): Record<string, number>
 export function getOccupiedSeatIds(zone: ServerSeatZoneView): string[] {
   const occupied: string[] = [];
   for (const row of zone.rows) {
+    let seatIndex = 1;
     for (const seat of row.seats) {
       if (seat.availability !== "AVAILABLE") {
-        occupied.push(`${zone.id}-${row.label}-${seat.number}`);
+        occupied.push(`${zone.id}-${row.label}-${seatIndex}`);
       }
+      seatIndex++;
     }
   }
   return occupied;

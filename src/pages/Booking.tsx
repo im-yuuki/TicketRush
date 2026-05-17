@@ -173,14 +173,13 @@ export default function Booking() {
     if (selectedSeats.length === 0 || !event || !selectedTier) return;
     setIsSubmitting(true);
 
-	console.log("Selected seats:", selectedSeats);
+    console.log("seatIdMap entries:", Object.entries(seatIdMap).slice(0, 10));
+    console.log("selectedSeats:", selectedSeats);
 
     try {
       const selectedServerSeatIds = selectedSeats
         .map(id => seatIdMap[id])
         .filter((id): id is number => id !== undefined);
-
-	  console.log("Mapped server seat IDs:", selectedServerSeatIds);
 
       let holdId: string;
       let holdExpiresAt: string;
