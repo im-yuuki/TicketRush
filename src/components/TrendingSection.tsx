@@ -126,7 +126,7 @@ export default function TrendingSection({ className }: { className?: string }) {
             category: "",
             date: item.dateTime ?? "",
             location: item.venue ?? "",
-            price: 0,
+            price: item.minimumTicketPrice,
             image: item.bannerUrl ?? "",
             rank: idx + 1,
           })),

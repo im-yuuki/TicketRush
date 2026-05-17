@@ -14,6 +14,7 @@ export interface OrgBasicEventInfo {
 	bannerUrl: string;
 	dateTime: string;
 	venue: string;
+	minimumTicketPrice: number;
 }
 
 export interface OrgFullEventInfo {

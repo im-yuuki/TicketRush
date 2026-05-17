@@ -152,7 +152,7 @@ export default function RecommendEventSection({
             category: "",
             date: item.dateTime ?? "",
             location: item.venue ?? "",
-            price: 0,
+            price: item.minimumTicketPrice,
             image: item.bannerUrl ?? "",
           })),
         );
