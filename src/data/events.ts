@@ -97,6 +97,7 @@ const MOCK_EVENTS: Record<string, EventData> = {
 };
 
 function mapStoredOrganizerEventToEventData(event: StoredOrganizerEvent): EventData {
+  const previewId = getStoredOrganizerEventPreviewId(event);
   const ticketTiers =
     event.ticketTiers && event.ticketTiers.length > 0
       ? event.ticketTiers
@@ -143,7 +144,7 @@ function mapStoredOrganizerEventToEventData(event: StoredOrganizerEvent): EventD
       ];
 
   return {
-    id: getStoredOrganizerEventPreviewId(event),
+    id: `-${previewId}`,
     title: event.title,
     category: "organizer-preview",
     date: event.start,
@@ -165,20 +166,33 @@ function mapStoredOrganizerEventToEventData(event: StoredOrganizerEvent): EventD
   };
 }
 
+function getOrganizerPreviewIdFromRoute(id: string): string | null {
+  if (id.startsWith("-")) {
+    const previewId = id.slice(1);
+    return previewId || null;
+  }
+
+  const slugMatch = id.match(/^[a-z0-9][a-z0-9-]*-(\d+)$/i);
+  return slugMatch?.[1] ?? null;
+}
+
 /** Look up a single event by id. Swap this for a real fetch() later. */
 export function getEvent(id: string | undefined): EventData | null {
   if (!id) return null;
-  const previewId = id.match(/(?:^|-)(\d+)$/)?.[1] ?? id;
-  const storedOrganizerEvent = organizerEventsService.findByPreviewId(previewId);
-  if (storedOrganizerEvent) {
-    return mapStoredOrganizerEventToEventData(storedOrganizerEvent);
+  const normalizedId = id.trim();
+  const isExplicitPreviewRoute = normalizedId.startsWith("-");
+  const previewId = getOrganizerPreviewIdFromRoute(normalizedId);
+  if (isExplicitPreviewRoute || previewId) {
+    if (!previewId) return null;
+    const storedOrganizerEvent = organizerEventsService.findByPreviewId(previewId);
+    return storedOrganizerEvent ? mapStoredOrganizerEventToEventData(storedOrganizerEvent) : null;
   }
 
   // Numeric IDs need async fetch — return null here, caller should use fetchEventById
-  if (/^\d+$/.test(id)) return null;
+  if (/^\d+$/.test(normalizedId)) return null;
 
   // Dev fallback: unknown ids show the "test" event. Remove when wiring real data.
-  return MOCK_EVENTS[id] ?? MOCK_EVENTS.test ?? null;
+  return MOCK_EVENTS[normalizedId] ?? MOCK_EVENTS.test ?? null;
 }
 
 /** Map backend PublicEventInfo to frontend EventData */

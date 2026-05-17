@@ -6,6 +6,7 @@ import type { KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import {
+  getServerIds,
   getStoredOrganizerEventPreviewId,
   organizerEventsService,
   publishOrganizerEvent,
@@ -35,17 +36,29 @@ function EventPoster({ imageUrl, title }: { imageUrl?: string; title: string }) 
   );
 }
 
+function getPublishedEventPath(event: StoredOrganizerEvent, previewId: string) {
+  const serverIds = getServerIds(previewId) ?? getServerIds(event.id);
+  const numericEventId = serverIds?.eventId ?? Number(event.id);
+
+  if (event.published && Number.isFinite(numericEventId) && numericEventId > 0) {
+    return `/events/${numericEventId}`;
+  }
+
+  return `/-${previewId}`;
+}
+
 export default function OrganizerEventCard({ event }: { event: StoredOrganizerEvent }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const storedBannerImageUrl = useLocalImageUrl(event.bannerImageKey);
-  const previewPath = `/-${getStoredOrganizerEventPreviewId(event)}`;
+  const previewId = getStoredOrganizerEventPreviewId(event);
+  const eventPath = getPublishedEventPath(event, previewId);
   const editPath = `/organizer/events/${event.id}/edit`;
   const seatsPath = `/organizer/events/${event.id}/seats`;
   const [isPublishing, setIsPublishing] = useState(false);
 
   function openEventPreview() {
-    navigate(previewPath);
+    navigate(eventPath);
   }
 
   function openEventEditor() {

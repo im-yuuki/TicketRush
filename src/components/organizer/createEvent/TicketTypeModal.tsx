@@ -25,15 +25,21 @@ export default function TicketTypeModal({
   const [totalQuantity, setTotalQuantity] = useState(initialTicket?.totalQuantity ?? "10");
   const [minPerOrder, setMinPerOrder] = useState(initialTicket?.minPerOrder ?? "1");
   const [maxPerOrder, setMaxPerOrder] = useState(initialTicket?.maxPerOrder ?? "10");
-  const [saleStart, setSaleStart] = useState(initialTicket?.saleStart ?? "2026-05-07T22:28");
-  const [saleEnd, setSaleEnd] = useState(initialTicket?.saleEnd ?? "2026-05-06T00:00");
+  const [saleStart, setSaleStart] = useState(initialTicket?.saleStart ?? "");
+  const [saleEnd, setSaleEnd] = useState(initialTicket?.saleEnd ?? "");
   const [description, setDescription] = useState(initialTicket?.description ?? "");
   const [isFree, setIsFree] = useState(initialTicket?.isFree ?? false);
 
   function handleSave() {
+    const trimmedTicketName = ticketName.trim();
+    if (trimmedTicketName.length < 3 || trimmedTicketName.length > 50) {
+      window.alert("Ten ve phai tu 3 den 50 ky tu");
+      return;
+    }
+
     onSave({
       id: initialTicket?.id ?? Date.now(),
-      name: ticketName.trim() || t("organizer.create.ticketModal.untitledTicket", "Vé chưa đặt tên"),
+      name: trimmedTicketName,
       price: isFree ? "0" : price,
       isFree,
       totalQuantity,
