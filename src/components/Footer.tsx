@@ -34,7 +34,7 @@ export default function Footer({ className }: { className?: string }) {
   return (
     <footer className={className}>
       <div className="container mx-auto flex flex-col md:flex-row flex-wrap p-4 md:px-6 lg:px-8 gap-6">
-        <div className="flex-2 flex flex-col">
+        <div className="flex-1 flex flex-col">
           <div className="mb-4">
             <Logo className="text-3xl" accentColor={false} />
             <p className="text-muted">{sloganText}</p>

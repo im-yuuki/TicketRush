@@ -12,7 +12,20 @@
     "myEvents": "Sự kiện của tôi",
     "notifications": "Thông báo",
     "settings": "Cài đặt",
-    "logout": "Đăng xuất"
+    "logout": "Đăng xuất",
+    "searchLabel": "Tìm kiếm",
+    "searchPlaceholder": "Tìm kiếm sự kiện, ban tổ chức, ..."
+  },
+  "search": {
+    "close": "Đóng tìm kiếm",
+    "startTyping": "Nhập từ khóa để tìm kiếm...",
+    "loading": "Đang tìm kiếm...",
+    "empty": "Không tìm thấy kết quả phù hợp.",
+    "error": "Không thể tìm kiếm lúc này.",
+    "event": "Sự kiện",
+    "organization": "Ban tổ chức",
+    "organizationUnavailable": "Trang ban tổ chức sẽ được bổ sung sau",
+    "unnamed": "Chưa có tên"
   },
   "organizer": {
     "layout": {
@@ -409,4 +422,3 @@
     "paymentConfirmedDesc": "Vé sẽ được gửi về email của bạn trong ít phút."
   }
 }
-
