@@ -75,7 +75,7 @@ function EventCard({ event }: { event: RecommendEvent }) {
   const fromText = t("recommend.from", "Chỉ từ");
 
   const handleClick = () => navigate(`/events/${event.id}`);
-  const hasImage = event.image.length > 0;
+  const hasImage = (event.image?.length ?? 0) > 0;
 
   return (
     <button
@@ -146,14 +146,14 @@ export default function RecommendEventSection({
         const data = await getRecommendedEvents();
         if (!isMounted) return;
         setEvents(
-          data.map((item) => ({
+          (data ?? []).map((item) => ({
             id: String(item.id),
-            title: item.name,
+            title: item.name ?? "",
             category: "",
-            date: item.dateTime,
-            location: item.venue,
+            date: item.dateTime ?? "",
+            location: item.venue ?? "",
             price: 0,
-            image: item.bannerUrl,
+            image: item.bannerUrl ?? "",
           })),
         );
       } catch {

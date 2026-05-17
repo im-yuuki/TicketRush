@@ -120,14 +120,14 @@ export default function TrendingSection({ className }: { className?: string }) {
         const data = await getTrendingEvents();
         if (!isMounted) return;
         setEvents(
-          data.map((item, idx) => ({
+          (data ?? []).map((item, idx) => ({
             id: String(item.id),
-            title: item.name,
+            title: item.name ?? "",
             category: "",
-            date: item.dateTime,
-            location: item.venue,
+            date: item.dateTime ?? "",
+            location: item.venue ?? "",
             price: 0,
-            image: item.bannerUrl,
+            image: item.bannerUrl ?? "",
             rank: idx + 1,
           })),
         );

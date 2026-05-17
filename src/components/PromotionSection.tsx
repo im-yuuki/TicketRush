@@ -16,10 +16,10 @@ export default function PromotionSection() {
         const data = await getPromotedEvents();
         if (!isMounted) return;
         setPromotions(
-          data.map((item) => ({
+          (data ?? []).map((item) => ({
             id: item.id,
-            title: item.name,
-            image: item.bannerUrl,
+            title: item.name ?? "",
+            image: item.bannerUrl ?? "",
           })),
         );
       } catch {
