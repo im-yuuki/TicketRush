@@ -1,5 +1,5 @@
 import { Avatar, Badge, Button, Dropdown, Label } from "@heroui/react";
-import { Bell, CalendarDays, ChevronDown, LogOut, Settings, Ticket, UserRound } from "lucide-react";
+import { Bell, CalendarDays, ChevronDown, LogOut, Settings, ShieldCheck, Ticket, UserRound } from "lucide-react";
 import { type Key } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
@@ -16,7 +16,8 @@ export default function AccountButton({ variant = "compact" }: { variant?: Varia
 
   const accountText = t("navigation.account", "Account");
   const myTicketsText = t("navigation.myTickets", "My Tickets");
-  const myEventsText = t("navigation.myEvents", "Sự kiện của tôi");
+  const myEventsText = t("navigation.myEvents", "My Events");
+  const adminText = t("navigation.admin", "Administration");
   const notificationsText = t("navigation.notifications", "Notifications");
   const settingsText = t("navigation.settings", "Settings");
   const logoutText = t("navigation.logout", "Logout");
@@ -24,6 +25,7 @@ export default function AccountButton({ variant = "compact" }: { variant?: Varia
   const loggedIn = isAuthenticated;
   const isOrganization = account?.role === "ORGANIZATION";
   const isUser = account?.role === "USER";
+  const isAdmin = account?.role === "ADMINISTRATOR";
   const userFullName = account?.displayName ?? "";
   const userEmail = account?.email ?? "";
   const userShortName = userFullName
@@ -38,6 +40,7 @@ export default function AccountButton({ variant = "compact" }: { variant?: Varia
     account: isOrganization ? "/organizer/profile" : "/account",
     tickets: "/my-tickets",
     "organizer-events": "/organizer/events",
+    admin: "/admin",
     settings: isOrganization ? "/organizer/settings" : "/settings",
   };
 
@@ -110,6 +113,12 @@ export default function AccountButton({ variant = "compact" }: { variant?: Varia
               <Dropdown.Item id="organizer-events" key="organizer-events" textValue={myEventsText}>
                 <CalendarDays className="size-3.5 text-muted" />
                 <Label>{myEventsText}</Label>
+              </Dropdown.Item>
+            )}
+            {isAdmin && (
+              <Dropdown.Item id="admin" key="admin" textValue={adminText}>
+                <ShieldCheck className="size-3.5 text-muted" />
+                <Label>{adminText}</Label>
               </Dropdown.Item>
             )}
             <Dropdown.Item id="notifications" key="notifications" textValue={notificationsText}>

@@ -2,19 +2,18 @@ import { Button, Drawer, Dropdown, Label } from "@heroui/react";
 import { Logo } from "./Branding.tsx";
 import { Menu } from "lucide-react";
 
-import { useEffect, useState, type Key, type Ref } from "react";
+import { useEffect, type Key, type Ref } from "react";
 import { useTranslation } from "react-i18next";
-import { languageOptions, changeLanguage, getCurrentLanguage } from "../i18n";
+import { languageOptions, changeLanguage, getLanguage } from "../i18n";
 import { Link } from "react-router";
 import AccountButton from "./AccountButton";
 
 function LanguageSelector() {
   const { i18n } = useTranslation();
-  const [ language, setLanguage ] = useState(getCurrentLanguage());
+  const language = getLanguage(i18n.language) ?? languageOptions[0];
 
   function handleLanguageChange(key: Key) {
-    const selectedLanguage = changeLanguage(key.toString());
-    if (selectedLanguage) setLanguage(selectedLanguage);
+    changeLanguage(key.toString());
   }
 
   useEffect(() => {
