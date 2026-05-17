@@ -37,7 +37,7 @@ body,
   -moz-osx-font-smoothing: grayscale;
 
   /* Theme Colors (Light Mode, default) */
-  --accent: oklch(83.77% 0.1655 81.92);
+  --accent: oklch(75.36% 0.17677 58.64);
   --accent-foreground: oklch(15% 0.03 81.92);
   --background: oklch(97.02% 0 81.92);
   --border: oklch(90% 0 81.92);
@@ -48,7 +48,7 @@ body,
   --field-background: oklch(100% 0 81.92);
   --field-foreground: oklch(21.03% 0 81.92);
   --field-placeholder: oklch(55.17% 0 81.92);
-  --focus: oklch(83.77% 0.1655 81.92);
+  --focus: oklch(75.36% 0.17688 58.91);
   --foreground: oklch(21.03% 0 81.92);
   --muted: oklch(55.17% 0 81.92);
   --overlay: oklch(100% 0 81.92);

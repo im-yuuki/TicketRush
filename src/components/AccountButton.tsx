@@ -12,7 +12,7 @@ export default function AccountButton({ variant = "compact" }: { variant?: Varia
   const navigate = useNavigate();
   const { account, isAuthenticated, logout } = useAuth();
   const loginText = t("navigation.login", "Login");
-  const unreadNotifications = 5;
+  const unreadNotifications = 0;
 
   const accountText = t("navigation.account", "Account");
   const myTicketsText = t("navigation.myTickets", "My Tickets");

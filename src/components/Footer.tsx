@@ -18,6 +18,7 @@ export default function Footer({ className }: { className?: string }) {
   const aboutUsText = t("footer.aboutUsCapitalized", "ABOUT US");
   const privacyPolicyText = t("footer.privacyPolicy", "Privacy Policy");
   const termsOfServiceText = t("footer.termsOfService", "Terms of Service");
+  const becomePartnerText = t("footer.becomePartner", "Become a Partner");
   const linksText = t("footer.linksCapitalized", "LINKS");
   const supportText = t("footer.support", "Support");
   const copyrightText = t("footer.copyright", "Copyright");
@@ -38,40 +39,30 @@ export default function Footer({ className }: { className?: string }) {
             <Logo className="text-3xl" accentColor={false} />
             <p className="text-muted">{sloganText}</p>
           </div>
-          <table className="text-sm text-muted border-collapse">
-            <tbody>
-            <tr>
-              <td className="w-0 pr-2 pb-1">
-                <Building height={16} />
-              </td>
-              <td className="min-w-0 wrap-break-words pb-1">
-                <Link
-                  to={officeMapUrl}
-                  target="_blank"
-                  className="hover:text-foreground"
-                >
-                  {officeAddressText}
-                </Link>
-              </td>
-            </tr>
-            <tr>
-              <td className="w-0 pr-2 pb-1">
-                <Mail height={16} />
-              </td>
-              <Link to={`mailto:${email}`} className="hover:text-foreground">
-                <td className="min-w-0 wrap-break-words pb-1">{email}</td>
-              </Link>
-            </tr>
-            <tr>
-              <td className="w-0 pr-2 pb-1">
-                <Phone height={16} />
-              </td>
-              <Link to={`tel:${telephone}`} className="hover:text-foreground">
-                <td className="min-w-0 wrap-break-words pb-1">{telephone}</td>
-              </Link>
-            </tr>
-            </tbody>
-          </table>
+          <div className="flex flex-col gap-1 text-sm text-muted">
+            <Link
+              to={officeMapUrl}
+              target="_blank"
+              className="grid min-w-0 grid-cols-[1rem_minmax(0,1fr)] items-start gap-2 hover:text-foreground"
+            >
+              <Building size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
+              <span className="min-w-0 wrap-break-word">{officeAddressText}</span>
+            </Link>
+            <Link
+              to={`mailto:${email}`}
+              className="grid min-w-0 grid-cols-[1rem_minmax(0,1fr)] items-start gap-2 hover:text-foreground"
+            >
+              <Mail size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
+              <span className="min-w-0 wrap-break-word">{email}</span>
+            </Link>
+            <Link
+              to={`tel:${telephone.replace(/\s/g, "")}`}
+              className="grid min-w-0 grid-cols-[1rem_minmax(0,1fr)] items-start gap-2 hover:text-foreground"
+            >
+              <Phone size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
+              <span className="min-w-0 wrap-break-word">{telephone}</span>
+            </Link>
+          </div>
         </div>
         <div className="flex-1 flex flex-col gap-1">
           <p className="font-bold mb-1">{aboutUsText}</p>
@@ -87,14 +78,20 @@ export default function Footer({ className }: { className?: string }) {
           >
             {termsOfServiceText}
           </Link>
+          <Link
+            to={facebookUrl} target="_blank"
+            className="text-sm text-muted hover:text-foreground"
+          >
+            {becomePartnerText}
+          </Link>
+          <Link to="#" className="text-sm text-muted hover:text-foreground">
+            {serverStatusText}
+          </Link>
         </div>
         <div className="flex-1 flex flex-col gap-1">
           <p className="font-bold  mb-1">{linksText}</p>
           <Link to="#" className="text-sm text-muted hover:text-foreground">
             {supportText}
-          </Link>
-          <Link to="#" className="text-sm text-muted hover:text-foreground">
-            {serverStatusText}
           </Link>
           <p className="font-bold mt-4 mb-1">{followUsText}</p>
           <div className="flex gap-2">

@@ -12,7 +12,7 @@
   },
   "organizer": {
     "layout": {
-      "center": "Organizer Center",
+      "center": "Trung tâm Ban tổ chức",
       "language": "Ngôn ngữ",
       "navLabel": "Quản lý",
       "nav": {
@@ -100,7 +100,7 @@
         "saleStart": "Thời gian bắt đầu bán vé",
         "saleEnd": "Thời gian kết thúc bán vé",
         "ticketInfo": "Thông tin vé",
-        "descriptionPlaceholder": "Description",
+        "descriptionPlaceholder": "Mô tả về loại vé này, bao gồm những quyền lợi, quy định hoặc thông tin quan trọng mà người mua cần biết.",
         "ticketImage": "Hình ảnh vé",
         "addImage": "Thêm",
         "save": "Lưu"
@@ -265,12 +265,13 @@
     "copyright": "Bản quyền © 2026 TicketRush. Mọi quyền được bảo lưu.",
     "officeAddress": "123 Main Street, City, Country",
     "aboutUsCapitalized": "VỀ CHÚNG TÔI",
-    "privacyPolicy": "Chính sách quyền riêng tư",
+    "privacyPolicy": "Chính sách Quyền riêng tư",
     "termsOfService": "Điều khoản dịch vụ",
+    "becomePartner": "Trở thành Đối tác",
+    "serverStatus": "Trạng thái Máy chủ",
     "linksCapitalized": "LIÊN KẾT",
     "support": "Hỗ trợ",
-    "followUsCapitalized": "THEO DÕI CHÚNG TÔI",
-    "serverStatus": "Trạng thái máy chủ"
+    "followUsCapitalized": "THEO DÕI CHÚNG TÔI"
   },
   "recommend": {
     "title": "Đề xuất cho bạn",

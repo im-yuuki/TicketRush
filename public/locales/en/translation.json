@@ -267,10 +267,11 @@
     "aboutUsCapitalized": "ABOUT US",
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
+    "becomePartner": "Become a Partner",
+    "serverStatus": "Server Status",
     "linksCapitalized": "LINKS",
     "support": "Support",
-    "followUsCapitalized": "FOLLOW US",
-    "serverStatus": "Server status"
+    "followUsCapitalized": "FOLLOW US"
   },
   "recommend": {
     "title": "Recommended For You",
