@@ -142,9 +142,12 @@ export async function createEventOnServer(
   const address = isOnline ? "Online" : addressParts.join(", ");
   const venue = isOnline ? "Online" : (event.venueName || "TBD");
 
-  // Validate required date
+  // Validate required date — must be in the future
   if (!event.start || isNaN(Date.parse(event.start))) {
     return { success: false, message: "Vui lòng chọn ngày giờ cho sự kiện" };
+  }
+  if (new Date(event.start) <= new Date()) {
+    return { success: false, message: "Ngày giờ sự kiện phải sau thời điểm hiện tại" };
   }
 
   const createResult = await createEvent({
@@ -186,12 +189,18 @@ export async function createEventOnServer(
   const showTimes = event.showTimes ?? [];
 
   for (const showTime of showTimes) {
-    // Validate showTime dates
+    // Validate showTime dates — must be in the future
     if (!showTime.start || isNaN(Date.parse(showTime.start))) {
       return { success: false, message: `Suất diễn "${showTime.name}": thiếu thời gian bắt đầu` };
     }
+    if (new Date(showTime.start) <= new Date()) {
+      return { success: false, message: `Suất diễn "${showTime.name}": thời gian bắt đầu phải sau hiện tại` };
+    }
     if (!showTime.end || isNaN(Date.parse(showTime.end))) {
       return { success: false, message: `Suất diễn "${showTime.name}": thiếu thời gian kết thúc` };
+    }
+    if (new Date(showTime.end) <= new Date(showTime.start)) {
+      return { success: false, message: `Suất diễn "${showTime.name}": thời gian kết thúc phải sau thời gian bắt đầu` };
     }
 
     const maxPerTicket = showTime.tickets

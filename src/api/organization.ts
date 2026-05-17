@@ -65,6 +65,26 @@ export interface CreateTicketClassPayload {
 	seatZoneId: number;
 }
 
+export interface FullOrganizationInfo {
+	id: number;
+	name: string;
+	email: string;
+	createdAt: string;
+	updatedAt: string;
+	verified: boolean;
+	description: string;
+	aliasName: string;
+	avatarUrl: string;
+	bannerUrl: string;
+	websiteUrl: string;
+}
+
+export interface UpdateOrganizationInfoPayload {
+	description?: string;
+	aliasName?: string;
+	websiteUrl?: string;
+}
+
 // ── API Functions ────────────────────────────────────────────
 
 export function createEvent(payload: CreateEventPayload) {
@@ -128,4 +148,22 @@ export function createTicketClass(eventId: number, payload: CreateTicketClassPay
 		`/organization/events/${eventId}/ticket-classes`,
 		payload,
 	);
+}
+
+// ── Organization Profile ────────────────────────────────────
+
+export function getOrganizationInfo() {
+	return apiGet<FullOrganizationInfo>("/organization");
+}
+
+export function updateOrganizationInfo(payload: UpdateOrganizationInfoPayload) {
+	return apiPatch<OperationResult, UpdateOrganizationInfoPayload>("/organization", payload);
+}
+
+export function updateOrganizationAvatar(formData: FormData) {
+	return apiPut<OperationResult, FormData>("/organization/avatar", formData);
+}
+
+export function updateOrganizationBanner(formData: FormData) {
+	return apiPut<OperationResult, FormData>("/organization/banner", formData);
 }
