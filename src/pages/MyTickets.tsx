@@ -1,12 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  Button,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-} from "@heroui/react";
+import { Button, Modal } from "@heroui/react";
 import { useTranslation } from "react-i18next";
 import { CalendarDays, MapPin, Ticket, Armchair } from "lucide-react";
 
@@ -160,17 +153,17 @@ export default function MyTickets() {
         )}
       </section>
 
-      <Modal
-        isOpen={selectedTicket !== null}
-        onOpenChange={(open) => {
-          if (!open) setSelectedTicket(null);
-        }}
-      >
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader>{t("tickets.qrTitle", "Ticket QR Code")}</ModalHeader>
-              <ModalBody>
+      <Modal>
+        <Modal.Backdrop
+          isOpen={selectedTicket !== null}
+          onOpenChange={(open) => {
+            if (!open) setSelectedTicket(null);
+          }}
+        >
+          <Modal.Container>
+            <Modal.Dialog>
+              <Modal.Header>{t("tickets.qrTitle", "Ticket QR Code")}</Modal.Header>
+              <Modal.Body>
                 <div className="flex flex-col items-center gap-3">
                   <img
                     src={qrCodeUrl}
@@ -187,21 +180,15 @@ export default function MyTickets() {
                     </p>
                   </div>
                 </div>
-              </ModalBody>
-              <ModalFooter>
-                <Button
-                  variant="tertiary"
-                  onPress={() => {
-                    onClose();
-                    setSelectedTicket(null);
-                  }}
-                >
+              </Modal.Body>
+              <Modal.Footer>
+                <Button variant="tertiary" slot="close">
                   {t("common.close", "Close")}
                 </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
       </Modal>
     </main>
   );
