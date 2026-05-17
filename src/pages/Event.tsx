@@ -8,7 +8,7 @@ import ExpandableCard from "../components/ExpandableCard";
 import { useEvent } from "../layouts/eventContext";
 import { useLocalImageUrl } from "../utils/useLocalImageUrl";
 import { getEventInfo, getOrganizationInfo } from "../api/public";
-import { followOrganization } from "../api/user";
+import { followOrganization, unfollowOrganization } from "../api/user";
 import type { ShowTime } from "../types/organizerCreate";
 
 function formatPrice(value: number, lang: string) {
@@ -258,11 +258,16 @@ export default function Event() {
   }, [event.id, event.organizerDescription]);
 
   const handleFollow = async () => {
-    if (!organizerId || isFollowLoading || isFollowed) return;
+    if (!organizerId || isFollowLoading) return;
     setIsFollowLoading(true);
     try {
-      await followOrganization(organizerId);
-      setIsFollowed(true);
+      if (isFollowed) {
+        await unfollowOrganization(organizerId);
+        setIsFollowed(false);
+      } else {
+        await followOrganization(organizerId);
+        setIsFollowed(true);
+      }
     } finally {
       setIsFollowLoading(false);
     }
@@ -334,7 +339,7 @@ export default function Event() {
                 variant="tertiary"
                 className="border border-border"
                 onClick={handleFollow}
-                isDisabled={!organizerId || isFollowLoading || isFollowed}
+                isDisabled={!organizerId || isFollowLoading}
               >
                 <Plus className="size-4" />
                 {isFollowLoading ? "..." : followLabel}
