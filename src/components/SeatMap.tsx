@@ -77,27 +77,6 @@ const seatStyles: Record<SeatStatus, CSSProperties> = {
   },
 };
 
-const stageStyle: CSSProperties = {
-  position: "relative",
-  width: "60%",
-  maxWidth: 520,
-  height: 72,
-  margin: "0 auto 32px",
-  background: "linear-gradient(135deg, oklch(90% 0.1 81.92) 0%, oklch(83.77% 0.1655 81.92) 100%)",
-  borderRadius: "0 0 50% 50% / 0 0 40% 40%",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  boxShadow: "0 8px 32px oklch(83.77% 0.1655 81.92 / 0.25), 0 0 60px oklch(83.77% 0.1655 81.92 / 0.10)",
-  overflow: "hidden",
-};
-
-const stageOverlay: CSSProperties = {
-  position: "absolute",
-  inset: 0,
-  background: "repeating-linear-gradient(90deg, transparent, transparent 18px, oklch(100% 0 0 / 0.06) 18px, oklch(100% 0 0 / 0.06) 20px)",
-};
-
 const swatchBase: CSSProperties = {
   width: 16,
   height: 16,
@@ -261,27 +240,15 @@ export default function SeatMap({ layout, bookedSeatIds = [], onSelectionChange,
     return Array.from(selectedSeatIds)
       .map((id) => {
         const parts = id.split("-");
-        return `${parts[1]}${parts[2]}`; // format "A1", "B2"
+        const row = parts[parts.length - 2];
+        const num = parts[parts.length - 1];
+        return `${row}${num}`; // format "A1", "B2"
       })
       .sort();
   }, [selectedSeatIds]);
 
   return (
     <div className="w-full overflow-x-auto overflow-y-visible" id="seat-map">
-      {/* ── Stage ──────────────────────────────────────────────────── */}
-      <motion.div
-        style={stageStyle}
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-      >
-        <div style={stageOverlay} />
-        <span className="relative z-10 font-bold text-[0.95rem] tracking-[0.18em] uppercase"
-          style={{ color: "oklch(15% 0.03 81.92)" }}>
-          {t("seatMap.stage")}
-        </span>
-      </motion.div>
-
       {/* ── Seating Blocks ─────────────────────────────────────────── */}
       <motion.div
         className="flex justify-center min-w-fit"

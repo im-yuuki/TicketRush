@@ -18,7 +18,7 @@ import { EventMarquee } from "../components/booking/EventMarquee";
 import { Section } from "../components/booking/Section";
 import { formatPrice, formatDateTime } from "../utils/format";
 import { useCountdown } from "../utils/useCountdown";
-import { computeSeatGroups, computeTotalAmount } from "../utils/seatGroups";
+import { seatIdToLabel } from "../utils/seatLayoutBuilder";
 import { useBooking } from "../contexts/BookingContext";
 
 type PaymentMethod = "bank_transfer" | "credit_card";
@@ -107,7 +107,8 @@ export default function Payment() {
 
   // Read from context instead of location.state
   const selectedSeats = booking?.selectedSeats || [];
-  const seatToTierMap = booking?.seatToTierMap || {};
+  const tierName = booking?.selectedTierName || "";
+  const tierPrice = booking?.selectedTierPrice || 0;
   const fullName = booking?.fullName || "";
   const email = booking?.email || "";
   const phone = booking?.phone || "";
@@ -125,13 +126,8 @@ export default function Payment() {
     navigate(`/events/${eventId}/booking`);
   }, [expired, eventId, navigate, booking?.expiresAt]);
 
-  // Seat groups
-  const seatGroups = useMemo(() => {
-    if (!event) return [];
-    return computeSeatGroups(selectedSeats, seatToTierMap, event.ticketTiers, event.price);
-  }, [event, selectedSeats, seatToTierMap]);
-
-  const totalAmount = useMemo(() => computeTotalAmount(seatGroups), [seatGroups]);
+  // Single tier — direct calculation
+  const totalAmount = selectedSeats.length * tierPrice;
 
   const handlePaymentSubmit = () => {
     // Save payment method and total to context
@@ -291,7 +287,7 @@ export default function Payment() {
 
                 {/* Khu vực và ghế ngồi */}
                 <Section title={t("payment.seatArea")}>
-                  {seatGroups.length > 0 ? (
+                  {selectedSeats.length > 0 ? (
                     <div className="space-y-3">
                       {/* Table header */}
                       <div className="flex items-center text-xs text-white/40 font-semibold uppercase tracking-wider pb-2 border-b border-white/5">
@@ -305,33 +301,31 @@ export default function Payment() {
                           {t("payment.price")}
                         </span>
                       </div>
-                      {/* Rows per tier */}
-                      {seatGroups.map((group) => (
-                        <div key={group.tierId} className="space-y-1.5">
-                          <div className="flex items-center text-sm">
-                            <span className="flex-1 text-white/80 font-medium">
-                              {group.tierName}
-                            </span>
-                            <span className="w-20 text-center text-white/60">
-                              ×{group.seats.length}
-                            </span>
-                            <span className="w-32 text-right font-bold text-(--accent)">
-                              {formatPrice(group.subtotal)}
-                            </span>
-                          </div>
-                          {/* Seat labels */}
-                          <div className="flex flex-wrap gap-1.5 pl-1">
-                            {group.seats.map((seat) => (
-                              <span
-                                key={seat}
-                                className="text-[10px] bg-white/5 text-white/50 px-2 py-0.5 rounded font-mono"
-                              >
-                                {seat}
-                              </span>
-                            ))}
-                          </div>
+                      {/* Single tier row */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center text-sm">
+                          <span className="flex-1 text-white/80 font-medium">
+                            {tierName}
+                          </span>
+                          <span className="w-20 text-center text-white/60">
+                            ×{selectedSeats.length}
+                          </span>
+                          <span className="w-32 text-right font-bold text-(--accent)">
+                            {formatPrice(totalAmount)}
+                          </span>
                         </div>
-                      ))}
+                        {/* Seat labels */}
+                        <div className="flex flex-wrap gap-1.5 pl-1">
+                          {selectedSeats.map((seat) => (
+                            <span
+                              key={seat}
+                              className="text-[10px] bg-white/5 text-white/50 px-2 py-0.5 rounded font-mono"
+                            >
+                              {seatIdToLabel(seat)}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
                       {/* Total */}
                       <div className="flex items-center pt-3 border-t border-white/5 mt-2">
                         <span className="flex-1 text-sm font-semibold text-white/70">

@@ -162,13 +162,15 @@
       "createdTicketSummary": "{{ticketTypeCount}} ticket type(s)",
       "seatConfig": {
         "title": "Seat Map Configuration",
-        "selectShowtime": "Select showtime",
-        "selectLayout": "Select layout",
-        "selectTier": "Select ticket tier to assign seats",
-        "active": "Active",
-        "noTiers": "This showtime has no ticket types yet. Create tickets first.",
-        "instructions": "Click on seats or drag-select to assign the selected tier. Click on an assigned seat to change its tier.",
-        "selectFirst": "Select a ticket tier above before assigning seats."
+        "showtime": "Showtime",
+        "tiers": "Configure seat grid per ticket tier",
+        "noTiers": "No ticket types yet. Create tickets first.",
+        "seats": "seats",
+        "rowsLabel": "Rows (Y)",
+        "colsLabel": "Seats per row (X)",
+        "rowLabels": "Rows",
+        "perRow": "{{cols}} seats per row",
+        "help": "Enter the number of rows (Y) and seats per row (X) for each ticket tier."
       },
       "tabs": {
         "upcoming": "Upcoming",
@@ -318,12 +320,16 @@
   },
   "booking": {
     "selectTicket": "Select Tickets",
+    "chooseTier": "Choose a tier",
+    "noTiers": "No seat configuration for this event yet.",
+    "seats": "seats",
+    "perSeat": "per seat",
     "loadingSeatMap": "Loading seat map...",
     "ticketPrice": "Ticket Price",
     "ticketsSelected": "{{count}} ticket(s) selected",
     "processing": "Processing...",
     "continue": "Continue",
-    "pleaseSelectTicket": "Please select a ticket »",
+    "pleaseSelectTicket": "Please select a seat",
     "conflictError": "We're sorry! Some of the seats you selected were just purchased by someone else.\nThe system will automatically reload the latest seat map.",
     "genericError": "An error occurred while booking. Please check your connection.",
     "success": "Booking successful!"
