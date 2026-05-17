@@ -1,12 +1,12 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { ArrowLeft, CalendarDays, MapPin, Armchair } from "lucide-react";
-import { Button } from "@heroui/react";
+import { Button, Skeleton } from "@heroui/react";
 import SeatMap from "../components/SeatMap";
 import { Logo } from "../components/Branding";
-import { getEvent } from "../data/events";
+import { getEvent, fetchEventById } from "../data/events";
 import { formatPrice, formatDateTime } from "../utils/format";
 import { useBooking } from "../contexts/BookingContext";
 import { getSeatConfig } from "../utils/organizer/organizerSeatLayoutStorage";
@@ -28,7 +28,24 @@ export default function Booking() {
   const { t } = useTranslation();
   const { setSeatSelection } = useBooking();
 
-  const event = useMemo(() => getEvent(eventId), [eventId]);
+  const localEvent = useMemo(() => getEvent(eventId), [eventId]);
+  const [serverEvent, setServerEvent] = useState<typeof localEvent>(null);
+  const shouldFetch = !localEvent && !!eventId && /^\d+$/.test(eventId);
+  const [loading, setLoading] = useState(shouldFetch);
+
+  useEffect(() => {
+    if (!shouldFetch) return;
+    let cancelled = false;
+    fetchEventById(eventId!).then((result) => {
+      if (!cancelled) {
+        setServerEvent(result);
+        setLoading(false);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [eventId, shouldFetch]);
+
+  const event = localEvent ?? serverEvent;
 
   // Load seat config from localStorage (saved by organizer)
   const tierDims = useMemo(() => {
@@ -113,6 +130,19 @@ export default function Booking() {
     setSeatSelection(event.id, selectedSeats, selectedTier.tierId, selectedTier.name, selectedTier.price);
     navigate(`/events/${event.id}/booking-details`);
   }, [selectedSeats, event, selectedTier, setSeatSelection, navigate]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col h-[100dvh] w-full bg-[#0a0a0a] text-white font-sans">
+        <div className="p-6 space-y-4">
+          <Skeleton className="h-6 w-48 rounded-lg" />
+          <Skeleton className="h-10 w-72 rounded-lg" />
+          <Skeleton className="h-8 w-56 rounded-lg" />
+          <Skeleton className="h-32 w-full rounded-xl" />
+        </div>
+      </div>
+    );
+  }
 
   if (!event) return <div className="p-10 text-white">{t("event.notFound")}</div>;
 
