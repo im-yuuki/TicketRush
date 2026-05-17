@@ -29,6 +29,7 @@ import {
   createTicketClass,
   uploadEventBanner,
   publishEvent,
+  deleteEvent,
 } from "./organization";
 
 // ── Re-export types so callers import from service only ───
@@ -44,7 +45,7 @@ export interface OrganizerEventsService {
   findByPreviewId(previewId: string): StoredOrganizerEvent | undefined;
   create(event: StoredOrganizerEvent): void;
   update(id: string, event: StoredOrganizerEvent): void;
-  remove(id: string): void;
+  remove(id: string): Promise<void>;
   reserveNextSequenceId(): number;
 }
 
@@ -57,7 +58,27 @@ function createLocalService(): OrganizerEventsService {
     findByPreviewId: (previewId) => findStoredOrganizerEventByPreviewId(previewId),
     create: (event) => appendStoredOrganizerEvent(event),
     update: (id, event) => updateStoredOrganizerEvent(id, event),
-    remove: (id) => deleteStoredOrganizerEvent(id),
+    remove: async (id) => {
+      const event = findStoredOrganizerEvent(id);
+      if (event?.published) {
+        window.alert("Sự kiện đã publish không thể xoá.");
+        return;
+      }
+      
+      const eventKey = event ? getStoredOrganizerEventPreviewId(event) : id;
+      const serverIds = getServerIds(eventKey) ?? getServerIds(id);
+      const numericEventId = serverIds?.eventId ?? parseInt(id, 10);
+      
+      if (numericEventId > 0) {
+        try {
+          await deleteEvent(numericEventId);
+        } catch (error) {
+          window.alert(getErrorMessage(error, "Không thể xoá sự kiện trên server"));
+          return;
+        }
+      }
+      deleteStoredOrganizerEvent(id);
+    },
     reserveNextSequenceId: () => reserveNextOrganizerEventSequenceId(),
   };
 }

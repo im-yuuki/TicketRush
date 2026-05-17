@@ -91,9 +91,14 @@ export default function OrganizerEvents() {
 
     if (activeTab === "draft") {
       return filtered.filter((event) => !event.published);
+    } else if (activeTab === "upcoming") {
+      const now = new Date();
+      return filtered.filter((event) => event.published && new Date(event.start) >= now);
+    } else if (activeTab === "past") {
+      const now = new Date();
+      return filtered.filter((event) => event.published && new Date(event.start) < now);
     }
-    // upcoming / past — only show published events
-    return filtered.filter((event) => event.published);
+    return filtered;
   }, [activeTab, createdEvents, searchQuery]);
 
   return (
