@@ -121,7 +121,7 @@ export default function PromotionSection() {
                 <Button 
                   className="bg-white text-black font-semibold rounded-md px-4 py-2 hover:bg-default-200 transition-colors"
                   size="sm"
-                  onPress={() => navigate(`/events/${promo.id}`)}
+                  onClick={() => navigate(`/events/${promo.id}`)}
                 >
                   {t("promotionSection.details", "View details")}
                 </Button>
