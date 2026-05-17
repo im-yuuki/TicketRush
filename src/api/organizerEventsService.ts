@@ -92,6 +92,15 @@ export function getServerIds(eventKey: string): EventServerIds | null {
 
 const ROW_LABELS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
+/**
+ * Convert datetime-local format "2026-09-09T11:00" to ISO-8601 Instant "2026-09-09T11:00:00Z"
+ */
+function toIsoInstant(localDatetime: string): string {
+	if (!localDatetime) return localDatetime;
+	const withSeconds = localDatetime.length === 16 ? `${localDatetime}:00` : localDatetime;
+	return withSeconds.endsWith("Z") ? withSeconds : `${withSeconds}Z`;
+}
+
 export function buildSeatZonePayload(name: string, rows: number, cols: number) {
   const seatRows = [];
   for (let r = 0; r < rows; r++) {
@@ -156,7 +165,7 @@ export async function createEventOnServer(
     isOnlineEvent: isOnline,
     venue,
     address,
-    dateTime: event.start,
+    dateTime: toIsoInstant(event.start),
   });
 
   if (!createResult.success || !createResult.resourceId) {
@@ -210,8 +219,8 @@ export async function createEventOnServer(
 
     const roundResult = await addSalesRound(eventId, {
       name: showTime.name,
-      startTime: showTime.start,
-      endTime: showTime.end,
+      startTime: toIsoInstant(showTime.start),
+      endTime: toIsoInstant(showTime.end),
       maxTicketsPerPurchase: maxTickets,
     });
 
