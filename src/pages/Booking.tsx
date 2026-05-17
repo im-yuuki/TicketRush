@@ -217,6 +217,7 @@ export default function Booking() {
     );
   }
 
+
   if (!event) return <div className="p-10 text-white">{t("event.notFound")}</div>;
 
   if (purchaseError) {
