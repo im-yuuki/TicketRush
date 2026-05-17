@@ -48,6 +48,10 @@ function OrganizerAccountMenu() {
       navigate("/organizer/events");
     }
 
+    if (key === "settings") {
+      navigate("/organizer/settings");
+    }
+
     if (key === "logout") {
       clearStoredAccount();
       navigate("/login");

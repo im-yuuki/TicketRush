@@ -46,7 +46,7 @@ export interface ProfileModel {
 	name: string;
 	email: string;
 	createdAt: string;
-	type: AccountType;
+	role: AccountType;
 }
 
 export interface UserProfileModel extends ProfileModel {

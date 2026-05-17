@@ -81,6 +81,8 @@ function AccountButton() {
   const logoutText = t("navigation.logout", "Logout");
 
   const loggedIn = isAuthenticated;
+  const isOrganization = account?.role === "ORGANIZATION";
+  const isUser = account?.role === "USER";
   const userFullName = account?.displayName ?? "";
   const userEmail = account?.email ?? "";
   const userShortName = userFullName
@@ -91,9 +93,17 @@ function AccountButton() {
     .slice(0, 2)
     .toUpperCase();
 
+  const accountRoutes: Record<string, string> = {
+    account: isOrganization ? "/organizer/profile" : "/account",
+    tickets: "/my-tickets",
+    "organizer-events": "/organizer/events",
+    settings: isOrganization ? "/organizer/settings" : "/settings",
+  };
+
   async function handleAccountAction(key: Key) {
-    if (key === "organizer-events") {
-      navigate("/organizer/events");
+    const route = accountRoutes[key.toString()];
+    if (route) {
+      navigate(route);
       return;
     }
 
@@ -137,14 +147,18 @@ function AccountButton() {
               <UserRound className="size-3.5 text-muted" />
               <Label>{accountText}</Label>
             </Dropdown.Item>
-            <Dropdown.Item id="tickets" key="tickets" textValue={myTicketsText}>
-              <Ticket className="size-3.5 text-muted" />
-              <Label>{myTicketsText}</Label>
-            </Dropdown.Item>
-            <Dropdown.Item id="organizer-events" key="organizer-events" textValue={myEventsText}>
-              <CalendarDays className="size-3.5 text-muted" />
-              <Label>{myEventsText}</Label>
-            </Dropdown.Item>
+            {isUser && (
+              <Dropdown.Item id="tickets" key="tickets" textValue={myTicketsText}>
+                <Ticket className="size-3.5 text-muted" />
+                <Label>{myTicketsText}</Label>
+              </Dropdown.Item>
+            )}
+            {isOrganization && (
+              <Dropdown.Item id="organizer-events" key="organizer-events" textValue={myEventsText}>
+                <CalendarDays className="size-3.5 text-muted" />
+                <Label>{myEventsText}</Label>
+              </Dropdown.Item>
+            )}
             <Dropdown.Item id="notifications" key="notifications" textValue={notificationsText}>
               <Bell className="size-3.5 text-muted" />
               <Label>{notificationsText}</Label>

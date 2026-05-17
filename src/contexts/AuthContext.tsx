@@ -33,12 +33,18 @@ function readAccountSnapshot(accountResponse: AccountResponse): StoredAccount {
   const displayName = accountResponse.name;
   const accountEmail = accountResponse.email;
   const avatarUrl = "avatarUrl" in accountResponse ? accountResponse.avatarUrl : undefined;
+  const role = accountResponse.role;
 
   return {
     displayName,
     email: accountEmail,
     avatarUrl,
+    role,
   };
+}
+
+export function getAccountSnapshot(accountResponse: AccountResponse): StoredAccount {
+  return readAccountSnapshot(accountResponse);
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
