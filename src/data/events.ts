@@ -5,9 +5,12 @@ import {
   organizerEventsService,
   type StoredOrganizerEvent,
 } from "../api/organizerEventsService";
-import { getEventInfo } from "../api/public";
-import type { PublicEventInfo } from "../types/requestDto";
-import type { ShowTime } from "../types/organizerCreate";
+import { getTrendingEvents } from "../api/feeds";
+import { getPurchaseEvent } from "../api/purchaseApi";
+import { getEventInfo, getOrganizationInfo } from "../api/public";
+import type { PublicEventInfo, PublicOrganizationInfo } from "../types/requestDto";
+import type { ShowTime, TicketTypeData } from "../types/organizerCreate";
+import type { PurchaseEventView } from "../types/seat";
 
 export type DescriptionParagraph = {
   text: string;
@@ -195,12 +198,57 @@ export function getEvent(id: string | undefined): EventData | null {
   return MOCK_EVENTS[normalizedId] ?? MOCK_EVENTS.test ?? null;
 }
 
-/** Map backend PublicEventInfo to frontend EventData */
-function mapPublicEventInfoToEventData(info: PublicEventInfo): EventData {
+/** Map combined backend data (PublicEventInfo + PurchaseEventView + OrgInfo) to frontend EventData */
+function mapServerDataToEventData(
+  info: PublicEventInfo,
+  purchaseInfo: PurchaseEventView | null,
+  orgInfo: PublicOrganizationInfo | null,
+  fallbackMinPrice?: number,
+): EventData {
+  // Description
   const descriptionText = info.description?.trim();
   const description: DescriptionParagraph[] = descriptionText
     ? descriptionText.split("\n").filter(Boolean).map((line) => ({ text: line }))
     : [{ text: "Chưa có mô tả cho sự kiện này." }];
+
+  // Ticket tiers from ticketClasses
+  const ticketTiers: TicketTier[] = purchaseInfo?.ticketClasses?.map((tc) => ({
+    id: String(tc.id),
+    name: tc.name,
+    price: tc.price,
+  })) ?? [];
+
+  // ShowTimes from salesRounds + grouped ticketClasses
+  const showTimes: ShowTime[] | undefined = purchaseInfo?.salesRounds?.map((sr) => {
+    const roundTickets: TicketTypeData[] = purchaseInfo.ticketClasses
+      ?.filter((tc) => tc.salesRoundId === sr.id)
+      .map((tc) => ({
+        id: tc.id,
+        name: tc.name,
+        price: String(tc.price),
+        isFree: tc.price === 0,
+        totalQuantity: "",
+        minPerOrder: "1",
+        maxPerOrder: String(sr.maxTicketsPerPurchase),
+        saleStart: sr.startTime,
+        saleEnd: sr.endTime,
+        description: tc.description || "",
+      })) ?? [];
+
+    return {
+      id: sr.id,
+      name: sr.name,
+      start: sr.startTime,
+      end: sr.endTime,
+      tickets: roundTickets,
+    };
+  });
+
+  // Min price: use ticket class prices if available, else fallback from feeds
+  const prices = ticketTiers.map((t) => t.price).filter((p) => p > 0);
+  const minPrice = prices.length > 0
+    ? Math.min(...prices)
+    : (fallbackMinPrice ?? 0);
 
   return {
     id: String(info.id),
@@ -210,12 +258,14 @@ function mapPublicEventInfoToEventData(info: PublicEventInfo): EventData {
     location: info.venue,
     venue: info.venue,
     address: info.address || undefined,
-    price: 0,
+    price: minPrice,
     image: info.bannerUrl || "",
     description,
-    ticketTiers: [],
+    ticketTiers,
     organizer: info.organizationName || "",
-    organizerDescription: "",
+    organizerDescription: orgInfo?.description || "",
+    organizerLogo: orgInfo?.avatarUrl || undefined,
+    showTimes: showTimes && showTimes.length > 0 ? showTimes : undefined,
   };
 }
 
@@ -226,7 +276,20 @@ export async function fetchEventById(id: string | number): Promise<EventData | n
 
   try {
     const info = await getEventInfo(numericId);
-    return mapPublicEventInfoToEventData(info);
+
+    // Fetch purchase info, org info, and feeds price in parallel
+    const [purchaseInfo, orgInfo, feedsPrice] = await Promise.all([
+      getPurchaseEvent(numericId).catch(() => null),
+      info.organizationId
+        ? getOrganizationInfo(info.organizationId).catch(() => null)
+        : Promise.resolve(null),
+      // Fallback: get minimumTicketPrice from the trending feed (public, no auth)
+      getTrendingEvents()
+        .then((events) => events.find((e) => e.id === numericId)?.minimumTicketPrice ?? 0)
+        .catch(() => 0),
+    ]);
+
+    return mapServerDataToEventData(info, purchaseInfo, orgInfo, feedsPrice);
   } catch {
     return null;
   }

@@ -290,3 +290,19 @@ export interface FullUserInfo {
 	createdAt: string;
 	updatedAt: string;
 }
+
+export interface PurchasedTicketView {
+	ticketId: number;
+	purchasedAt: string;
+	purchaseId: number;
+	eventId: number;
+	eventName: string;
+	eventDateTime: string;
+	salesRoundName: string;
+	ticketClassName: string;
+	seatZoneName: string;
+	seatRowLabel: string;
+	seatNumber: number;
+	ticketSecretCode: string;
+	checkedInAt: string | null;
+}

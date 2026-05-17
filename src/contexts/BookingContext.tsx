@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useRef, type ReactNode } from "react";
+import { releaseHold } from "../api/purchaseApi";
 
 export interface BookingState {
   eventId: string;
@@ -30,7 +31,9 @@ interface BookingContextValue {
   setPaymentMethod: (method: "bank_transfer" | "credit_card") => void;
   setTotalAmount: (amount: number) => void;
   setSessionId: (sessionId: string) => void;
+  setExpiresAt: (expiresAt: string) => void;
   clearBooking: () => void;
+  releaseAndClearBooking: () => void;
 }
 
 const STORAGE_KEY = "ticketrush_booking";
@@ -68,21 +71,20 @@ export function BookingProvider({ children }: { children: ReactNode }) {
 
   const setSeatSelection = useCallback(
     (eventId: string, selectedSeats: string[], tierId: string, tierName: string, tierPrice: number) => {
-      update(() => ({
+      update((prev) => ({
         eventId,
         selectedSeats,
         selectedTierId: tierId,
         selectedTierName: tierName,
         selectedTierPrice: tierPrice,
-        fullName: "",
-        email: "",
-        phone: "",
-        idDocument: "",
-        paymentMethod: "bank_transfer",
+        fullName: prev?.fullName ?? "",
+        email: prev?.email ?? "",
+        phone: prev?.phone ?? "",
+        idDocument: prev?.idDocument ?? "",
+        paymentMethod: prev?.paymentMethod ?? "bank_transfer",
         totalAmount: 0,
-        sessionId: undefined,
-        // Always reset timer when seats are (re)selected
-        expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+        sessionId: prev?.sessionId,
+        expiresAt: prev?.expiresAt,
       }));
     },
     [update],
@@ -116,14 +118,34 @@ export function BookingProvider({ children }: { children: ReactNode }) {
     [update],
   );
 
+  const setExpiresAt = useCallback(
+    (expiresAt: string) => {
+      update((prev) => (prev ? { ...prev, expiresAt } : prev));
+    },
+    [update],
+  );
+
+  // Keep a ref to the latest booking for releaseAndClearBooking
+  const bookingRef = useRef(booking);
+  bookingRef.current = booking;
+
   const clearBooking = useCallback(() => {
+    setBooking(null);
+    saveToStorage(null);
+  }, []);
+
+  const releaseAndClearBooking = useCallback(() => {
+    const sessionId = bookingRef.current?.sessionId;
+    if (sessionId) {
+      releaseHold(sessionId).catch(() => {});
+    }
     setBooking(null);
     saveToStorage(null);
   }, []);
 
   return (
     <BookingContext.Provider
-      value={{ booking, setSeatSelection, setCustomerInfo, setPaymentMethod, setTotalAmount, setSessionId, clearBooking }}
+      value={{ booking, setSeatSelection, setCustomerInfo, setPaymentMethod, setTotalAmount, setSessionId, setExpiresAt, clearBooking, releaseAndClearBooking }}
     >
       {children}
     </BookingContext.Provider>

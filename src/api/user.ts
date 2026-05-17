@@ -1,6 +1,5 @@
 import { apiGet, apiPatch, apiPut, apiDelete } from "./client";
-import type { Response, UpdateUserInfoRequest } from "../types/requestDto";
-import type { FullUserInfo } from "../types/requestDto";
+import type { Response, UpdateUserInfoRequest, FullUserInfo, PurchasedTicketView } from "../types/requestDto";
 
 export function getUserInfo() {
   return apiGet<FullUserInfo>("/user");
@@ -23,5 +22,5 @@ export function unfollowOrganization(id: number) {
 }
 
 export function getPurchasedTickets() {
-  return apiGet<Record<string, unknown>>("/user/tickets");
+  return apiGet<PurchasedTicketView[]>("/user/tickets");
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import {
@@ -8,7 +8,7 @@ import {
   Clock,
 } from "lucide-react";
 import { Card, Button, TextField, Label, Input, FieldError, Form } from "@heroui/react";
-import { getEvent } from "../data/events";
+import { useEventData } from "../hooks/useEventData";
 import { Logo } from "../components/Branding";
 import { StepIndicator } from "../components/booking/StepIndicator";
 import { EventMarquee } from "../components/booking/EventMarquee";
@@ -25,9 +25,9 @@ export default function BookingDetails() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { booking, setCustomerInfo } = useBooking();
+  const { booking, setCustomerInfo, releaseAndClearBooking } = useBooking();
 
-  const event = useMemo(() => getEvent(eventId), [eventId]);
+  const { event, loading: eventLoading } = useEventData(eventId);
 
   // Read from context instead of location.state
   const selectedSeats = booking?.selectedSeats || [];
@@ -53,6 +53,12 @@ export default function BookingDetails() {
   }, [fullName, email, phone, t]);
   const isValid = Object.keys(errors).length === 0;
 
+  // Exit booking flow — release hold if any, then navigate home
+  const handleExitToHome = useCallback(() => {
+    releaseAndClearBooking();
+    navigate("/");
+  }, [releaseAndClearBooking, navigate]);
+
   // Countdown – shared across all pages from booking start
   const { m, s, expired } = useCountdown({ expiresAt: booking?.expiresAt });
 
@@ -64,6 +70,9 @@ export default function BookingDetails() {
 
   // Single tier — direct calculation
   const totalAmount = selectedSeats.length * tierPrice;
+
+  if (eventLoading)
+    return <div className="flex items-center justify-center h-[100dvh] bg-[#0a0a0a] text-white"><p className="text-sm text-gray-400">{t("common.loading", "Đang tải...")}</p></div>;
 
   if (!event)
     return <div className="p-10 text-white">{t("event.notFound")}</div>;
@@ -84,13 +93,14 @@ export default function BookingDetails() {
             <span className="hidden md:inline">{t("common.back")}</span>
           </button>
           <div className="hidden md:block h-5 w-px bg-white/15" />
-          <Link to="/">
+          <Link to="/" onClick={handleExitToHome}>
             <Logo className="hidden md:flex text-2xl md:text-3xl" />
           </Link>
         </div>
 
         <Link
           to="/"
+          onClick={handleExitToHome}
           className="pointer-events-auto absolute inset-x-0 top-1/2 flex -translate-y-1/2 justify-center md:hidden"
         >
           <Logo className="text-2xl" />

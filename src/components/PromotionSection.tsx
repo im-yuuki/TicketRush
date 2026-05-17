@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
-import { Button } from '@heroui/react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router';
 import { getPromotedEvents } from '../api/feeds';
 
 export default function PromotionSection() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [promotions, setPromotions] = useState<{ id: number; title: string; image: string }[]>([]);
 
   useEffect(() => {
@@ -108,25 +109,18 @@ export default function PromotionSection() {
               key={`${promo.id}-${idx}`} 
               className="w-[calc(50%-0.5rem)] shrink-0 relative rounded-2xl overflow-hidden aspect-[16/9] bg-default-100"
             >
-              <img 
-                src={promo.image} 
-                alt={promo.title} 
-                className="w-full h-full object-cover" 
+              <img
+                src={promo.image}
+                alt={promo.title}
+                className="w-full h-full object-cover cursor-pointer"
+                onClick={() => navigate(`/events/${promo.id}`)}
+                role="link"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate(`/events/${promo.id}`); }}
               />
-              
-              {/* Bottom Actions */}
-              <div className="absolute bottom-0 left-0 right-0 p-4 flex justify-between items-end bg-gradient-to-t from-black/60 to-transparent">
-                <Button 
-                  className="bg-white text-black font-semibold rounded-md px-4 py-2 hover:bg-default-200 transition-colors"
-                  size="sm"
-                >
-                  {t("promotionSection.details", "View details")}
-                </Button>
-                
-                <button className="bg-black/40 hover:bg-black/60 text-white rounded-md p-2 backdrop-blur-sm transition-colors">
-                  <Play className="w-5 h-5 fill-white" />
-                </button>
-              </div>
+
+              {/* Bottom gradient (no action buttons) */}
+              <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent" />
             </div>
           ))}
         </div>

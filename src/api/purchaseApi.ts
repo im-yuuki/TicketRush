@@ -1,6 +1,7 @@
 import { apiGet, apiPost, apiDelete } from "./client";
 import type {
   PurchaseEventView,
+  SeatStatusCollectionView,
   HoldView,
   CompletedPurchaseView,
 } from "../types/seat";
@@ -8,7 +9,7 @@ import type {
 // ── Purchase APIs ────────────────────────────────────────────
 
 export function getSeatStatuses(eventId: number) {
-  return apiGet<import("../types/seat").ActiveHoldView & { seatZones: import("../types/seat").ServerSeatZoneView[] }>(
+  return apiGet<SeatStatusCollectionView>(
     `/purchase/event/${eventId}/seats`,
   );
 }

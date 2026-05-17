@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import {
@@ -8,7 +8,8 @@ import {
   Clock,
 } from "lucide-react";
 import { Button, Card } from "@heroui/react";
-import { getEvent } from "../data/events";
+import { useEventData } from "../hooks/useEventData";
+import { payHold } from "../api/purchaseApi";
 import { Logo } from "../components/Branding";
 import { StepIndicator } from "../components/booking/StepIndicator";
 import { EventMarquee } from "../components/booking/EventMarquee";
@@ -25,7 +26,7 @@ export default function Checkout() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { booking, clearBooking } = useBooking();
+  const { booking, clearBooking, releaseAndClearBooking } = useBooking();
 
   // Read from context instead of location.state
   const eventId = booking?.eventId || "";
@@ -37,7 +38,7 @@ export default function Checkout() {
   const phone = booking?.phone || "";
   const totalAmountFromContext = booking?.totalAmount || 0;
 
-  const event = useMemo(() => getEvent(eventId), [eventId]);
+  const { event, loading: eventLoading } = useEventData(eventId);
 
   const [isConfirming, setIsConfirming] = useState(false);
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
@@ -55,6 +56,12 @@ export default function Checkout() {
     if (typeof totalAmountFromContext === "number" && totalAmountFromContext > 0) return totalAmountFromContext;
     return selectedSeats.length * tierPrice;
   }, [selectedSeats, tierPrice, totalAmountFromContext]);
+
+  // Exit booking flow — release hold if any, then navigate home
+  const handleExitToHome = useCallback(() => {
+    releaseAndClearBooking();
+    navigate("/");
+  }, [releaseAndClearBooking, navigate]);
 
   // Payment receiver info (from your provided data)
   const bankName = "BIDV";
@@ -75,21 +82,20 @@ export default function Checkout() {
   };
 
   const handleConfirmPayment = async () => {
+    if (!sessionId) return;
     setIsConfirming(true);
     try {
-      // TODO: Call backend to confirm payment
-      // await apiPost(`/bookings/${sessionId}/confirm`, {});
-      console.log("Payment confirmed for session:", sessionId);
-
+      await payHold(sessionId);
       setPaymentConfirmed(true);
-      // Clear booking context after successful payment
-      // clearBooking();
     } catch (err) {
       console.error("Payment confirmation failed:", err);
     } finally {
       setIsConfirming(false);
     }
   };
+
+  if (eventLoading)
+    return <div className="flex items-center justify-center h-[100dvh] bg-[#0a0a0a] text-white"><p className="text-sm text-gray-400">{t("common.loading", "Đang tải...")}</p></div>;
 
   if (!event)
     return <div className="p-10 text-white">{t("event.notFound")}</div>;
@@ -137,13 +143,14 @@ export default function Checkout() {
             <span className="hidden md:inline">{t("common.back")}</span>
           </button>
           <div className="hidden md:block h-5 w-px bg-white/15" />
-          <Link to="/">
-            <Logo className="hidden md:flex text-2xl md:text-3xl" />
-          </Link>
+      <Link to="/" onClick={handleExitToHome}>
+        <Logo className="hidden md:flex text-2xl md:text-3xl" />
+      </Link>
         </div>
 
         <Link
           to="/"
+          onClick={handleExitToHome}
           className="pointer-events-auto absolute inset-x-0 top-1/2 flex -translate-y-1/2 justify-center md:hidden"
         >
           <Logo className="text-2xl" />
