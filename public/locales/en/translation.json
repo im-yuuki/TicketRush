@@ -234,7 +234,17 @@
     "back": "Back",
     "backToHome": "Back to Home",
     "save": "Save",
-    "saved": "Saved"
+    "saved": "Saved",
+    "close": "Close"
+  },
+  "tickets": {
+    "title": "My Tickets",
+    "subtitle": "Manage your upcoming tickets",
+    "loading": "Loading tickets...",
+    "emptyTitle": "No tickets yet",
+    "emptyBody": "When you buy tickets, they will appear here.",
+    "qrTitle": "Ticket QR Code",
+    "qrAlt": "Ticket QR code"
   },
   "event": {
     "breadcrumb": "Events",

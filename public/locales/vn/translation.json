@@ -234,7 +234,17 @@
     "back": "Trở về",
     "backToHome": "Về trang chủ",
     "save": "Lưu",
-    "saved": "Đã lưu"
+    "saved": "Đã lưu",
+    "close": "Đóng"
+  },
+  "tickets": {
+    "title": "Vé của tôi",
+    "subtitle": "Quản lý các vé sắp tới của bạn",
+    "loading": "Đang tải vé...",
+    "emptyTitle": "Chưa có vé",
+    "emptyBody": "Khi bạn mua vé, chúng sẽ xuất hiện tại đây.",
+    "qrTitle": "Mã QR vé",
+    "qrAlt": "Mã QR vé"
   },
   "event": {
     "breadcrumb": "Sự kiện",
