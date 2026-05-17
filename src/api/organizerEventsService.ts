@@ -326,8 +326,12 @@ export async function createSeatZonesOnServer(
 export async function publishOrganizerEvent(
   eventLocalId: string,
 ): Promise<{ success: boolean; message?: string }> {
-  // Get server eventId
-  const serverIds = getServerIds(eventLocalId) ?? getServerIds(String(parseInt(eventLocalId, 10)));
+  // Find the event to get the correct key (sequenceId or id)
+  const event = findStoredOrganizerEvent(eventLocalId);
+  const eventKey = event ? getStoredOrganizerEventPreviewId(event) : eventLocalId;
+
+  // Get server IDs
+  const serverIds = getServerIds(eventKey);
   const numericEventId = serverIds?.eventId ?? parseInt(eventLocalId, 10);
 
   if (!numericEventId || numericEventId <= 0) {
