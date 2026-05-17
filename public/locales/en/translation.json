@@ -12,7 +12,20 @@
     "myEvents": "My Events",
     "notifications": "Notifications",
     "settings": "Settings",
-    "logout": "Logout"
+    "logout": "Logout",
+    "searchLabel": "Search",
+    "searchPlaceholder": "Search events, organizers, ..."
+  },
+  "search": {
+    "close": "Close search",
+    "startTyping": "Start typing to search...",
+    "loading": "Searching...",
+    "empty": "No matching results found.",
+    "error": "Search is unavailable right now.",
+    "event": "Event",
+    "organization": "Organization",
+    "organizationUnavailable": "Organization profile coming soon",
+    "unnamed": "Untitled"
   },
   "organizer": {
     "layout": {
@@ -281,10 +294,11 @@
     "aboutUsCapitalized": "ABOUT US",
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
+    "becomePartner": "Become a Partner",
+    "serverStatus": "Server Status",
     "linksCapitalized": "LINKS",
     "support": "Support",
-    "followUsCapitalized": "FOLLOW US",
-    "serverStatus": "Server status"
+    "followUsCapitalized": "FOLLOW US"
   },
   "recommend": {
     "title": "Recommended For You",
@@ -418,4 +432,3 @@
     "paymentConfirmedDesc": "Your tickets will be sent to your email shortly."
   }
 }
-

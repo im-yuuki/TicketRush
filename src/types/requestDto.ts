@@ -182,6 +182,16 @@ export interface BasicEventInfo {
 	minimumTicketPrice: number;
 }
 
+export interface SearchResult {
+	id: number | null;
+	type: "EVENT" | "ORGANIZATION" | null;
+	name: string | null;
+	bannerUrl: string | null;
+	venue: string | null;
+	avatarUrl: string | null;
+	verified: boolean | null;
+}
+
 // ── Public ──────────────────────────────────────────────────────────────────────────────────
 
 export interface PublicOrganizationInfo {
