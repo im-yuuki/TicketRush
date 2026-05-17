@@ -28,24 +28,30 @@ export default function OrganizerEvents() {
         const backendEvents = await getOrgEvents();
         if (!isMounted) return;
 
+        const localEvents = organizerEventsService.list();
+        const localMap = new Map(localEvents.map((e) => [e.id, e]));
+
         const allBackendEvents = backendEvents.map(
-          (ev) =>
-            ({
+          (ev) => {
+            const localEvent = localMap.get(String(ev.id));
+            const isPublished = ev.published || localEvent?.published || false;
+
+            return {
               id: String(ev.id),
               title: ev.name,
               start: ev.dateTime,
               venueName: ev.venue,
               bannerImageUrl: ev.bannerUrl,
-              status: ev.published ? "Đã duyệt" : "Nháp",
-              published: ev.published,
-              showtimeCount: 1,
-              ticketTypeCount: 1,
+              status: isPublished ? "Đã duyệt" : "Nháp",
+              published: isPublished,
+              showtimeCount: localEvent?.showtimeCount ?? 1,
+              ticketTypeCount: localEvent?.ticketTypeCount ?? 1,
               createdAt: ev.dateTime,
-            } as StoredOrganizerEvent)
+            } as StoredOrganizerEvent;
+          }
         );
 
         setCreatedEvents(() => {
-          const localEvents = organizerEventsService.list();
           const backendIds = new Set(allBackendEvents.map((e) => e.id));
           const localOnlyDrafts = localEvents.filter(
             (e) => !backendIds.has(e.id) && !e.published
