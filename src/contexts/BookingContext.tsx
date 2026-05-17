@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useRef, type ReactNode } from "react";
+import { releaseHold } from "../api/purchaseApi";
 
 export interface BookingState {
   eventId: string;
@@ -32,6 +33,7 @@ interface BookingContextValue {
   setSessionId: (sessionId: string) => void;
   setExpiresAt: (expiresAt: string) => void;
   clearBooking: () => void;
+  releaseAndClearBooking: () => void;
 }
 
 const STORAGE_KEY = "ticketrush_booking";
@@ -123,14 +125,27 @@ export function BookingProvider({ children }: { children: ReactNode }) {
     [update],
   );
 
+  // Keep a ref to the latest booking for releaseAndClearBooking
+  const bookingRef = useRef(booking);
+  bookingRef.current = booking;
+
   const clearBooking = useCallback(() => {
+    setBooking(null);
+    saveToStorage(null);
+  }, []);
+
+  const releaseAndClearBooking = useCallback(() => {
+    const sessionId = bookingRef.current?.sessionId;
+    if (sessionId) {
+      releaseHold(sessionId).catch(() => {});
+    }
     setBooking(null);
     saveToStorage(null);
   }, []);
 
   return (
     <BookingContext.Provider
-      value={{ booking, setSeatSelection, setCustomerInfo, setPaymentMethod, setTotalAmount, setSessionId, setExpiresAt, clearBooking }}
+      value={{ booking, setSeatSelection, setCustomerInfo, setPaymentMethod, setTotalAmount, setSessionId, setExpiresAt, clearBooking, releaseAndClearBooking }}
     >
       {children}
     </BookingContext.Provider>

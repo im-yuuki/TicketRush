@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import {
@@ -25,7 +25,7 @@ export default function BookingDetails() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { booking, setCustomerInfo } = useBooking();
+  const { booking, setCustomerInfo, releaseAndClearBooking } = useBooking();
 
   const { event, loading: eventLoading } = useEventData(eventId);
 
@@ -52,6 +52,12 @@ export default function BookingDetails() {
     return e;
   }, [fullName, email, phone, t]);
   const isValid = Object.keys(errors).length === 0;
+
+  // Exit booking flow — release hold if any, then navigate home
+  const handleExitToHome = useCallback(() => {
+    releaseAndClearBooking();
+    navigate("/");
+  }, [releaseAndClearBooking, navigate]);
 
   // Countdown – shared across all pages from booking start
   const { m, s, expired } = useCountdown({ expiresAt: booking?.expiresAt });
@@ -87,13 +93,14 @@ export default function BookingDetails() {
             <span className="hidden md:inline">{t("common.back")}</span>
           </button>
           <div className="hidden md:block h-5 w-px bg-white/15" />
-          <Link to="/">
+          <Link to="/" onClick={handleExitToHome}>
             <Logo className="hidden md:flex text-2xl md:text-3xl" />
           </Link>
         </div>
 
         <Link
           to="/"
+          onClick={handleExitToHome}
           className="pointer-events-auto absolute inset-x-0 top-1/2 flex -translate-y-1/2 justify-center md:hidden"
         >
           <Logo className="text-2xl" />
