@@ -94,6 +94,7 @@ function AccountButton() {
     .toUpperCase();
 
   const accountRoutes: Record<string, string> = {
+    account: isOrganization ? "/organizer/profile" : "/account",
     tickets: "/my-tickets",
     "organizer-events": "/organizer/events",
   };
