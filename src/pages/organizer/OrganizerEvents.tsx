@@ -10,6 +10,7 @@ import {
   ORGANIZER_EVENTS_CHANGE_EVENT,
   type StoredOrganizerEvent,
 } from "../../api/organizerEventsService";
+import { getOrgEvents } from "../../api/organization";
 
 export default function OrganizerEvents() {
   const { t } = useTranslation();
@@ -20,14 +21,57 @@ export default function OrganizerEvents() {
   );
 
   useEffect(() => {
+    let isMounted = true;
+
+    async function fetchBackendEvents() {
+      try {
+        const backendEvents = await getOrgEvents();
+        if (!isMounted) return;
+
+        const publishedEvents = backendEvents.map(
+          (ev) =>
+            ({
+              id: String(ev.id),
+              title: ev.name,
+              start: ev.dateTime,
+              venueName: ev.venue,
+              bannerImageUrl: ev.bannerUrl,
+              status: "Đã duyệt",
+              published: true,
+              showtimeCount: 1,
+              ticketTypeCount: 1,
+              createdAt: ev.dateTime,
+            } as StoredOrganizerEvent)
+        );
+
+        setCreatedEvents(() => {
+          const localEvents = organizerEventsService.list();
+          const backendIds = new Set(publishedEvents.map((e) => e.id));
+          const drafts = localEvents.filter(
+            (e) => !backendIds.has(e.id) && !e.published
+          );
+
+          return [...publishedEvents, ...drafts].sort(
+            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+        });
+      } catch (err) {
+        console.error("Failed to fetch backend events:", err);
+      }
+    }
+
     function refreshEvents() {
       setCreatedEvents(organizerEventsService.list());
+      fetchBackendEvents();
     }
+
+    fetchBackendEvents();
 
     window.addEventListener(ORGANIZER_EVENTS_CHANGE_EVENT, refreshEvents);
     window.addEventListener("storage", refreshEvents);
 
     return () => {
+      isMounted = false;
       window.removeEventListener(ORGANIZER_EVENTS_CHANGE_EVENT, refreshEvents);
       window.removeEventListener("storage", refreshEvents);
     };
