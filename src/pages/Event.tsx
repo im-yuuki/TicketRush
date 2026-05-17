@@ -334,11 +334,10 @@ export default function Event() {
                 variant="tertiary"
                 className="border border-border"
                 onClick={handleFollow}
-                isLoading={isFollowLoading}
-                isDisabled={!organizerId || isFollowed}
+                isDisabled={!organizerId || isFollowLoading || isFollowed}
               >
                 <Plus className="size-4" />
-                {followLabel}
+                {isFollowLoading ? "..." : followLabel}
               </Button>
             </div>
           </div>
