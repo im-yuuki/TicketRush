@@ -9,5 +9,5 @@ export default function OrganizerEventPreview() {
     return <NotFound />;
   }
 
-  return <EventLayout eventIdOverride={eventId.slice(1)} />;
+  return <EventLayout eventIdOverride={eventId} />;
 }

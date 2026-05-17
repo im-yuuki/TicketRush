@@ -20,6 +20,7 @@ import {
   type StoredOrganizerEvent,
   type StoredOrganizerTicketTier,
 } from "../utils/organizer/organizerEventsStorage";
+import { ApiError } from "./client";
 import {
   createEvent,
   updateEvent,
@@ -86,6 +87,11 @@ function saveServerIds(eventKey: string, ids: EventServerIds) {
   window.localStorage.setItem(SERVER_IDS_KEY, JSON.stringify(all));
 }
 
+function saveServerIdsForEventKeys(eventKey: string, ids: EventServerIds) {
+  saveServerIds(eventKey, ids);
+  saveServerIds(String(ids.eventId), ids);
+}
+
 export function getServerIds(eventKey: string): EventServerIds | null {
   return readAllServerIds()[eventKey] ?? null;
 }
@@ -93,14 +99,61 @@ export function getServerIds(eventKey: string): EventServerIds | null {
 // ── API Implementation ───────────────────────────────────
 
 const ROW_LABELS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const MIN_BACKEND_NAME_LENGTH = 3;
+const MAX_BACKEND_NAME_LENGTH = 50;
 
 /**
  * Convert datetime-local format "2026-09-09T11:00" to ISO-8601 Instant "2026-09-09T11:00:00Z"
  */
 function toIsoInstant(localDatetime: string): string {
 	if (!localDatetime) return localDatetime;
-	const withSeconds = localDatetime.length === 16 ? `${localDatetime}:00` : localDatetime;
-	return withSeconds.endsWith("Z") ? withSeconds : `${withSeconds}Z`;
+	const date = new Date(localDatetime);
+	return Number.isNaN(date.getTime()) ? localDatetime : date.toISOString();
+}
+
+function getErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof ApiError) return error.message;
+  if (error instanceof Error) return error.message;
+  return fallback;
+}
+
+function isBackendNameLengthValid(value: string) {
+  const length = value.trim().length;
+  return length >= MIN_BACKEND_NAME_LENGTH && length <= MAX_BACKEND_NAME_LENGTH;
+}
+
+function parseLocalDate(value?: string) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function buildSalesWindow(
+  showTime: NonNullable<StoredOrganizerEvent["showTimes"]>[number],
+  eventStart: Date,
+) {
+  const now = new Date();
+  const fallbackStart = new Date(now.getTime() + 60_000);
+  const fallbackEnd = eventStart > fallbackStart
+    ? eventStart
+    : new Date(fallbackStart.getTime() + 60 * 60_000);
+  const ticketStarts = showTime.tickets
+    .map((ticket) => parseLocalDate(ticket.saleStart))
+    .filter((date): date is Date => date !== null && date > now);
+  const ticketEnds = showTime.tickets
+    .map((ticket) => parseLocalDate(ticket.saleEnd))
+    .filter((date): date is Date => date !== null && date > now);
+  const startTime = ticketStarts.length > 0
+    ? new Date(Math.min(...ticketStarts.map((date) => date.getTime())))
+    : fallbackStart;
+  const validTicketEnds = ticketEnds.filter((date) => date > startTime);
+  const endTime = validTicketEnds.length > 0
+    ? new Date(Math.max(...validTicketEnds.map((date) => date.getTime())))
+    : fallbackEnd;
+
+  if (endTime <= startTime) return null;
+
+  return { startTime, endTime };
 }
 
 export function buildSeatZonePayload(name: string, rows: number, cols: number) {
@@ -148,9 +201,29 @@ export async function createEventOnServer(
 
   // ── Step 1: Create event ──
   const isOnline = event.locationMode === "online";
-  const addressParts = [event.streetAddress, event.wardName, event.provinceName].filter(Boolean);
+  const title = event.title.trim();
+  const addressParts = [event.streetAddress, event.wardName, event.provinceName]
+    .map((part) => part?.trim())
+    .filter(Boolean);
   const address = isOnline ? "Online" : addressParts.join(", ");
-  const venue = isOnline ? "Online" : (event.venueName || "TBD");
+  const venue = isOnline ? "Online" : (event.venueName?.trim() ?? "");
+  const showTimes = event.showTimes?.slice(0, 1) ?? [];
+
+  if (!isBackendNameLengthValid(title)) {
+    return { success: false, message: "Ten su kien phai tu 3 den 50 ky tu" };
+  }
+
+  if (!isOnline && (!isBackendNameLengthValid(venue) || !address)) {
+    return { success: false, message: "Vui long nhap day du dia diem va dia chi su kien" };
+  }
+
+  if (showTimes.length === 0) {
+    return { success: false, message: "Vui long tao mot showtime cho su kien" };
+  }
+
+  if (!showTimes[0]?.tickets.length) {
+    return { success: false, message: "Vui long tao it nhat mot loai ve" };
+  }
 
   // Validate required date — must be in the future
   if (!event.start || isNaN(Date.parse(event.start))) {
@@ -160,14 +233,22 @@ export async function createEventOnServer(
     return { success: false, message: "Ngày giờ sự kiện phải sau thời điểm hiện tại" };
   }
 
-  const createResult = await createEvent({
-    name: event.title,
-    description: event.eventDescription || "",
-    isOnlineEvent: isOnline,
-    venue,
-    address,
-    dateTime: toIsoInstant(event.start),
-  });
+  let createResult;
+  try {
+    createResult = await createEvent({
+      name: title,
+      description: event.eventDescription || "",
+      isOnlineEvent: isOnline,
+      venue,
+      address,
+      dateTime: toIsoInstant(event.start),
+    });
+  } catch (error) {
+    return {
+      success: false,
+      message: getErrorMessage(error, "Khong the tao su kien tren server"),
+    };
+  }
 
   if (!createResult.success || !createResult.resourceId) {
     return { success: false, message: createResult.message ?? "Failed to create event" };
@@ -196,9 +277,17 @@ export async function createEventOnServer(
 
   // ── Step 3: Create sales rounds from showTimes ──
   const salesRoundIds: number[] = [];
-  const showTimes = event.showTimes ?? [];
 
   for (const showTime of showTimes) {
+    if (!isBackendNameLengthValid(showTime.name)) {
+      return { success: false, message: "Ten showtime phai tu 3 den 50 ky tu" };
+    }
+    for (const ticket of showTime.tickets) {
+      if (!isBackendNameLengthValid(ticket.name)) {
+        return { success: false, message: `Ten ve "${ticket.name || "(trong)"}" phai tu 3 den 50 ky tu` };
+      }
+    }
+
     // Validate showTime dates — must be in the future
     if (!showTime.start || isNaN(Date.parse(showTime.start))) {
       return { success: false, message: `Suất diễn "${showTime.name}": thiếu thời gian bắt đầu` };
@@ -217,24 +306,36 @@ export async function createEventOnServer(
       .map((t) => parseInt(t.maxPerOrder, 10) || 0)
       .filter((n) => n > 0);
     const maxTickets = maxPerTicket.length > 0 ? Math.max(...maxPerTicket) : 10;
+    const salesWindow = buildSalesWindow(showTime, new Date(event.start));
 
-    const roundResult = await addSalesRound(eventId, {
-      name: showTime.name,
-      startTime: toIsoInstant(showTime.start),
-      endTime: toIsoInstant(showTime.end),
-      maxTicketsPerPurchase: maxTickets,
-    });
+    if (!salesWindow) {
+      return { success: false, message: `Showtime "${showTime.name}": thoi gian ban ve khong hop le` };
+    }
+
+    let roundResult;
+    try {
+      roundResult = await addSalesRound(eventId, {
+        name: showTime.name,
+        startTime: salesWindow.startTime.toISOString(),
+        endTime: salesWindow.endTime.toISOString(),
+        maxTicketsPerPurchase: maxTickets,
+      });
+    } catch (error) {
+      return {
+        success: false,
+        message: getErrorMessage(error, `Failed to create sales round "${showTime.name}"`),
+      };
+    }
 
     if (!roundResult.success || !roundResult.resourceId) {
-      console.error(`Failed to create sales round "${showTime.name}":`, roundResult.message);
-      continue;
+      return { success: false, message: roundResult.message ?? `Failed to create sales round "${showTime.name}"` };
     }
     salesRoundIds.push(roundResult.resourceId);
   }
 
   // ── Step 4: Save server IDs for seat config page ──
   const eventKey = String(event.sequenceId ?? eventId);
-  saveServerIds(eventKey, {
+  saveServerIdsForEventKeys(eventKey, {
     eventId,
     salesRoundIds,
     seatZoneIds: [],
@@ -243,6 +344,7 @@ export async function createEventOnServer(
   // ── Step 5: Sync event to localStorage for UI caching ──
   const localEvent: StoredOrganizerEvent = {
     ...event,
+    title,
     id: String(eventId),
     sequenceId: event.sequenceId ?? eventId,
     status: "Chờ duyệt",
@@ -282,10 +384,21 @@ export async function createSeatZonesOnServer(
 
   for (let i = 0; i < tiers.length; i++) {
     const tier = tiers[i];
+    if (!isBackendNameLengthValid(tier.name)) {
+      return { success: false, message: `Ten hang ve "${tier.name || "(trong)"}" phai tu 3 den 50 ky tu` };
+    }
     const zonePayload = buildSeatZonePayload(tier.name, tier.rows, tier.cols);
     // Stagger positionY so zones don't overlap
     zonePayload.positionY = i * 10;
-    const zoneResult = await createSeatZone(eventId, zonePayload);
+    let zoneResult;
+    try {
+      zoneResult = await createSeatZone(eventId, zonePayload);
+    } catch (error) {
+      return {
+        success: false,
+        message: getErrorMessage(error, `Failed to create seat zone "${tier.name}"`),
+      };
+    }
 
     if (!zoneResult.success || !zoneResult.resourceId) {
       return { success: false, message: zoneResult.message ?? `Failed to create seat zone "${tier.name}"` };
@@ -300,19 +413,31 @@ export async function createSeatZonesOnServer(
       const seatZoneId = seatZoneIds[i];
       if (!seatZoneId) continue;
 
-      await createTicketClass(eventId, {
-        name: tier.ticketName || tier.name,
-        description: tier.ticketName || tier.name,
-        price: tier.price ?? 0,
-        salesRoundId: firstSalesRoundId,
-        seatZoneId,
-      });
+      let ticketClassResult;
+      try {
+        ticketClassResult = await createTicketClass(eventId, {
+          name: tier.ticketName || tier.name,
+          description: tier.ticketName || tier.name,
+          price: tier.price ?? 0,
+          salesRoundId: firstSalesRoundId,
+          seatZoneId,
+        });
+      } catch (error) {
+        return {
+          success: false,
+          message: getErrorMessage(error, `Failed to create ticket class "${tier.name}"`),
+        };
+      }
+
+      if (!ticketClassResult.success || !ticketClassResult.resourceId) {
+        return { success: false, message: ticketClassResult.message ?? `Failed to create ticket class "${tier.name}"` };
+      }
     }
   }
 
   // ── Update server IDs with seatZoneIds ──
   if (serverIds) {
-    saveServerIds(eventKey, { ...serverIds, seatZoneIds });
+    saveServerIdsForEventKeys(eventKey, { ...serverIds, seatZoneIds });
   }
 
   return { success: true };
@@ -331,11 +456,16 @@ export async function publishOrganizerEvent(
   const eventKey = event ? getStoredOrganizerEventPreviewId(event) : eventLocalId;
 
   // Get server IDs
-  const serverIds = getServerIds(eventKey);
+  const serverIds = getServerIds(eventKey) ?? getServerIds(eventLocalId);
   const numericEventId = serverIds?.eventId ?? parseInt(eventLocalId, 10);
+  const hasSalesRound = Boolean(serverIds?.salesRoundIds?.length);
 
   if (!numericEventId || numericEventId <= 0) {
     return { success: false, message: "Không tìm thấy sự kiện trên server" };
+  }
+
+  if (!hasSalesRound) {
+    return { success: false, message: "Can tao showtime truoc khi publish" };
   }
 
   // Guard: must have seat zones configured
@@ -343,7 +473,15 @@ export async function publishOrganizerEvent(
     return { success: false, message: "Cần cấu hình sơ đồ ghế trước khi publish" };
   }
 
-  const result = await publishEvent(numericEventId);
+  let result;
+  try {
+    result = await publishEvent(numericEventId);
+  } catch (error) {
+    return {
+      success: false,
+      message: getErrorMessage(error, "Khong the publish su kien"),
+    };
+  }
 
   if (!result.success) {
     return { success: false, message: result.message };

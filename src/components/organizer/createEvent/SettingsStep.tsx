@@ -3,7 +3,6 @@ import { Link2, LockKeyhole, Mail, UserRound, UsersRound } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  OrganizerCountedInput,
   OrganizerCountedTextarea,
   OrganizerFormPanel,
 } from "../OrganizerFormControls";
@@ -14,10 +13,12 @@ export default function SettingsStep({
   eventSequenceId: number;
 }) {
   const { t } = useTranslation();
-  const [eventSlug, setEventSlug] = useState("123");
   const [privacy, setPrivacy] = useState<"public" | "private">("public");
   const [confirmationMessage, setConfirmationMessage] = useState("");
-  const eventUrl = `https://ticketrush.june8th.me/events/${eventSlug || "event"}-${eventSequenceId}`;
+  const previewPath = `/-${eventSequenceId}`;
+  const eventUrl = typeof window === "undefined"
+    ? `https://ticketrush.june8th.me${previewPath}`
+    : `${window.location.origin}${previewPath}`;
 
   const privacyOptions = [
     {
@@ -48,19 +49,6 @@ export default function SettingsStep({
           <h2 className="text-lg font-bold">
             {t("organizer.create.settings.linkTitle", "Link dẫn đến sự kiện")}
           </h2>
-        </div>
-
-        <div className="space-y-2">
-          <label className="block text-sm font-bold" htmlFor="organizer-event-slug">
-            <span className="text-danger">*</span>{" "}
-            {t("organizer.create.settings.customPath", "Tùy chỉnh đường dẫn:")}
-          </label>
-          <OrganizerCountedInput
-            id="organizer-event-slug"
-            value={eventSlug}
-            maxLength={80}
-            onChange={setEventSlug}
-          />
         </div>
 
         <p className="text-sm text-muted">

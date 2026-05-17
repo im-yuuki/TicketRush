@@ -20,7 +20,8 @@ export function readAllSeatConfigs(): Record<string, TierDimensions[]> {
 
 export function getSeatConfig(eventId: string): TierDimensions[] | null {
   const all = readAllSeatConfigs();
-  return all[eventId] ?? null;
+  const previewKey = eventId.startsWith("-") ? eventId.slice(1) : eventId;
+  return all[eventId] ?? all[previewKey] ?? null;
 }
 
 export function saveSeatConfig(eventId: string, tiers: TierDimensions[]) {
