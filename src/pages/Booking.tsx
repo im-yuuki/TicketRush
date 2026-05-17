@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { ArrowLeft, CalendarDays, MapPin } from "lucide-react";
 import { Button } from "@heroui/react";
 import SeatMap, { type VenueLayout } from "../components/SeatMap";
-import { getEvent, type EventData } from "../data/events";
+import { getEvent } from "../data/events";
 import { apiGet } from "../api/client";
 import { formatPrice, formatDateTime } from "../utils/format";
 import { useBooking } from "../contexts/BookingContext";
@@ -30,15 +30,7 @@ export default function Booking() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { setSeatSelection } = useBooking();
-  const [event, setEvent] = useState<EventData | null>(null);
-
-  useEffect(() => {
-    async function loadEvent() {
-      const loadedEvent = await getEvent(eventId);
-      setEvent(loadedEvent);
-    }
-    loadEvent();
-  }, [eventId]);
+  const event = useMemo(() => getEvent(eventId), [eventId]);
 
   const showTimeIdParam = searchParams.get("showTimeId");
 
@@ -52,18 +44,10 @@ export default function Booking() {
   }, [event, showTimeIdParam]);
 
   // Resolve preview eventId to actual stored event ID
-  const [storedEventId, setStoredEventId] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function resolveEventId() {
-      if (!eventId) {
-        setStoredEventId(null);
-        return;
-      }
-      const stored = await organizerEventsService.findByPreviewId(eventId);
-      setStoredEventId(stored?.id ?? eventId);
-    }
-    resolveEventId();
+  const storedEventId = useMemo(() => {
+    if (!eventId) return null;
+    const stored = organizerEventsService.findByPreviewId(eventId);
+    return stored?.id ?? eventId;
   }, [eventId]);
 
   // Seat config from organizer
@@ -127,7 +111,7 @@ export default function Booking() {
         .then((data) => {
           if (isMounted) setBookedSeatIds(data);
         })
-        .catch(() => {
+        .catch((_err) => {
           // ── MOCK DATA: Xóa đoạn này khi nối API thật ──
           // 3 ghế giả lập "đã đặt" để test UI. Khi nối API, backend sẽ trả danh sách ghế booked.
           if (isMounted && bookedSeatIds.length === 0) {
@@ -191,6 +175,8 @@ export default function Booking() {
     */
   };
 
+  if (!event) return <div className="p-10 text-white">{t("event.notFound")}</div>;
+
   const { tierColors, seatToTierMap, assignedSeatColors } = useMemo(() => {
     const tColors: Record<string, string> = {};
 
@@ -232,8 +218,6 @@ export default function Booking() {
       return sum + (tier ? tier.price : activeTicketTiers[0]?.price ?? 0);
     }, 0);
   }, [selectedSeats, seatToTierMap, activeTicketTiers]);
-
-  if (!event) return <div className="p-10 text-white">{t("event.notFound")}</div>;
 
   return (
     <div className="flex flex-col md:flex-row h-[100dvh] w-full bg-[#0a0a0a] text-white font-sans overflow-hidden">

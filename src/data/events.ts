@@ -5,8 +5,6 @@ import {
   organizerEventsService,
   type StoredOrganizerEvent,
 } from "../api/organizerEventsService";
-import { ApiError } from "../api/client";
-import { getPublicEvent, type PublicEventInfo } from "../api/publicEvents";
 import type { ShowTime } from "../types/organizerCreate";
 
 export type DescriptionParagraph = {
@@ -47,8 +45,6 @@ export type EventData = {
   organizerLogoKey?: string;
   /** Show times for organizer events (displayed in preview after save). */
   showTimes?: ShowTime[];
-  /** Public booking is only enabled after ticket classes/booking APIs are wired. */
-  isBookable?: boolean;
 };
 
 const MOCK_EVENTS: Record<string, EventData> = {
@@ -167,57 +163,11 @@ function mapStoredOrganizerEventToEventData(event: StoredOrganizerEvent): EventD
   };
 }
 
-function mapPublicDescription(description: string): DescriptionParagraph[] {
-  const lines = description
-    .trim()
-    .split(/\n+/)
-    .map((line) => line.trim())
-    .filter(Boolean);
-
-  if (lines.length === 0) {
-    return [{ text: "Event details are being updated by the organizer." }];
-  }
-
-  return lines.map((text) => ({ text }));
-}
-
-function mapPublicEventToEventData(event: PublicEventInfo): EventData {
-  return {
-    id: String(event.id),
-    title: event.name,
-    category: "public",
-    date: event.dateTime,
-    location: event.isOnlineEvent ? "Online" : event.address,
-    venue: event.venue,
-    address: event.address,
-    price: 0,
-    image: event.bannerUrl ?? "",
-    description: mapPublicDescription(event.description),
-    ticketTiers: [],
-    organizer: event.organization.name,
-    organizerDescription:
-      event.organization.description || "Organizer information is being updated.",
-    organizerLogo: event.organization.avatarUrl ?? undefined,
-    isBookable: false,
-  };
-}
-
-/** Look up a single event by id. */
-export async function getEvent(id: string | undefined): Promise<EventData | null> {
+/** Look up a single event by id. Swap this for a real fetch() later. */
+export function getEvent(id: string | undefined): EventData | null {
   if (!id) return null;
   const previewId = id.match(/(?:^|-)(\d+)$/)?.[1] ?? id;
-
-  if (/^\d+$/.test(previewId)) {
-    try {
-      return mapPublicEventToEventData(await getPublicEvent(Number(previewId)));
-    } catch (error) {
-      if (!(error instanceof ApiError) || error.status !== 404) {
-        throw error;
-      }
-    }
-  }
-
-  const storedOrganizerEvent = await organizerEventsService.findByPreviewId(previewId);
+  const storedOrganizerEvent = organizerEventsService.findByPreviewId(previewId);
   if (storedOrganizerEvent) {
     return mapStoredOrganizerEventToEventData(storedOrganizerEvent);
   }

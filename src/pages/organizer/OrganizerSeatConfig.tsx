@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, Check, ChevronDown, Save } from "lucide-react";
 import { Button, Dropdown } from "@heroui/react";
 import SeatMap, { type VenueLayout } from "../../components/SeatMap";
-import { organizerEventsService, type StoredOrganizerEvent } from "../../api/organizerEventsService";
+import { organizerEventsService } from "../../api/organizerEventsService";
 import { getSeatLayout, saveSeatLayout } from "../../utils/organizer/organizerSeatLayoutStorage";
 import type { ShowTime, TicketTypeData } from "../../types/organizerCreate";
 
@@ -40,17 +40,10 @@ export default function OrganizerSeatConfig() {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  const [event, setEvent] = useState<StoredOrganizerEvent | undefined>(undefined);
-
-  useEffect(() => {
-    async function loadEvent() {
-      if (eventId) {
-        const loadedEvent = await organizerEventsService.findById(eventId);
-        setEvent(loadedEvent);
-      }
-    }
-    loadEvent();
-  }, [eventId]);
+  const event = useMemo(
+    () => (eventId ? organizerEventsService.findById(eventId) : undefined),
+    [eventId],
+  );
 
   const showTimes = event?.showTimes ?? [];
   const [selectedShowTimeId, setSelectedShowTimeId] = useState<number | null>(

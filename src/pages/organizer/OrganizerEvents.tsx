@@ -13,67 +13,33 @@ import {
 
 export default function OrganizerEvents() {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<OrganizerEventTab>("upcoming");
+  const [activeTab, setActiveTab] = useState<OrganizerEventTab>("pending");
   const [searchQuery, setSearchQuery] = useState("");
-  const [createdEvents, setCreatedEvents] = useState<StoredOrganizerEvent[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [listError, setListError] = useState<string | null>(null);
-  const [currentTime, setCurrentTime] = useState(0);
+  const [createdEvents, setCreatedEvents] = useState<StoredOrganizerEvent[]>(() =>
+    organizerEventsService.list(),
+  );
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function loadEvents() {
-      setIsLoading(true);
-      setListError(null);
-
-      try {
-        const events = await organizerEventsService.list();
-        if (!cancelled) {
-          setCurrentTime(Date.now());
-          setCreatedEvents(events);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          const message = error instanceof Error ? error.message : "Could not load organizer events.";
-          setListError(message);
-          setCreatedEvents([]);
-        }
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
-    }
-
-    loadEvents();
-
     function refreshEvents() {
-      loadEvents();
+      setCreatedEvents(organizerEventsService.list());
     }
 
     window.addEventListener(ORGANIZER_EVENTS_CHANGE_EVENT, refreshEvents);
+    window.addEventListener("storage", refreshEvents);
 
     return () => {
-      cancelled = true;
       window.removeEventListener(ORGANIZER_EVENTS_CHANGE_EVENT, refreshEvents);
+      window.removeEventListener("storage", refreshEvents);
     };
   }, []);
 
   const visibleEvents = useMemo(() => {
-    const tabEvents = createdEvents.filter((event) => {
-      const startsAt = new Date(event.start).getTime();
-      const isPast = Number.isFinite(startsAt) && startsAt < currentTime;
-      const isPublished = event.status === "published";
-
-      if (activeTab === "upcoming") return isPublished && !isPast;
-      if (activeTab === "past") return isPublished && isPast;
-      if (activeTab === "pending") return event.status === "pending";
-      return event.status === "draft";
-    });
+    if (activeTab !== "pending") return [];
 
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return tabEvents;
-    return tabEvents.filter((event) => event.title.toLowerCase().includes(query));
-  }, [activeTab, createdEvents, currentTime, searchQuery]);
+    if (!query) return createdEvents;
+    return createdEvents.filter((event) => event.title.toLowerCase().includes(query));
+  }, [activeTab, createdEvents, searchQuery]);
 
   return (
     <OrganizerPageShell>
@@ -95,15 +61,7 @@ export default function OrganizerEvents() {
         )}
 
         <div className="mt-5">
-          {isLoading ? (
-            <div className="rounded-lg border border-border bg-surface-secondary/70 p-10 text-center text-sm text-muted">
-              {t("organizer.events.loading", "Loading events...")}
-            </div>
-          ) : listError ? (
-            <div className="rounded-lg border border-danger/40 bg-danger/10 p-10 text-center text-sm font-medium text-danger">
-              {listError}
-            </div>
-          ) : visibleEvents.length > 0 ? (
+          {visibleEvents.length > 0 ? (
             <div className="space-y-4">
               {visibleEvents.map((event) => (
                 <OrganizerEventCard key={event.id} event={event} />

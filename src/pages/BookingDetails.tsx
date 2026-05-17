@@ -8,7 +8,7 @@ import {
   Clock,
 } from "lucide-react";
 import { Card, Button, TextField, Label, Input, FieldError, Form } from "@heroui/react";
-import { getEvent, type EventData } from "../data/events";
+import { getEvent } from "../data/events";
 import { Logo } from "../components/Branding";
 import { StepIndicator } from "../components/booking/StepIndicator";
 import { EventMarquee } from "../components/booking/EventMarquee";
@@ -27,15 +27,7 @@ export default function BookingDetails() {
   const { t } = useTranslation();
   const { booking, setCustomerInfo } = useBooking();
 
-  const [event, setEvent] = useState<EventData | null>(null);
-
-  useEffect(() => {
-    async function loadEvent() {
-      const loadedEvent = await getEvent(eventId);
-      setEvent(loadedEvent);
-    }
-    loadEvent();
-  }, [eventId]);
+  const event = useMemo(() => getEvent(eventId), [eventId]);
 
   // Read from context instead of location.state
   const selectedSeats = booking?.selectedSeats || [];

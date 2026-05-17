@@ -1,13 +1,13 @@
-export interface Response<T = unknown> {
+export interface Response<T> {
+	code: string;
 	success: boolean;
 	message: string;
-	resourceId?: number | null;
-	metadata?: T;
+	metadata: T;
 }
 
-export type RegisterResponse = Response;
+export interface RegisterResponse extends Response<{}> {}
 
-export type ResetResponse = Response;
+export interface ResetResponse extends Response<{}> {}
 
 export interface RegisterRequest {
 	name: string;
@@ -15,6 +15,7 @@ export interface RegisterRequest {
 	password: string;
 	birthDate: string;
 	gender: "male" | "female" | "other";
+	country: string;
 }
 
 export interface OTPRequest {
@@ -35,27 +36,34 @@ export const AccountType = {
 
 export type AccountType = typeof AccountType[keyof typeof AccountType];
 
-export type LoginResponse = Response;
+export interface LoginMetadata {
+	account_type: AccountType;
+}
+
+export interface LoginResponse extends Response<LoginMetadata> {}
 
 export interface ProfileModel {
-	id: number;
 	name: string;
 	email: string;
-	avatarUrl?: string;
+	createdAt: string;
+	type: AccountType;
 }
 
 export interface UserProfileModel extends ProfileModel {
+	avatarUrl: string;
 	birthDate: string;
+	country: string;
 	gender: string;
-	phoneNumber?: string;
-	addressLine?: string;
+	phoneNumber: string;
+	addressLine: string;
 }
 
 export interface OrganizationProfileModel extends ProfileModel {
-	bannerUrl?: string;
-	aliasName?: string;
-	description?: string;
-	websiteUrl?: string;
+	avatarUrl: string;
+	bannerUrl: string;
+	aliasName: string;
+	description: string;
+	websiteUrl: string;
 }
 
 export type AccountResponse = ProfileModel | UserProfileModel | OrganizationProfileModel;
