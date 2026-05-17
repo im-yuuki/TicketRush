@@ -7,6 +7,12 @@ import type {
 
 // ── Purchase APIs ────────────────────────────────────────────
 
+export function getSeatStatuses(eventId: number) {
+  return apiGet<import("../types/seat").ActiveHoldView & { seatZones: import("../types/seat").ServerSeatZoneView[] }>(
+    `/purchase/event/${eventId}/seats`,
+  );
+}
+
 export function getPurchaseEvent(eventId: number) {
   return apiGet<PurchaseEventView>(`/purchase/event/${eventId}`);
 }

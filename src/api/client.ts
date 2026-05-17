@@ -135,11 +135,22 @@ export async function apiPut<TResponse, TRequest = unknown>(
 }
 
 /**
+ * Convenience helper for typed PATCH requests.
+ */
+export async function apiPatch<TResponse, TRequest = unknown>(
+	endpoint: string,
+    body?: TRequest,
+    options: Omit<ApiRequestOptions<TRequest>, "body" | "method"> = {},
+) {
+	return apiRequest<TResponse, TRequest>(endpoint, { ...options, body, method: "PATCH" });
+}
+
+/**
  * Convenience helper for typed DELETE requests.
  */
 export async function apiDelete<TResponse>(
-	endpoint: string,
-	options: Omit<ApiRequestOptions, "body" | "method"> = {},
+    endpoint: string,
+    options: Omit<ApiRequestOptions, "body" | "method"> = {},
 ) {
-	return apiRequest<TResponse>(endpoint, { ...options, method: "DELETE" });
+    return apiRequest<TResponse>(endpoint, { ...options, method: "DELETE" });
 }

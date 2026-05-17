@@ -8,6 +8,7 @@ import type {
 	OTPRequest,
 	Response,
 } from "../types/requestDto";
+import type { ResetPasswordRequest } from "../types/requestDto";
 
 
 export function registerUser(payload: RegisterRequest) {
@@ -23,13 +24,25 @@ export function getAccount() {
 }
 
 export function triggerOTPEmail() {
-	return apiGet<Response<{}>>(`/auth/register/confirmation`);
+	return apiGet<Response<{}>>("/auth/register/confirmation");
 }
 
 export function verifyOTPRegister(payload: OTPRequest) {
-	return apiPost<Response<{}>, OTPRequest>(`/auth/register/confirmation`, payload);
+	return apiPost<Response<{}>, OTPRequest>("/auth/register/confirmation", payload);
 }
 
 export function logoutUser() {
 	return apiPost<Response<{}>>("/auth/logout");
+}
+
+export function resetPassword(payload: ResetPasswordRequest) {
+	return apiPost<Response<{}>, ResetPasswordRequest>("/auth/reset", payload);
+}
+
+export function sendResetPasswordOtp() {
+	return apiGet<Response<{}>>("/auth/reset/confirm");
+}
+
+export function confirmResetPassword(payload: OTPRequest) {
+	return apiPost<Response<{}>, OTPRequest>("/auth/reset/confirm", payload);
 }
