@@ -8,7 +8,7 @@ import {
   Clock,
 } from "lucide-react";
 import { Card, Button, TextField, Label, Input, FieldError, Form } from "@heroui/react";
-import { getEvent } from "../data/events";
+import { useEventData } from "../hooks/useEventData";
 import { Logo } from "../components/Branding";
 import { StepIndicator } from "../components/booking/StepIndicator";
 import { EventMarquee } from "../components/booking/EventMarquee";
@@ -27,7 +27,7 @@ export default function BookingDetails() {
   const { t } = useTranslation();
   const { booking, setCustomerInfo } = useBooking();
 
-  const event = useMemo(() => getEvent(eventId), [eventId]);
+  const { event, loading: eventLoading } = useEventData(eventId);
 
   // Read from context instead of location.state
   const selectedSeats = booking?.selectedSeats || [];
@@ -64,6 +64,9 @@ export default function BookingDetails() {
 
   // Single tier — direct calculation
   const totalAmount = selectedSeats.length * tierPrice;
+
+  if (eventLoading)
+    return <div className="flex items-center justify-center h-[100dvh] bg-[#0a0a0a] text-white"><p className="text-sm text-gray-400">{t("common.loading", "Đang tải...")}</p></div>;
 
   if (!event)
     return <div className="p-10 text-white">{t("event.notFound")}</div>;

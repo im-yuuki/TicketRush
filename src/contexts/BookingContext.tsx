@@ -30,6 +30,7 @@ interface BookingContextValue {
   setPaymentMethod: (method: "bank_transfer" | "credit_card") => void;
   setTotalAmount: (amount: number) => void;
   setSessionId: (sessionId: string) => void;
+  setExpiresAt: (expiresAt: string) => void;
   clearBooking: () => void;
 }
 
@@ -116,6 +117,13 @@ export function BookingProvider({ children }: { children: ReactNode }) {
     [update],
   );
 
+  const setExpiresAt = useCallback(
+    (expiresAt: string) => {
+      update((prev) => (prev ? { ...prev, expiresAt } : prev));
+    },
+    [update],
+  );
+
   const clearBooking = useCallback(() => {
     setBooking(null);
     saveToStorage(null);
@@ -123,7 +131,7 @@ export function BookingProvider({ children }: { children: ReactNode }) {
 
   return (
     <BookingContext.Provider
-      value={{ booking, setSeatSelection, setCustomerInfo, setPaymentMethod, setTotalAmount, setSessionId, clearBooking }}
+      value={{ booking, setSeatSelection, setCustomerInfo, setPaymentMethod, setTotalAmount, setSessionId, setExpiresAt, clearBooking }}
     >
       {children}
     </BookingContext.Provider>

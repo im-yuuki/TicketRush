@@ -5,6 +5,7 @@ import {
   organizerEventsService,
   type StoredOrganizerEvent,
 } from "../api/organizerEventsService";
+import { getTrendingEvents } from "../api/feeds";
 import { getPurchaseEvent } from "../api/purchaseApi";
 import { getEventInfo, getOrganizationInfo } from "../api/public";
 import type { PublicEventInfo, PublicOrganizationInfo } from "../types/requestDto";
@@ -202,6 +203,7 @@ function mapServerDataToEventData(
   info: PublicEventInfo,
   purchaseInfo: PurchaseEventView | null,
   orgInfo: PublicOrganizationInfo | null,
+  fallbackMinPrice?: number,
 ): EventData {
   // Description
   const descriptionText = info.description?.trim();
@@ -242,9 +244,11 @@ function mapServerDataToEventData(
     };
   });
 
-  // Min price
+  // Min price: use ticket class prices if available, else fallback from feeds
   const prices = ticketTiers.map((t) => t.price).filter((p) => p > 0);
-  const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+  const minPrice = prices.length > 0
+    ? Math.min(...prices)
+    : (fallbackMinPrice ?? 0);
 
   return {
     id: String(info.id),
@@ -273,15 +277,19 @@ export async function fetchEventById(id: string | number): Promise<EventData | n
   try {
     const info = await getEventInfo(numericId);
 
-    // Fetch purchase info and org info in parallel; don't fail if either errors
-    const [purchaseInfo, orgInfo] = await Promise.all([
+    // Fetch purchase info, org info, and feeds price in parallel
+    const [purchaseInfo, orgInfo, feedsPrice] = await Promise.all([
       getPurchaseEvent(numericId).catch(() => null),
       info.organizationId
         ? getOrganizationInfo(info.organizationId).catch(() => null)
         : Promise.resolve(null),
+      // Fallback: get minimumTicketPrice from the trending feed (public, no auth)
+      getTrendingEvents()
+        .then((events) => events.find((e) => e.id === numericId)?.minimumTicketPrice ?? 0)
+        .catch(() => 0),
     ]);
 
-    return mapServerDataToEventData(info, purchaseInfo, orgInfo);
+    return mapServerDataToEventData(info, purchaseInfo, orgInfo, feedsPrice);
   } catch {
     return null;
   }

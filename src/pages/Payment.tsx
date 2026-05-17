@@ -11,7 +11,7 @@ import {
   CreditCard,
 } from "lucide-react";
 import { Button, Input, Card } from "@heroui/react";
-import { getEvent } from "../data/events";
+import { useEventData } from "../hooks/useEventData";
 import { Logo } from "../components/Branding";
 import { StepIndicator } from "../components/booking/StepIndicator";
 import { EventMarquee } from "../components/booking/EventMarquee";
@@ -103,7 +103,7 @@ export default function Payment() {
   const { t } = useTranslation();
   const { booking, setPaymentMethod: savePaymentMethod, setTotalAmount } = useBooking();
 
-  const event = useMemo(() => getEvent(eventId), [eventId]);
+  const { event, loading: eventLoading } = useEventData(eventId);
 
   // Read from context instead of location.state
   const selectedSeats = booking?.selectedSeats || [];
@@ -134,15 +134,19 @@ export default function Payment() {
     savePaymentMethod(paymentMethod);
     setTotalAmount(totalAmount);
 
-    if (paymentMethod === "bank_transfer") {
-      // Hardcoded sessionId for UI testing
-      const sessionId = "test_ui_session";
-      navigate(`/checkout/${sessionId}`);
+    const holdId = booking?.sessionId;
+    if (paymentMethod === "bank_transfer" && holdId) {
+      navigate(`/checkout/${holdId}`);
+    } else if (!holdId) {
+      console.error("No hold session found");
     } else {
       // TODO: Xử lý credit card payment
       console.log("Credit card payment not yet implemented");
     }
   };
+
+  if (eventLoading)
+    return <div className="flex items-center justify-center h-[100dvh] bg-[#0a0a0a] text-white"><p className="text-sm text-gray-400">{t("common.loading", "Đang tải...")}</p></div>;
 
   if (!event)
     return <div className="p-10 text-white">{t("event.notFound")}</div>;

@@ -1,95 +1,148 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
-import { ArrowLeft, CalendarDays, MapPin, Armchair } from "lucide-react";
-import { Button } from "@heroui/react";
+import { ArrowLeft, CalendarDays, MapPin, Armchair, Loader2 } from "lucide-react";
+import { Button, Skeleton } from "@heroui/react";
 import SeatMap from "../components/SeatMap";
 import { Logo } from "../components/Branding";
-import { getEvent } from "../data/events";
+import { useEventData } from "../hooks/useEventData";
 import { formatPrice, formatDateTime } from "../utils/format";
 import { useBooking } from "../contexts/BookingContext";
-import { getSeatConfig } from "../utils/organizer/organizerSeatLayoutStorage";
-import { buildLayoutFromTiers } from "../utils/seatLayoutBuilder";
-import type { TierDimensions } from "../types/seat";
+import { useAuth } from "../contexts/AuthContext";
+import { getPurchaseEvent, getSeatStatuses, createHold, addSeatToHold } from "../api/purchaseApi";
+import { buildLayoutFromZone, buildSeatIdMap, getOccupiedSeatIds } from "../utils/seatLayoutBuilder";
+import type { PurchaseEventView, ServerSeatZoneView, ServerTicketClassView } from "../types/seat";
+import type { VenueLayout } from "../components/SeatMap";
 
 const TIER_COLORS = ["#ef4444", "#fcd34d", "#a3e635", "#86efac", "#5eead4", "#fca5a5", "#93c5fd", "#c084fc", "#fb923c"];
 
-// Mock booked seats — will be replaced by server API
-function getMockBookedSeats(tierId: string): string[] {
-  return [`${tierId}-B-2`, `${tierId}-B-3`, `${tierId}-C-1`];
-}
-
-type TierInfo = TierDimensions & { price: number; color: string; seatCount: number };
+type TierInfo = {
+  ticketClassId: number;
+  seatZoneId: number;
+  name: string;
+  price: number;
+  color: string;
+  seatCount: number;
+};
 
 export default function Booking() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { setSeatSelection } = useBooking();
+  const { isAuthenticated } = useAuth();
+  const { setSeatSelection, setSessionId, setExpiresAt } = useBooking();
+  const { event, loading: eventLoading } = useEventData(eventId);
 
-  const event = useMemo(() => getEvent(eventId), [eventId]);
+  // ── Auth guard ──
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/login", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
-  // Load seat config from localStorage (saved by organizer)
-  const tierDims = useMemo(() => {
-    if (!eventId) return [];
-    return getSeatConfig(eventId) ?? [];
-  }, [eventId]);
+  // ── Purchase data from server ──
+  const [purchaseData, setPurchaseData] = useState<PurchaseEventView | null>(null);
+  const [seatZonesWithStatus, setSeatZonesWithStatus] = useState<ServerSeatZoneView[]>([]);
+  const [purchaseLoading, setPurchaseLoading] = useState(true);
+  const [purchaseError, setPurchaseError] = useState<string | null>(null);
 
-  // Build tier info with colors and prices from event tickets
-  const tiers = useMemo(() => {
-    if (!event?.showTimes?.[0]) return [];
-    const showTime = event.showTimes[0];
-    return tierDims.map((dim, idx) => {
-      const ticket = showTime.tickets.find((t) => `${showTime.id}-${t.id}` === dim.tierId);
+  const numericEventId = eventId ? parseInt(eventId, 10) : NaN;
+
+  useEffect(() => {
+    if (!Number.isFinite(numericEventId) || numericEventId <= 0 || !isAuthenticated) return;
+
+    let cancelled = false;
+    setPurchaseLoading(true);
+    setPurchaseError(null);
+
+    Promise.all([
+      getPurchaseEvent(numericEventId),
+      getSeatStatuses(numericEventId).catch(() => null),
+    ]).then(([purchase, seatData]) => {
+      if (cancelled) return;
+      setPurchaseData(purchase);
+      setSeatZonesWithStatus(seatData?.seatZones ?? purchase.seatZones);
+      setPurchaseLoading(false);
+    }).catch((err) => {
+      if (cancelled) return;
+      setPurchaseError(err instanceof Error ? err.message : "Failed to load ticket data");
+      setPurchaseLoading(false);
+    });
+
+    return () => { cancelled = true; };
+  }, [numericEventId, isAuthenticated]);
+
+  // ── Build tiers from ticketClasses ──
+  const tiers = useMemo<TierInfo[]>(() => {
+    if (!purchaseData) return [];
+    return purchaseData.ticketClasses.map((tc, idx) => {
+      const zone = seatZonesWithStatus.find((z) => z.id === tc.seatZoneId);
+      const seatCount = zone
+        ? zone.rows.reduce((sum, row) => sum + row.seats.length, 0)
+        : 0;
       return {
-        ...dim,
-        price: ticket ? (ticket.isFree ? 0 : Number(String(ticket.price).replace(/[^\d]/g, "")) || 0) : 0,
+        ticketClassId: tc.id,
+        seatZoneId: tc.seatZoneId,
+        name: tc.name,
+        price: tc.price,
         color: TIER_COLORS[idx % TIER_COLORS.length],
-        seatCount: dim.rows * dim.cols,
+        seatCount,
       };
     });
-  }, [tierDims, event]);
+  }, [purchaseData, seatZonesWithStatus]);
 
-  // Selected tier state
+  // ── Selected tier ──
   const [selectedTier, setSelectedTier] = useState<TierInfo | null>(null);
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Build seatmap layout for selected tier
-  const seatLayout = useMemo(() => {
+  // ── Seat map for selected tier ──
+  const selectedZone = useMemo<ServerSeatZoneView | null>(() => {
     if (!selectedTier) return null;
-    return buildLayoutFromTiers([selectedTier]);
-  }, [selectedTier]);
+    return seatZonesWithStatus.find((z) => z.id === selectedTier.seatZoneId) ?? null;
+  }, [selectedTier, seatZonesWithStatus]);
 
-  // Booked seats for current tier (mock)
+  const seatLayout = useMemo<VenueLayout | null>(() => {
+    if (!selectedZone) return null;
+    return buildLayoutFromZone(selectedZone);
+  }, [selectedZone]);
+
   const bookedSeatIds = useMemo(() => {
-    if (!selectedTier) return [];
-    return getMockBookedSeats(selectedTier.tierId);
-  }, [selectedTier]);
+    if (!selectedZone) return [];
+    return getOccupiedSeatIds(selectedZone);
+  }, [selectedZone]);
+
+  const seatIdMap = useMemo(() => {
+    if (!selectedZone) return {};
+    return buildSeatIdMap(selectedZone);
+  }, [selectedZone]);
 
   // Assigned colors for seatmap (all seats same color = same tier)
   const assignedSeatColors = useMemo(() => {
     if (!selectedTier || !seatLayout) return {};
     const colors: Record<string, string> = {};
-    const blockId = seatLayout.blocks[0]?.id;
-    if (!blockId) return colors;
-    for (const row of seatLayout.blocks[0].rows) {
-      for (let i = 1; i <= row.count; i++) {
-        colors[`${blockId}-${row.label}-${i}`] = selectedTier.color;
+    for (const block of seatLayout.blocks) {
+      for (const row of block.rows) {
+        for (let i = 1; i <= row.count; i++) {
+          colors[`${block.id}-${row.label}-${i}`] = selectedTier.color;
+        }
       }
     }
     return colors;
   }, [selectedTier, seatLayout]);
 
-  // Max seats per purchase (from server salesRound.maxTicketsPerPurchase, hardcoded for now)
-  const MAX_SEATS = 10;
+  // Max seats per purchase from salesRound
+  const maxSeats = useMemo(() => {
+    if (!purchaseData?.salesRounds?.length) return 10;
+    return purchaseData.salesRounds[0].maxTicketsPerPurchase;
+  }, [purchaseData]);
 
   const totalAmount = useMemo(
     () => selectedSeats.length * (selectedTier?.price ?? 0),
     [selectedSeats, selectedTier],
   );
 
-  // Full venue address
   const fullAddress = useMemo(() => {
     if (!event) return "";
     return [event.venue, event.address].filter(Boolean).join(", ");
@@ -107,14 +160,78 @@ export default function Booking() {
     setSelectedSeats([]);
   }, []);
 
-  // Continue to booking details
-  const handleContinue = useCallback(() => {
+  // Continue to booking details — create hold + add seats via API
+  const handleContinue = useCallback(async () => {
     if (selectedSeats.length === 0 || !event || !selectedTier) return;
-    setSeatSelection(event.id, selectedSeats, selectedTier.tierId, selectedTier.name, selectedTier.price);
-    navigate(`/events/${event.id}/booking-details`);
-  }, [selectedSeats, event, selectedTier, setSeatSelection, navigate]);
+    setIsSubmitting(true);
+
+    try {
+      // 1. Create a hold session
+      const hold = await createHold(numericEventId);
+
+      // 2. Add each selected seat to the hold
+      for (const uiSeatId of selectedSeats) {
+        const serverSeatId = seatIdMap[uiSeatId];
+        if (serverSeatId !== undefined) {
+          await addSeatToHold(hold.holdId, serverSeatId, selectedTier.ticketClassId);
+        }
+      }
+
+      // 3. Save to booking context with server expiresAt
+      setSeatSelection(
+        event.id,
+        selectedSeats,
+        String(selectedTier.seatZoneId),
+        selectedTier.name,
+        selectedTier.price,
+      );
+      setSessionId(hold.holdId);
+      setExpiresAt(hold.expiresAt);
+
+      // 4. Navigate to booking details
+      navigate(`/events/${event.id}/booking-details`);
+    } catch (err) {
+      console.error("Failed to create hold:", err);
+      // TODO: Show error toast
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [selectedSeats, event, selectedTier, numericEventId, seatIdMap, setSeatSelection, setSessionId, setExpiresAt, navigate]);
+
+  // ── Loading state ──
+  const isLoading = eventLoading || purchaseLoading;
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col h-[100dvh] w-full bg-[#0a0a0a] text-white font-sans overflow-hidden">
+        <header className="relative shrink-0 flex items-center justify-between px-4 md:px-8 py-3 bg-[#111] border-b border-white/5">
+          <Link to="/">
+            <Logo className="text-2xl md:text-3xl" />
+          </Link>
+        </header>
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6">
+          <Loader2 className="size-8 animate-spin text-(--accent)" />
+          <p className="text-sm text-gray-400">{t("common.loading", "Đang tải...")}</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!event) return <div className="p-10 text-white">{t("event.notFound")}</div>;
+
+  if (purchaseError) {
+    return (
+      <div className="flex flex-col h-[100dvh] w-full bg-[#0a0a0a] text-white font-sans items-center justify-center gap-4">
+        <p className="text-red-400 text-sm">{purchaseError}</p>
+        <Button
+          className="bg-(--accent) text-black"
+          onClick={() => navigate(`/events/${event.id}`)}
+        >
+          {t("common.back", "Trở về")}
+        </Button>
+      </div>
+    );
+  }
 
   // ── Step 1: Pick a tier ──
   if (!selectedTier) {
@@ -176,7 +293,7 @@ export default function Booking() {
               >
                 {tiers.map((tier) => (
                   <motion.button
-                    key={tier.tierId}
+                    key={tier.ticketClassId}
                     type="button"
                     onClick={() => handleSelectTier(tier)}
                     variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }}
@@ -202,8 +319,6 @@ export default function Booking() {
                         <p className="font-semibold text-white text-sm">{tier.name}</p>
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <span className="text-xs text-gray-500">{tier.seatCount} {t("booking.seats", "ghế")}</span>
-                          <span className="text-xs text-gray-600">·</span>
-                          <span className="text-xs text-gray-500">{tier.rows}×{tier.cols}</span>
                         </div>
                       </div>
 
@@ -249,7 +364,7 @@ export default function Booking() {
                 layout={seatLayout}
                 bookedSeatIds={bookedSeatIds}
                 onSelectionChange={setSelectedSeats}
-                maxSeats={MAX_SEATS}
+                maxSeats={maxSeats}
                 assignedSeatColors={assignedSeatColors}
               />
             </div>
@@ -300,16 +415,18 @@ export default function Booking() {
           )}
           <Button
             className={`w-full py-6 text-base font-bold transition-all rounded-md ${
-              selectedSeats.length > 0
+              selectedSeats.length > 0 && !isSubmitting
                 ? "bg-(--accent) text-black hover:bg-(--accent)/90 shadow-[0_0_15px_oklch(83.77%_0.1655_81.92_/_0.4)]"
                 : "bg-[#e5e5e5] text-gray-500 cursor-not-allowed"
             }`}
             onClick={handleContinue}
-            isDisabled={selectedSeats.length === 0}
+            isDisabled={selectedSeats.length === 0 || isSubmitting}
           >
-            {selectedSeats.length > 0
-              ? t("booking.continue", "Tiếp tục")
-              : t("booking.pleaseSelectTicket", "Vui lòng chọn ghế")}
+            {isSubmitting
+              ? t("booking.reserving", "Đang giữ chỗ...")
+              : selectedSeats.length > 0
+                ? t("booking.continue", "Tiếp tục")
+                : t("booking.pleaseSelectTicket", "Vui lòng chọn ghế")}
           </Button>
         </div>
       </div>

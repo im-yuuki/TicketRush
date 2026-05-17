@@ -8,7 +8,8 @@ import {
   Clock,
 } from "lucide-react";
 import { Button, Card } from "@heroui/react";
-import { getEvent } from "../data/events";
+import { useEventData } from "../hooks/useEventData";
+import { payHold } from "../api/purchaseApi";
 import { Logo } from "../components/Branding";
 import { StepIndicator } from "../components/booking/StepIndicator";
 import { EventMarquee } from "../components/booking/EventMarquee";
@@ -37,7 +38,7 @@ export default function Checkout() {
   const phone = booking?.phone || "";
   const totalAmountFromContext = booking?.totalAmount || 0;
 
-  const event = useMemo(() => getEvent(eventId), [eventId]);
+  const { event, loading: eventLoading } = useEventData(eventId);
 
   const [isConfirming, setIsConfirming] = useState(false);
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
@@ -75,21 +76,20 @@ export default function Checkout() {
   };
 
   const handleConfirmPayment = async () => {
+    if (!sessionId) return;
     setIsConfirming(true);
     try {
-      // TODO: Call backend to confirm payment
-      // await apiPost(`/bookings/${sessionId}/confirm`, {});
-      console.log("Payment confirmed for session:", sessionId);
-
+      await payHold(sessionId);
       setPaymentConfirmed(true);
-      // Clear booking context after successful payment
-      // clearBooking();
     } catch (err) {
       console.error("Payment confirmation failed:", err);
     } finally {
       setIsConfirming(false);
     }
   };
+
+  if (eventLoading)
+    return <div className="flex items-center justify-center h-[100dvh] bg-[#0a0a0a] text-white"><p className="text-sm text-gray-400">{t("common.loading", "Đang tải...")}</p></div>;
 
   if (!event)
     return <div className="p-10 text-white">{t("event.notFound")}</div>;
