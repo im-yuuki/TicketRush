@@ -9,6 +9,7 @@ import Booking from "./pages/Booking.tsx";
 import BookingDetails from "./pages/BookingDetails.tsx";
 import Payment from "./pages/Payment.tsx";
 import Checkout from "./pages/Checkout.tsx";
+import MyTickets from "./pages/MyTickets.tsx";
 import OrganizerEvents from "./pages/organizer/OrganizerEvents.tsx";
 import OrganizerCreateEvent from "./pages/organizer/OrganizerCreateEvent.tsx";
 import OrganizerEventPreview from "./pages/organizer/OrganizerEventPreview.tsx";
@@ -38,6 +39,10 @@ const AppRouter = createBrowserRouter([
       {
         path: "/terms",
         element: <Terms />,
+      },
+      {
+        path: "/my-tickets",
+        element: <MyTickets />,
       },
       {
         path: "/events/:eventId",
