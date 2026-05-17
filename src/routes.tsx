@@ -12,6 +12,8 @@ import Checkout from "./pages/Checkout.tsx";
 import MyTickets from "./pages/MyTickets.tsx";
 import AccountProfile from "./pages/AccountProfile.tsx";
 import OrganizationProfile from "./pages/OrganizationProfile.tsx";
+import Settings from "./pages/Settings.tsx";
+import OrganizerSettings from "./pages/organizer/OrganizerSettings.tsx";
 import OrganizerEvents from "./pages/organizer/OrganizerEvents.tsx";
 import OrganizerCreateEvent from "./pages/organizer/OrganizerCreateEvent.tsx";
 import OrganizerEventPreview from "./pages/organizer/OrganizerEventPreview.tsx";
@@ -49,6 +51,10 @@ const AppRouter = createBrowserRouter([
       {
         path: "/account",
         element: <AccountProfile />,
+      },
+      {
+        path: "/settings",
+        element: <Settings />,
       },
       {
         path: "/events/:eventId",
@@ -115,6 +121,10 @@ const AppRouter = createBrowserRouter([
       {
         path: "profile",
         element: <OrganizationProfile />,
+      },
+      {
+        path: "settings",
+        element: <OrganizerSettings />,
       },
       {
         path: "events/create",

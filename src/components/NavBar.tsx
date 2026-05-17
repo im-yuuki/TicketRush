@@ -97,6 +97,7 @@ function AccountButton() {
     account: isOrganization ? "/organizer/profile" : "/account",
     tickets: "/my-tickets",
     "organizer-events": "/organizer/events",
+    settings: isOrganization ? "/organizer/settings" : "/settings",
   };
 
   async function handleAccountAction(key: Key) {

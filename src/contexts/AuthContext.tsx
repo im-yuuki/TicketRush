@@ -43,6 +43,10 @@ function readAccountSnapshot(accountResponse: AccountResponse): StoredAccount {
   };
 }
 
+export function getAccountSnapshot(accountResponse: AccountResponse): StoredAccount {
+  return readAccountSnapshot(accountResponse);
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [account, setAccountState] = useState<StoredAccount | null>(() => readStoredAccount());
 
