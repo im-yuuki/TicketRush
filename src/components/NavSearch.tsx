@@ -59,7 +59,7 @@ function SearchResultItem({
   const { t } = useTranslation();
   const isEvent = result.type === "EVENT";
   const isOrganization = result.type === "ORGANIZATION";
-  const isClickable = isEvent && result.id !== null;
+  const isClickable = (isEvent || isOrganization) && result.id !== null;
   const typeLabel = isOrganization
     ? t("search.organization", "Organization")
     : t("search.event", "Event");
@@ -84,9 +84,6 @@ function SearchResultItem({
               <MapPin className="size-3 shrink-0" />
               <span className="truncate">{result.venue}</span>
             </span>
-          )}
-          {isOrganization && (
-            <span>{t("search.organizationUnavailable", "Profile link coming soon")}</span>
           )}
         </div>
       </div>
@@ -194,10 +191,17 @@ export default function NavSearch({ variant = "full" }: { variant?: "icon" | "fu
   }
 
   function handleSelect(result: SearchResult) {
-    if (result.type !== "EVENT" || result.id === null) return;
+    if (result.id === null) return;
 
     setIsOpen(false);
-    navigate(`/events/${result.id}`);
+    if (result.type === "ORGANIZATION") {
+      navigate(`/organizations/${result.id}`);
+      return;
+    }
+
+    if (result.type === "EVENT") {
+      navigate(`/events/${result.id}`);
+    }
   }
 
   const overlay = isOpen ? (

@@ -209,6 +209,7 @@ export default function Event() {
   const organizerLogoUrl = event.organizerLogo || organizerLogoFromStorage;
   const [organizerDescription, setOrganizerDescription] = useState(event.organizerDescription);
   const [organizerId, setOrganizerId] = useState<number | null>(null);
+  const [organizerAlias, setOrganizerAlias] = useState<string | null>(null);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
   const [isFollowed, setIsFollowed] = useState(false);
 
@@ -241,6 +242,7 @@ export default function Event() {
         const info = await getEventInfo(numericEventId);
         if (!isActive) return;
         setOrganizerId(info.organizationId ?? null);
+        setOrganizerAlias(info.organizationAlias ?? null);
 
         if (info.organizationId) {
           const orgInfo = await getOrganizationInfo(info.organizationId);
@@ -257,6 +259,11 @@ export default function Event() {
     };
   }, [event.id, event.organizerDescription]);
 
+  useEffect(() => {
+    setOrganizerAlias(null);
+    setOrganizerId(null);
+  }, [event.id]);
+
   const handleFollow = async () => {
     if (!organizerId || isFollowLoading) return;
     setIsFollowLoading(true);
@@ -270,6 +277,14 @@ export default function Event() {
       }
     } finally {
       setIsFollowLoading(false);
+    }
+  };
+
+  const handleViewOrganizer = () => {
+    if (organizerAlias) {
+      navigate(`/organizations/${organizerAlias}`);
+    } else if (organizerId) {
+      navigate(`/organizations/${organizerId}`);
     }
   };
 
@@ -332,6 +347,15 @@ export default function Event() {
               <p className="text-sm leading-relaxed text-muted">
                 {organizerDescription}
               </p>
+              {(organizerAlias || organizerId) && (
+                <button
+                  type="button"
+                  className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-foreground underline decoration-transparent transition hover:decoration-foreground"
+                  onClick={handleViewOrganizer}
+                >
+                  {t("event.organizerProfile", "View organization profile")}
+                </button>
+              )}
             </div>
             <div className="ml-auto flex items-start">
               <Button

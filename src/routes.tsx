@@ -12,6 +12,7 @@ import Checkout from "./pages/Checkout.tsx";
 import MyTickets from "./pages/MyTickets.tsx";
 import AccountProfile from "./pages/AccountProfile.tsx";
 import OrganizationProfile from "./pages/OrganizationProfile.tsx";
+import PublicOrganizationProfile from "./pages/PublicOrganizationProfile.tsx";
 import Settings from "./pages/Settings.tsx";
 import OrganizerSettings from "./pages/organizer/OrganizerSettings.tsx";
 import OrganizerEvents from "./pages/organizer/OrganizerEvents.tsx";
@@ -70,6 +71,10 @@ const AppRouter = createBrowserRouter([
             element: <Event />,
           },
         ],
+      },
+      {
+        path: "/organizations/:orgSlug",
+        element: <PublicOrganizationProfile />,
       },
 	  {
 		path: "/login",
