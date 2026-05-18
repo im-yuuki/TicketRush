@@ -106,7 +106,7 @@ export default function OrganizationProfile() {
       },
       {
         label: t("organization.profile.alias", "Alias"),
-        value: profile.aliasName,
+        value: editAlias,
         icon: Tag,
         editable: true as const,
         field: "alias" as const,
@@ -235,10 +235,10 @@ export default function OrganizationProfile() {
                     if (e.key === "Enter" || e.key === " ") setEditingField("description");
                   }}
                 >
-                  {profile.description || (
-                    <span className="text-muted italic">
-                      {t("organization.profile.clickToEdit", "Click to add")}
-                    </span>
+                    {editDescription || (
+                      <span className="text-muted italic">
+                        {t("organization.profile.clickToEdit", "Click to add")}
+                      </span>
                   )}
                 </p>
               )}
