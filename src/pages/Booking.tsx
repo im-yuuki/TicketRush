@@ -81,6 +81,7 @@ export default function Booking() {
     return () => { cancelled = true; };
   }, [numericEventId, isAuthenticated, setSessionId, setExpiresAt]);
 
+
   // ── Build tiers from ticketClasses ──
   const tiers = useMemo<TierInfo[]>(() => {
     if (!purchaseData) return [];
@@ -104,6 +105,21 @@ export default function Booking() {
   const [selectedTier, setSelectedTier] = useState<TierInfo | null>(null);
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // ── Poll seat availability every 3s while on seat selection step ──
+  useEffect(() => {
+    if (!selectedTier || !Number.isFinite(numericEventId) || !isAuthenticated) return;
+
+    const id = setInterval(() => {
+      getSeatStatuses(numericEventId)
+        .then((data) => {
+          if (data?.seatZones) setSeatZonesWithStatus(data.seatZones);
+        })
+        .catch(() => {});
+    }, 3000);
+
+    return () => clearInterval(id);
+  }, [selectedTier, numericEventId, isAuthenticated]);
 
   // ── Seat map for selected tier ──
   const selectedZone = useMemo<ServerSeatZoneView | null>(() => {

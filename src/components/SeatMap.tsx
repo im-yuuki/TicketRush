@@ -170,6 +170,21 @@ export default function SeatMap({ layout, bookedSeatIds = [], onSelectionChange,
   // Derived state: Quick lookup for booked seats (from server)
   const bookedSeatsSet = useMemo(() => new Set(bookedSeatIds), [bookedSeatIds]);
 
+  // Auto-deselect seats that became booked by others (from polling updates)
+  useEffect(() => {
+    setSelectedSeatIds((prev) => {
+      const next = new Set(prev);
+      let changed = false;
+      for (const id of prev) {
+        if (bookedSeatsSet.has(id)) {
+          next.delete(id);
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [bookedSeatsSet]);
+
   // Derived state: Generate the full physical grid of seats on the fly based on layout + states
   const venueBlocks = useMemo(() => {
     return layout.blocks.map((block) => {
